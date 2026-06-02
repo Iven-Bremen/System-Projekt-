@@ -1,4 +1,9 @@
-﻿import csv
+﻿"""
+Hilfsfunktionen für das Loggen der Messdaten und der Terminalausgaben.
+Die CSV-Datei wird automatisch angelegt, wenn sie noch nicht existiert.
+"""
+
+import csv
 import os
 import sys
 from datetime import datetime

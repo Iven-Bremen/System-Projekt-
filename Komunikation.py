@@ -1,3 +1,9 @@
+"""
+Dieses Modul enthält die Gerätetreiber und den Hintergrund-Worker für die
+RS232/Serial-Kommunikation. Es unterstützt echten Hardwarebetrieb und einen
+Simulationsmodus mit Testdaten.
+"""
+
 import queue
 import time
 import os
@@ -62,6 +68,8 @@ class OsTechDriver:
 
     def connect(self):
         if self.simulate:
+            # Im Simulationsmodus gibt es keine echte serielle Verbindung.
+            # Wir tun so, als wäre das Gerät verbunden, damit der Ablauf weiterläuft.
             print(f"[OsTech] MOCK-MODUS: Virtuell verbunden mit {self.port}")
             return True
         try:
@@ -76,6 +84,7 @@ class OsTechDriver:
     def query(self, cmd):
         start_time = time.perf_counter()
         if self.simulate:
+            # Simuliere eine kurze Wartezeit, wie sie bei echter Hardware auftritt.
             time.sleep(0.012)
             latency = (time.perf_counter() - start_time) * 1000
             if self.simulator:
@@ -110,6 +119,7 @@ class SR830Driver:
 
     def connect(self):
         if self.simulate:
+            # Hier machen wir im Testmodus ebenfalls eine virtuelle Verbindung.
             print(f"[SR830] MOCK-MODUS: Virtuell verbunden mit {self.port}")
             return True
         try:
@@ -124,6 +134,7 @@ class SR830Driver:
     def query(self, cmd):
         start_time = time.perf_counter()
         if self.simulate:
+            # Kleine Verzögerung simulieren, damit die Ausgabe realistischer wirkt.
             time.sleep(0.008)
             latency = (time.perf_counter() - start_time) * 1000
             if self.simulator:
@@ -148,7 +159,7 @@ class SR830Driver:
 
 
 class SerialWorker(threading.Thread):
-    """Zentraler Hintergrund-Thread für periodische Abfragen und CSV-Logging."""
+    """Hintergrund-Worker, der regelmäßig Daten abfragt und alles in die CSV schreibt."""
 
     def __init__(self, port_laser, port_lockin, cmd_queue, res_queue, csv_filename=None, simulate=False, simulator=None):
         super().__init__()

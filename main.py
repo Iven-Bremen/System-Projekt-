@@ -1,7 +1,6 @@
 ﻿"""
-Haupteinstiegspunkt für das RS232-Kommunikationssystem im Hardware-Modus.
-Konfigurationsparameter werden aus config.py geladen.
-Ausführung delegiert an helper.py.
+Hauptprogramm für den Hardware-Modus des RS232-Kommunikationssystems.
+Hier werden Kommandozeilen-Argumente gelesen und das Programm gestartet.
 """
 
 import sys
@@ -11,7 +10,7 @@ from Komunikation import print_available_ports
 
 
 def parse_args(args):
-    """Parse Kommandozeilen-Argumente."""
+    """Liest die Eingabeparameter von der Kommandozeile aus."""
     port_laser = None
     port_lockin = None
     for idx, arg in enumerate(args):
@@ -26,7 +25,7 @@ def parse_args(args):
 
 
 def main():
-    """Hauptprogramm."""
+    """Startet das Programm und übernimmt gegebenenfalls benutzerdefinierte Ports."""
     port_laser, port_lockin, did_list = parse_args(sys.argv[1:])
     
     if did_list:

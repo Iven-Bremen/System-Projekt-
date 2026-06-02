@@ -1,3 +1,8 @@
+"""
+Dieses Modul enthält alle Ausgaben für die Konsole: Header, Statustexte und
+Benutzerhinweise für den interaktiven Modus.
+"""
+
 import time
 
 from Komunikation import scan_ports_with_spinner, print_available_ports

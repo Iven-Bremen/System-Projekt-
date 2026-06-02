@@ -1,6 +1,6 @@
 """
-Zentrale Helper-Klasse zur Programmausführung.
-Startet Logging, konfiguriert Worker und führt das Kommunikationssystem aus.
+Dieses Modul organisiert den Programmablauf für die RS232-Kommunikation.
+Es kümmert sich um Logging, die Simulationsentscheidung und den Hintergrund-Worker.
 """
 
 import sys
@@ -38,21 +38,23 @@ from Terminal import (
 
 
 class ProgramRunner:
-    """Orchestrator für das RS232-Kommunikationssystem."""
+    """Dieser Runner hält das Programm zusammen: Ports, Simulation und Menü."""
 
-    def __init__(self, port_laser=None, port_lockin=None, simulate=None, interactive=True):
+    def __init__(self, port_laser=None, port_lockin=None, simulate=None, simulator=None, interactive=True):
         """
-        Initialisiere den Runner mit Konfigurationsparametern.
-        
+        Bereitet die Ausführung mit den richtigen Parametern vor.
+
         Args:
-            port_laser: Port für OsTech-Laser (überschreibt config.PORT_LASER)
-            port_lockin: Port für SR830-LockIn (überschreibt config.PORT_LOCKIN)
-            simulate: Simulationsmodus aktivieren (überschreibt config.SIMULATE)
-            interactive: Interaktiver Modus nach Startup
+            port_laser: Port für den OsTech-Laser
+            port_lockin: Port für den SR830-LockIn
+            simulate: Wenn True, läuft das Programm im Simulationsmodus
+            simulator: Ein Simulatorobjekt für die virtuellen Antworten
+            interactive: Wenn True, zeigt das Programm das interaktive Menü
         """
         self.port_laser = port_laser or config.PORT_LASER
         self.port_lockin = port_lockin or config.PORT_LOCKIN
         self.simulate = simulate if simulate is not None else config.SIMULATE
+        self.simulator = simulator
         self.interactive = interactive
 
         self.csv_path = None
@@ -61,8 +63,8 @@ class ProgramRunner:
         self.device_to_gui = queue.Queue()
 
     def initialize(self):
-        """Initialisiere Logging und lade Konfiguration."""
-        # Logging starten
+        """Bereitet das Logging vor und schreibt die Startkonfiguration ins Log."""
+        # Wir legen die CSV-Datei an und starten die Terminal-Logaufzeichnung.
         self.csv_path = make_log_path(config.LOG_PREFIX)
         try:
             start_terminal_logging(
@@ -78,7 +80,7 @@ class ProgramRunner:
         self._log_configuration()
 
     def _log_configuration(self):
-        """Logge alle Konfigurationsparameter in die CSV."""
+        """Speichert die aktuellen Einstellungen im Log, damit man später nachvollziehen kann, wie gestartet wurde."""
         config_items = [
             ("PORT_LASER", str(self.port_laser)),
             ("PORT_LOCKIN", str(self.port_lockin)),
@@ -119,6 +121,7 @@ class ProgramRunner:
             import traceback
             traceback.print_exc()
         finally:
+            # Egal ob normal beendet oder durch einen Fehler: wir schalten sauber ab.
             self._shutdown()
 
     def run_interactive(self):
@@ -139,14 +142,15 @@ class ProgramRunner:
             import traceback
             traceback.print_exc()
         finally:
+            # Am Ende räumen wir immer auf und beenden den Worker korrekt.
             self._shutdown()
 
     def _startup(self):
-        """Starte den Worker und führe initiale Tests durch."""
-        # Prüfe Simulation
+        """Startet den Hintergrund-Worker und schickt die ersten Befehle ab."""
+        # Hier entscheiden wir, ob wir echte Hardware nutzen oder simulieren.
         use_simulation = self.simulate or (config.AUTO_SIMULATE_ON_NO_SERIAL and not SERIAL_AVAILABLE)
 
-        # Header
+        # Header ausgeben und den genutzten Modus anzeigen.
         header("HARDWARE RS232 / USB KOMMUNIKATIONSSYSTEM - AKTIVER MODUS")
         mode_status(use_simulation=use_simulation)
 
@@ -155,26 +159,31 @@ class ProgramRunner:
         port_lockin = self.port_lockin
 
         if not port_laser or not port_lockin:
-            port_search_header()
-            ports = scan_ports_with_spinner(timeout=config.PORT_SCAN_TIMEOUT)
-            print_available_ports(ports)
+            if use_simulation:
+                # Im Simulationsmodus brauchen wir keinen echten Portnamen.
+                port_laser = port_laser or "SIM_LASER"
+                port_lockin = port_lockin or "SIM_LOCKIN"
+            else:
+                port_search_header()
+                ports = scan_ports_with_spinner(timeout=config.PORT_SCAN_TIMEOUT)
+                print_available_ports(ports)
 
-            if not ports:
-                no_ports_found()
+                if not ports:
+                    no_ports_found()
 
-            if not port_laser:
-                port_laser = prompt_for_port(
-                    "\n[OsTech-Laser] Gib den Port ein (z.B. COM3 oder /dev/serial/by-id/usb-...): "
-                )
-            if not port_lockin:
-                port_lockin = prompt_for_port(
-                    "\n[SR830-LockIn] Gib den Port ein (z.B. COM4 oder /dev/serial/by-id/usb-...): "
-                )
+                if not port_laser:
+                    port_laser = prompt_for_port(
+                        "\n[OsTech-Laser] Gib den Port ein (z.B. COM3 oder /dev/serial/by-id/usb-...): "
+                    )
+                if not port_lockin:
+                    port_lockin = prompt_for_port(
+                        "\n[SR830-LockIn] Gib den Port ein (z.B. COM4 oder /dev/serial/by-id/usb-...): "
+                    )
 
         port_laser = resolve_port(port_laser)
         port_lockin = resolve_port(port_lockin)
 
-        # Worker erstellen
+        # Worker erstellen und dabei den Simulator weiterreichen, wenn einer vorhanden ist.
         self.worker = SerialWorker(
             port_laser=port_laser,
             port_lockin=port_lockin,
@@ -182,7 +191,7 @@ class ProgramRunner:
             res_queue=self.device_to_gui,
             csv_filename=self.csv_path,
             simulate=use_simulation,
-            simulator=None,
+            simulator=self.simulator,
         )
 
         # Startup-Info
@@ -239,19 +248,19 @@ class ProgramRunner:
             shutdown_summary(self.worker.csv_filename)
 
 
-def run_hardware(interactive=True):
+def run_hardware(interactive=True, simulator=None):
     """Starte das System im Hardware-Modus."""
-    runner = ProgramRunner(simulate=False, interactive=interactive)
+    runner = ProgramRunner(simulate=False, interactive=interactive, simulator=simulator)
     runner.run_interactive()
 
 
-def run_simulation(interactive=False):
+def run_simulation(interactive=False, simulator=None):
     """Starte das System im Simulationsmodus."""
-    runner = ProgramRunner(simulate=True, interactive=interactive)
+    runner = ProgramRunner(simulate=True, interactive=interactive, simulator=simulator)
     runner.run()
 
 
-def run_custom(port_laser=None, port_lockin=None, simulate=None, interactive=True):
+def run_custom(port_laser=None, port_lockin=None, simulate=None, simulator=None, interactive=True):
     """Starte das System mit benutzerdefinierten Parametern."""
-    runner = ProgramRunner(port_laser=port_laser, port_lockin=port_lockin, simulate=simulate, interactive=interactive)
+    runner = ProgramRunner(port_laser=port_laser, port_lockin=port_lockin, simulate=simulate, simulator=simulator, interactive=interactive)
     runner.run_interactive()

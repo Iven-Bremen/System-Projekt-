@@ -1,6 +1,6 @@
 """
-Zentralisierte Konfiguration für das RS232-Kommunikationssystem.
-Alle änderbaren Variablen und Initialisierungen sind hier definiert.
+Hier stehen alle wichtigen Einstellungen für das RS232-Kommunikationssystem.
+Die Datei enthält Ports, Baudraten, Logging-Optionen und den Simulationsmodus.
 """
 
 # ============================================================================
