@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # PLIS - Kurz-Anleitung
 
 Dies ist das Steuerprogramm für dein RS232-Kommunikationssystem.
@@ -57,3 +58,7 @@ python main.py --laser-port COM3 --lockin-port COM4
 - Wenn du den Hardware-Modus verwendest, musst du sicherstellen, dass `pyserial` installiert ist.
 - Falls du mehr menschliche Kommentare oder eine ausführlichere Entwickler-Dokumentation möchtest,
   kann ich dir gern noch eine `DEVELOPMENT.md` oder ausführliche Erläuterungen schreiben.
+=======
+# System-Projekt-
+Git Code space für das System/Projekt der UNI Bremen
+>>>>>>> e906db6 (Initial commit)
