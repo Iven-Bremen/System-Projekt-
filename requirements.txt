@@ -1,3 +1,0 @@
-# Liste der benötigten Python-Pakete für dieses Projekt.
-# Installiere sie mit: python -m pip install -r requirements.txt
-pyserial>=3.5
