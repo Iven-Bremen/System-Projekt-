@@ -296,6 +296,120 @@ def print_available_ports(ports=None):
         print(f"  {idx}. {device} - {description}")
 
 
+def _is_float(value):
+    try:
+        float(value)
+        return True
+    except Exception:
+        return False
+
+
+def _query_serial_port(port, baudrate, command, timeout=0.7):
+    if serial is None:
+        return None
+    try:
+        with serial.Serial(port, baudrate, timeout=timeout) as ser:
+            ser.reset_input_buffer()
+            ser.reset_output_buffer()
+            for ending in ("\r\n", "\n"):
+                try:
+                    ser.write(f"{command}{ending}".encode("utf-8"))
+                    time.sleep(0.12)
+                    response = ser.readline().decode("utf-8", errors="ignore").strip()
+                    if response:
+                        return response
+                except Exception:
+                    continue
+    except Exception:
+        return None
+    return None
+
+
+def _looks_like_os_tech_response(response, command):
+    if not response:
+        return False
+    if command == "GS":
+        return response.startswith("0x") or response.upper() == "OK"
+    if command == "GT":
+        return _is_float(response)
+    return False
+
+
+def _looks_like_sr830_response(response, command):
+    if not response:
+        return False
+    if command == "PHAS?":
+        return _is_float(response)
+    if command == "SNAP? 1,2":
+        parts = [p.strip() for p in response.split(",")]
+        return len(parts) == 2 and all(_is_float(p) for p in parts)
+    return False
+
+
+def _probe_os_tech_port(port):
+    gs = _query_serial_port(port, 9600, "GS")
+    if _looks_like_os_tech_response(gs, "GS"):
+        return True
+    gt = _query_serial_port(port, 9600, "GT")
+    return _looks_like_os_tech_response(gt, "GT")
+
+
+def _probe_sr830_port(port):
+    phas = _query_serial_port(port, 19200, "PHAS?")
+    if _looks_like_sr830_response(phas, "PHAS?"):
+        return True
+    snap = _query_serial_port(port, 19200, "SNAP? 1,2")
+    return _looks_like_sr830_response(snap, "SNAP? 1,2")
+
+
+def auto_detect_device_ports(ports=None):
+    if list_ports is None:
+        return None, None, {}
+    if ports is None:
+        ports = scan_serial_ports()
+
+    detection = {}
+    for device, description in ports:
+        detection[device] = {
+            "description": description,
+            "os_tech": _probe_os_tech_port(device),
+            "sr830": _probe_sr830_port(device),
+        }
+
+    port_laser = None
+    port_lockin = None
+    os_tech_candidates = [p for p, info in detection.items() if info["os_tech"]]
+    sr830_candidates = [p for p, info in detection.items() if info["sr830"]]
+
+    if len(os_tech_candidates) == 1:
+        port_laser = os_tech_candidates[0]
+    if len(sr830_candidates) == 1:
+        port_lockin = sr830_candidates[0]
+
+    if port_laser is None and len(os_tech_candidates) == 2 and len(sr830_candidates) == 2:
+        # Wenn zwei Ports gefunden und beide Geräte antworten jeweils eindeutig,
+        # dann keinem Port zuordnen, da es zu unsicher ist.
+        pass
+
+    return port_laser, port_lockin, detection
+
+
+def print_auto_detected_ports(detection):
+    if not detection:
+        return
+    print("\nAuto-Erkennungsergebnisse:")
+    for port, info in detection.items():
+        labels = []
+        if info.get("os_tech"):
+            labels.append("OsTech Laser")
+        if info.get("sr830"):
+            labels.append("SR830 LockIn")
+        if not labels:
+            labels.append("unbekannt")
+        description = info.get("description", "")
+        print(f"  {port} - {description} -> {', '.join(labels)}")
+
+
 def send_all_commands(cmd_queue, known_commands=None):
     if known_commands is None:
         import config

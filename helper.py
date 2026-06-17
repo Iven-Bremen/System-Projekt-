@@ -16,6 +16,8 @@ from Komunikation import (
     print_available_ports,
     resolve_port,
     SERIAL_AVAILABLE,
+    auto_detect_device_ports,
+    print_auto_detected_ports,
 )
 from Log import make_log_path, start_terminal_logging, append_csv_row
 from Terminal import (
@@ -170,6 +172,16 @@ class ProgramRunner:
 
                 if not ports:
                     no_ports_found()
+
+                detected_laser, detected_lockin, detection = auto_detect_device_ports(ports)
+                print_auto_detected_ports(detection)
+                if detected_laser or detected_lockin:
+                    if detected_laser:
+                        print(f"\nAutomatisch als OsTech Laser erkannt: {detected_laser}")
+                        port_laser = port_laser or detected_laser
+                    if detected_lockin:
+                        print(f"Automatisch als SR830 LockIn erkannt: {detected_lockin}")
+                        port_lockin = port_lockin or detected_lockin
 
                 if not port_laser:
                     port_laser = prompt_for_port(
