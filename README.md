@@ -55,5 +55,5 @@ python main.py --laser-port COM3 --lockin-port COM4
 ## Hinweise
 - Im Simulationsmodus braucht das Programm keine echte serielle Verbindung.
 - Wenn du den Hardware-Modus verwendest, musst du sicherstellen, dass `pyserial` installiert ist.
-- Falls du mehr menschliche Kommentare oder eine ausführlichere Entwickler-Dokumentation möchtest,
-  kann ich dir gern noch eine `DEVELOPMENT.md` oder ausführliche Erläuterungen schreiben.
+- Das externe GitHub-Repo ist für ein anderes Gerät und ein anderes Protokoll gedacht. Für dein Projekt ist die allgemeine Idee aber passend: Port öffnen, Befehl senden, Antwort lesen, Ergebnis verarbeiten.
+- Wenn du die Kommunikation erweitern willst, ist der nächste sinnvolle Schritt, die Gerätebefehle in einer eigenen Liste mit Parametern und einer kurzen Beschreibung zu kapseln.

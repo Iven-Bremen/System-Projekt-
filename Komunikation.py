@@ -1,7 +1,17 @@
 """
 Dieses Modul enthält die Gerätetreiber und den Hintergrund-Worker für die
-RS232/Serial-Kommunikation. Es unterstützt echten Hardwarebetrieb und einen
-Simulationsmodus mit Testdaten.
+RS232-/Serial-Kommunikation mit den beiden Geräten OsTech-Laser und SR830-LockIn.
+
+Die Struktur folgt dem allgemeinen Muster eines seriellen Hosts:
+- Port öffnen
+- Befehl senden
+- Antwort lesen
+- Ergebnis weiterverarbeiten
+
+Im Gegensatz zum externen Beispiel aus dem GitHub-Repo ist dieses Projekt auf
+zwei konkrete Geräte und ein eigenes Protokoll ausgerichtet. Die Grundidee ist
+aber dieselbe: ein einfacher, gut dokumentierter Serial-Loop mit sauberem
+Fehlerhandling.
 """
 
 import queue
@@ -21,6 +31,7 @@ except Exception:
     SERIAL_AVAILABLE = False
 
 from Log import make_log_path, ensure_log_file, insert_session_separator, append_csv_row
+from lockin_amplifier import LAM
 
 
 class OsTechStatusDecoder:
@@ -58,33 +69,47 @@ class OsTechStatusDecoder:
 
 
 class OsTechDriver:
+    """Treiber für den OsTech-Laser über RS232/USB."""
+
     def __init__(self, port, baudrate=9600, timeout=1.0, simulate=False, simulator=None):
         self.port = port
         self.baudrate = baudrate
         self.timeout = timeout
-        self.simulate = simulate or not SERIAL_AVAILABLE
+        self.simulate = simulate
         self.simulator = simulator
         self.ser = None
 
     def connect(self):
         if self.simulate:
-            # Im Simulationsmodus gibt es keine echte serielle Verbindung.
-            # Wir tun so, als wäre das Gerät verbunden, damit der Ablauf weiterläuft.
             print(f"[OsTech] MOCK-MODUS: Virtuell verbunden mit {self.port}")
             return True
+        if serial is None:
+            print("[OsTech] pyserial ist nicht verfügbar.")
+            return False
         try:
             self.ser = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
             print(f"[OsTech] HARDWARE: Erfolgreich verbunden mit {self.port}")
             return True
         except Exception as e:
-            print(f"[OsTech] Verbindungsfehler an {self.port}: {e}. Schalte in Simulationsmodus.")
-            self.simulate = True
-            return True
+            print(f"[OsTech] Verbindungsfehler an {self.port}: {e}")
+            self.ser = None
+            return False
+
+    def close(self):
+        if self.ser is not None:
+            try:
+                self.ser.close()
+            except Exception:
+                pass
+            self.ser = None
 
     def query(self, cmd):
+        """Sende einen Befehl an das Gerät und liefere die Antwort zurück."""
         start_time = time.perf_counter()
+        if not self.ser and not self.simulate:
+            return None, (time.perf_counter() - start_time) * 1000
+
         if self.simulate:
-            # Simuliere eine kurze Wartezeit, wie sie bei echter Hardware auftritt.
             time.sleep(0.012)
             latency = (time.perf_counter() - start_time) * 1000
             if self.simulator:
@@ -108,54 +133,21 @@ class OsTechDriver:
             return f"ERROR: {e}", (time.perf_counter() - start_time) * 1000
 
 
-class SR830Driver:
-    def __init__(self, port, baudrate=19200, timeout=1.0, simulate=False, simulator=None):
-        self.port = port
-        self.baudrate = baudrate
-        self.timeout = timeout
-        self.simulate = simulate or not SERIAL_AVAILABLE
-        self.simulator = simulator
-        self.ser = None
+class SR830Driver(LAM):
+    """Kompatibilitäts-Wrapper für die bestehende SR830-Schnittstelle."""
 
-    def connect(self):
-        if self.simulate:
-            # Hier machen wir im Testmodus ebenfalls eine virtuelle Verbindung.
-            print(f"[SR830] MOCK-MODUS: Virtuell verbunden mit {self.port}")
-            return True
-        try:
-            self.ser = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
-            print(f"[SR830] HARDWARE: Erfolgreich verbunden mit {self.port}")
-            return True
-        except Exception as e:
-            print(f"[SR830] Verbindungsfehler an {self.port}: {e}. Schalte in Simulationsmodus.")
-            self.simulate = True
-            return True
+    def __init__(self, port, baudrate=19200, timeout=1.0, simulate=False, simulator=None, log_path=None):
+        super().__init__(port=port, baudrate=baudrate, timeout=timeout, simulate=simulate, simulator=simulator, log_path=log_path)
 
     def query(self, cmd):
-        start_time = time.perf_counter()
-        if self.simulate:
-            # Kleine Verzögerung simulieren, damit die Ausgabe realistischer wirkt.
-            time.sleep(0.008)
-            latency = (time.perf_counter() - start_time) * 1000
-            if self.simulator:
-                if cmd == "SNAP? 1,2":
-                    return self.simulator.get_SR830_SNAP(), latency
-                if cmd == "PHAS?":
-                    return self.simulator.get_SR830_PHAS(), latency
-                return "0", latency
-            if cmd == "SNAP? 1,2":
-                return "0.00231, -0.00145", latency
-            if cmd == "PHAS?":
-                return "14.52", latency
-            return "0", latency
+        return super().query(cmd)
 
-        try:
-            self.ser.write(f"{cmd}\n".encode("utf-8"))
-            response = self.ser.readline().decode("utf-8").strip()
-            latency = (time.perf_counter() - start_time) * 1000
-            return response, latency
-        except Exception as e:
-            return f"ERROR: {e}", (time.perf_counter() - start_time) * 1000
+
+def initialize_lockin(port=None, baudrate=19200, timeout=1.0, simulate=False, simulator=None, log_path=None):
+    """Erzeugt und initialisiert einen SR830-Driver für den direkten Einsatz."""
+    driver = SR830Driver(port=port, baudrate=baudrate, timeout=timeout, simulate=simulate, simulator=simulator, log_path=log_path)
+    driver.connect()
+    return driver
 
 
 class SerialWorker(threading.Thread):
@@ -252,6 +244,10 @@ class SerialWorker(threading.Thread):
 
     def stop(self):
         self.running = False
+        self.laser.close()
+        self.lockin.close()
+        self.laser.close()
+        self.lockin.close()
 
 
 def scan_serial_ports():

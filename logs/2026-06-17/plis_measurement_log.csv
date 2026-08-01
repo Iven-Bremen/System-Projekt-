@@ -100332,3 +100332,635 @@ Timestamp;Device;Command;Raw_Response;Decoded_Info;Latency_ms
 2026-06-17 13:09:21.642;TERMINAL;OUTPUT;[2026-06-17 13:09:21.642] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
 2026-06-17 13:09:21.744;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.70
 2026-06-17 13:09:21.744;TERMINAL;OUTPUT;[2026-06-17 13:09:21.744] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.7ms;;0
+2026-06-17 13:09:21.844;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.45
+2026-06-17 13:09:21.844;TERMINAL;OUTPUT;[2026-06-17 13:09:21.844] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:21.846;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.05
+2026-06-17 13:09:21.846;TERMINAL;OUTPUT;[2026-06-17 13:09:21.846] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:21.846;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.06
+2026-06-17 13:09:21.846;TERMINAL;OUTPUT;[2026-06-17 13:09:21.846] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.1ms;;0
+2026-06-17 13:09:21.945;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.36
+2026-06-17 13:09:21.945;TERMINAL;OUTPUT;[2026-06-17 13:09:21.945] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:22.045;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.29
+2026-06-17 13:09:22.045;TERMINAL;OUTPUT;[2026-06-17 13:09:22.045] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:22.146;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.49
+2026-06-17 13:09:22.146;TERMINAL;OUTPUT;[2026-06-17 13:09:22.146] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:22.246;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.30
+2026-06-17 13:09:22.246;TERMINAL;OUTPUT;[2026-06-17 13:09:22.246] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:22.347;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.26
+2026-06-17 13:09:22.347;TERMINAL;OUTPUT;[2026-06-17 13:09:22.347] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:22.448;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.43
+2026-06-17 13:09:22.449;TERMINAL;OUTPUT;[2026-06-17 13:09:22.448] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:22.550;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.61
+2026-06-17 13:09:22.550;TERMINAL;OUTPUT;[2026-06-17 13:09:22.550] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:22.650;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.14
+2026-06-17 13:09:22.651;TERMINAL;OUTPUT;[2026-06-17 13:09:22.651] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:22.751;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.15
+2026-06-17 13:09:22.751;TERMINAL;OUTPUT;[2026-06-17 13:09:22.751] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:22.853;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.54
+2026-06-17 13:09:22.853;TERMINAL;OUTPUT;[2026-06-17 13:09:22.853] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:22.856;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.09
+2026-06-17 13:09:22.856;TERMINAL;OUTPUT;[2026-06-17 13:09:22.856] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:22.856;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.07
+2026-06-17 13:09:22.856;TERMINAL;OUTPUT;[2026-06-17 13:09:22.856] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.1ms;;0
+2026-06-17 13:09:22.954;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.51
+2026-06-17 13:09:22.954;TERMINAL;OUTPUT;[2026-06-17 13:09:22.954] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:23.055;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.51
+2026-06-17 13:09:23.057;TERMINAL;OUTPUT;[2026-06-17 13:09:23.055] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:23.157;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;10.13
+2026-06-17 13:09:23.157;TERMINAL;OUTPUT;[2026-06-17 13:09:23.157] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 10.1ms;;0
+2026-06-17 13:09:23.255;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.62
+2026-06-17 13:09:23.255;TERMINAL;OUTPUT;[2026-06-17 13:09:23.255] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:23.356;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.66
+2026-06-17 13:09:23.358;TERMINAL;OUTPUT;[2026-06-17 13:09:23.356] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.7ms;;0
+2026-06-17 13:09:23.460;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.30
+2026-06-17 13:09:23.460;TERMINAL;OUTPUT;[2026-06-17 13:09:23.460] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:23.558;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.52
+2026-06-17 13:09:23.560;TERMINAL;OUTPUT;[2026-06-17 13:09:23.560] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:23.659;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.35
+2026-06-17 13:09:23.660;TERMINAL;OUTPUT;[2026-06-17 13:09:23.659] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:23.760;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.50
+2026-06-17 13:09:23.760;TERMINAL;OUTPUT;[2026-06-17 13:09:23.760] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:23.861;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.17
+2026-06-17 13:09:23.861;TERMINAL;OUTPUT;[2026-06-17 13:09:23.861] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:23.864;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.09
+2026-06-17 13:09:23.864;TERMINAL;OUTPUT;[2026-06-17 13:09:23.864] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:23.866;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.05
+2026-06-17 13:09:23.866;TERMINAL;OUTPUT;[2026-06-17 13:09:23.866] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.0ms;;0
+2026-06-17 13:09:23.963;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.51
+2026-06-17 13:09:23.965;TERMINAL;OUTPUT;[2026-06-17 13:09:23.963] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:24.063;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.37
+2026-06-17 13:09:24.066;TERMINAL;OUTPUT;[2026-06-17 13:09:24.063] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:24.164;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.42
+2026-06-17 13:09:24.166;TERMINAL;OUTPUT;[2026-06-17 13:09:24.164] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:24.264;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.46
+2026-06-17 13:09:24.266;TERMINAL;OUTPUT;[2026-06-17 13:09:24.264] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:24.367;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.56
+2026-06-17 13:09:24.369;TERMINAL;OUTPUT;[2026-06-17 13:09:24.367] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:24.467;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.60
+2026-06-17 13:09:24.469;TERMINAL;OUTPUT;[2026-06-17 13:09:24.468] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:24.569;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.29
+2026-06-17 13:09:24.570;TERMINAL;OUTPUT;[2026-06-17 13:09:24.569] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:24.669;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.25
+2026-06-17 13:09:24.670;TERMINAL;OUTPUT;[2026-06-17 13:09:24.670] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:24.771;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.56
+2026-06-17 13:09:24.773;TERMINAL;OUTPUT;[2026-06-17 13:09:24.771] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:24.870;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.51
+2026-06-17 13:09:24.870;TERMINAL;OUTPUT;[2026-06-17 13:09:24.870] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:24.873;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.12
+2026-06-17 13:09:24.875;TERMINAL;OUTPUT;[2026-06-17 13:09:24.873] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:24.875;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.05
+2026-06-17 13:09:24.877;TERMINAL;OUTPUT;[2026-06-17 13:09:24.875] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.1ms;;0
+2026-06-17 13:09:24.970;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.48
+2026-06-17 13:09:24.970;TERMINAL;OUTPUT;[2026-06-17 13:09:24.970] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:25.070;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.60
+2026-06-17 13:09:25.072;TERMINAL;OUTPUT;[2026-06-17 13:09:25.070] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:25.172;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.69
+2026-06-17 13:09:25.172;TERMINAL;OUTPUT;[2026-06-17 13:09:25.172] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.7ms;;0
+2026-06-17 13:09:25.272;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.47
+2026-06-17 13:09:25.272;TERMINAL;OUTPUT;[2026-06-17 13:09:25.272] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:25.373;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.99
+2026-06-17 13:09:25.375;TERMINAL;OUTPUT;[2026-06-17 13:09:25.373] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 9.0ms;;0
+2026-06-17 13:09:25.473;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.54
+2026-06-17 13:09:25.475;TERMINAL;OUTPUT;[2026-06-17 13:09:25.473] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:25.574;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.44
+2026-06-17 13:09:25.576;TERMINAL;OUTPUT;[2026-06-17 13:09:25.574] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:25.675;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.40
+2026-06-17 13:09:25.675;TERMINAL;OUTPUT;[2026-06-17 13:09:25.675] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:25.775;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.44
+2026-06-17 13:09:25.778;TERMINAL;OUTPUT;[2026-06-17 13:09:25.775] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:25.876;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.16
+2026-06-17 13:09:25.876;TERMINAL;OUTPUT;[2026-06-17 13:09:25.876] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:25.879;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.05
+2026-06-17 13:09:25.880;TERMINAL;OUTPUT;[2026-06-17 13:09:25.879] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:25.880;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.04
+2026-06-17 13:09:25.880;TERMINAL;OUTPUT;[2026-06-17 13:09:25.880] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.0ms;;0
+2026-06-17 13:09:25.977;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.17
+2026-06-17 13:09:25.977;TERMINAL;OUTPUT;[2026-06-17 13:09:25.977] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:26.077;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.19
+2026-06-17 13:09:26.077;TERMINAL;OUTPUT;[2026-06-17 13:09:26.077] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:26.178;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.24
+2026-06-17 13:09:26.178;TERMINAL;OUTPUT;[2026-06-17 13:09:26.178] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:26.278;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.58
+2026-06-17 13:09:26.280;TERMINAL;OUTPUT;[2026-06-17 13:09:26.278] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:26.378;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.20
+2026-06-17 13:09:26.380;TERMINAL;OUTPUT;[2026-06-17 13:09:26.378] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:26.480;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.70
+2026-06-17 13:09:26.482;TERMINAL;OUTPUT;[2026-06-17 13:09:26.480] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.7ms;;0
+2026-06-17 13:09:26.580;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.69
+2026-06-17 13:09:26.580;TERMINAL;OUTPUT;[2026-06-17 13:09:26.580] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.7ms;;0
+2026-06-17 13:09:26.680;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.15
+2026-06-17 13:09:26.682;TERMINAL;OUTPUT;[2026-06-17 13:09:26.680] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:26.781;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.26
+2026-06-17 13:09:26.783;TERMINAL;OUTPUT;[2026-06-17 13:09:26.781] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:26.882;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.23
+2026-06-17 13:09:26.884;TERMINAL;OUTPUT;[2026-06-17 13:09:26.882] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:26.887;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.11
+2026-06-17 13:09:26.887;TERMINAL;OUTPUT;[2026-06-17 13:09:26.887] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:26.887;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.06
+2026-06-17 13:09:26.890;TERMINAL;OUTPUT;[2026-06-17 13:09:26.887] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.1ms;;0
+2026-06-17 13:09:26.983;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.48
+2026-06-17 13:09:26.985;TERMINAL;OUTPUT;[2026-06-17 13:09:26.983] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:27.085;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.65
+2026-06-17 13:09:27.086;TERMINAL;OUTPUT;[2026-06-17 13:09:27.086] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:27.187;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.52
+2026-06-17 13:09:27.187;TERMINAL;OUTPUT;[2026-06-17 13:09:27.187] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:27.287;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.42
+2026-06-17 13:09:27.287;TERMINAL;OUTPUT;[2026-06-17 13:09:27.287] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:27.386;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.64
+2026-06-17 13:09:27.386;TERMINAL;OUTPUT;[2026-06-17 13:09:27.386] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:27.488;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.31
+2026-06-17 13:09:27.488;TERMINAL;OUTPUT;[2026-06-17 13:09:27.488] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:27.588;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.55
+2026-06-17 13:09:27.590;TERMINAL;OUTPUT;[2026-06-17 13:09:27.588] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:27.688;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.24
+2026-06-17 13:09:27.690;TERMINAL;OUTPUT;[2026-06-17 13:09:27.688] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:27.790;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.61
+2026-06-17 13:09:27.790;TERMINAL;OUTPUT;[2026-06-17 13:09:27.790] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:27.890;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.51
+2026-06-17 13:09:27.890;TERMINAL;OUTPUT;[2026-06-17 13:09:27.890] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:27.892;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.07
+2026-06-17 13:09:27.892;TERMINAL;OUTPUT;[2026-06-17 13:09:27.892] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:27.892;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.04
+2026-06-17 13:09:27.892;TERMINAL;OUTPUT;[2026-06-17 13:09:27.892] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.0ms;;0
+2026-06-17 13:09:27.990;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.29
+2026-06-17 13:09:27.992;TERMINAL;OUTPUT;[2026-06-17 13:09:27.990] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:28.090;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.10
+2026-06-17 13:09:28.090;TERMINAL;OUTPUT;[2026-06-17 13:09:28.090] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:28.191;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.33
+2026-06-17 13:09:28.191;TERMINAL;OUTPUT;[2026-06-17 13:09:28.191] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:28.293;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.16
+2026-06-17 13:09:28.295;TERMINAL;OUTPUT;[2026-06-17 13:09:28.293] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:28.394;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.48
+2026-06-17 13:09:28.396;TERMINAL;OUTPUT;[2026-06-17 13:09:28.394] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:28.495;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.22
+2026-06-17 13:09:28.497;TERMINAL;OUTPUT;[2026-06-17 13:09:28.495] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:28.596;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.23
+2026-06-17 13:09:28.598;TERMINAL;OUTPUT;[2026-06-17 13:09:28.596] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:28.698;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.51
+2026-06-17 13:09:28.700;TERMINAL;OUTPUT;[2026-06-17 13:09:28.698] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:28.798;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.35
+2026-06-17 13:09:28.800;TERMINAL;OUTPUT;[2026-06-17 13:09:28.798] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:28.900;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.55
+2026-06-17 13:09:28.900;TERMINAL;OUTPUT;[2026-06-17 13:09:28.900] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:28.904;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.09
+2026-06-17 13:09:28.904;TERMINAL;OUTPUT;[2026-06-17 13:09:28.904] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:28.904;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.06
+2026-06-17 13:09:28.904;TERMINAL;OUTPUT;[2026-06-17 13:09:28.904] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.1ms;;0
+2026-06-17 13:09:29.000;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.63
+2026-06-17 13:09:29.003;TERMINAL;OUTPUT;[2026-06-17 13:09:29.000] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:29.101;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.78
+2026-06-17 13:09:29.104;TERMINAL;OUTPUT;[2026-06-17 13:09:29.103] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.8ms;;0
+2026-06-17 13:09:29.203;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.33
+2026-06-17 13:09:29.204;TERMINAL;OUTPUT;[2026-06-17 13:09:29.204] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:29.304;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.48
+2026-06-17 13:09:29.304;TERMINAL;OUTPUT;[2026-06-17 13:09:29.304] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:29.404;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.56
+2026-06-17 13:09:29.404;TERMINAL;OUTPUT;[2026-06-17 13:09:29.404] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:29.506;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.25
+2026-06-17 13:09:29.506;TERMINAL;OUTPUT;[2026-06-17 13:09:29.506] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:29.606;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.54
+2026-06-17 13:09:29.606;TERMINAL;OUTPUT;[2026-06-17 13:09:29.606] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:29.706;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.62
+2026-06-17 13:09:29.708;TERMINAL;OUTPUT;[2026-06-17 13:09:29.706] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:29.807;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.29
+2026-06-17 13:09:29.807;TERMINAL;OUTPUT;[2026-06-17 13:09:29.807] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:29.910;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.53
+2026-06-17 13:09:29.910;TERMINAL;OUTPUT;[2026-06-17 13:09:29.910] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:29.913;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.10
+2026-06-17 13:09:29.913;TERMINAL;OUTPUT;[2026-06-17 13:09:29.913] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:29.915;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.05
+2026-06-17 13:09:29.915;TERMINAL;OUTPUT;[2026-06-17 13:09:29.915] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.1ms;;0
+2026-06-17 13:09:30.010;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.41
+2026-06-17 13:09:30.010;TERMINAL;OUTPUT;[2026-06-17 13:09:30.010] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:30.110;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.45
+2026-06-17 13:09:30.114;TERMINAL;OUTPUT;[2026-06-17 13:09:30.114] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:30.212;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.70
+2026-06-17 13:09:30.214;TERMINAL;OUTPUT;[2026-06-17 13:09:30.212] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.7ms;;0
+2026-06-17 13:09:30.312;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.52
+2026-06-17 13:09:30.313;TERMINAL;OUTPUT;[2026-06-17 13:09:30.313] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:30.413;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.63
+2026-06-17 13:09:30.415;TERMINAL;OUTPUT;[2026-06-17 13:09:30.415] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:30.514;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.67
+2026-06-17 13:09:30.514;TERMINAL;OUTPUT;[2026-06-17 13:09:30.514] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.7ms;;0
+2026-06-17 13:09:30.614;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.56
+2026-06-17 13:09:30.614;TERMINAL;OUTPUT;[2026-06-17 13:09:30.614] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:30.715;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.67
+2026-06-17 13:09:30.715;TERMINAL;OUTPUT;[2026-06-17 13:09:30.715] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.7ms;;0
+2026-06-17 13:09:30.816;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.44
+2026-06-17 13:09:30.816;TERMINAL;OUTPUT;[2026-06-17 13:09:30.816] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:30.918;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.68
+2026-06-17 13:09:30.920;TERMINAL;OUTPUT;[2026-06-17 13:09:30.920] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.7ms;;0
+2026-06-17 13:09:30.923;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.11
+2026-06-17 13:09:30.923;TERMINAL;OUTPUT;[2026-06-17 13:09:30.923] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:30.926;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.07
+2026-06-17 13:09:30.926;TERMINAL;OUTPUT;[2026-06-17 13:09:30.926] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.1ms;;0
+2026-06-17 13:09:31.019;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.44
+2026-06-17 13:09:31.020;TERMINAL;OUTPUT;[2026-06-17 13:09:31.020] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:31.119;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.56
+2026-06-17 13:09:31.120;TERMINAL;OUTPUT;[2026-06-17 13:09:31.120] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:31.220;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.29
+2026-06-17 13:09:31.221;TERMINAL;OUTPUT;[2026-06-17 13:09:31.220] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:31.320;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.40
+2026-06-17 13:09:31.321;TERMINAL;OUTPUT;[2026-06-17 13:09:31.320] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:31.421;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.61
+2026-06-17 13:09:31.421;TERMINAL;OUTPUT;[2026-06-17 13:09:31.421] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:31.521;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.48
+2026-06-17 13:09:31.521;TERMINAL;OUTPUT;[2026-06-17 13:09:31.521] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:31.622;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.42
+2026-06-17 13:09:31.622;TERMINAL;OUTPUT;[2026-06-17 13:09:31.622] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:31.721;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.31
+2026-06-17 13:09:31.721;TERMINAL;OUTPUT;[2026-06-17 13:09:31.721] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:31.823;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.59
+2026-06-17 13:09:31.825;TERMINAL;OUTPUT;[2026-06-17 13:09:31.823] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:31.923;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.44
+2026-06-17 13:09:31.923;TERMINAL;OUTPUT;[2026-06-17 13:09:31.923] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:31.927;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.12
+2026-06-17 13:09:31.927;TERMINAL;OUTPUT;[2026-06-17 13:09:31.927] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:31.927;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.04
+2026-06-17 13:09:31.930;TERMINAL;OUTPUT;[2026-06-17 13:09:31.927] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.0ms;;0
+2026-06-17 13:09:32.024;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.67
+2026-06-17 13:09:32.024;TERMINAL;OUTPUT;[2026-06-17 13:09:32.024] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.7ms;;0
+2026-06-17 13:09:32.125;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.57
+2026-06-17 13:09:32.125;TERMINAL;OUTPUT;[2026-06-17 13:09:32.125] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:32.225;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.60
+2026-06-17 13:09:32.225;TERMINAL;OUTPUT;[2026-06-17 13:09:32.225] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:32.325;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.66
+2026-06-17 13:09:32.327;TERMINAL;OUTPUT;[2026-06-17 13:09:32.325] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.7ms;;0
+2026-06-17 13:09:32.425;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.63
+2026-06-17 13:09:32.427;TERMINAL;OUTPUT;[2026-06-17 13:09:32.425] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:32.525;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.39
+2026-06-17 13:09:32.525;TERMINAL;OUTPUT;[2026-06-17 13:09:32.525] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:32.626;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.67
+2026-06-17 13:09:32.626;TERMINAL;OUTPUT;[2026-06-17 13:09:32.626] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.7ms;;0
+2026-06-17 13:09:32.727;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.54
+2026-06-17 13:09:32.727;TERMINAL;OUTPUT;[2026-06-17 13:09:32.727] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:32.830;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.40
+2026-06-17 13:09:32.830;TERMINAL;OUTPUT;[2026-06-17 13:09:32.830] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:32.930;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.19
+2026-06-17 13:09:32.932;TERMINAL;OUTPUT;[2026-06-17 13:09:32.930] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:32.934;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.12
+2026-06-17 13:09:32.936;TERMINAL;OUTPUT;[2026-06-17 13:09:32.934] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:32.936;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.05
+2026-06-17 13:09:32.937;TERMINAL;OUTPUT;[2026-06-17 13:09:32.936] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.1ms;;0
+2026-06-17 13:09:33.030;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.20
+2026-06-17 13:09:33.030;TERMINAL;OUTPUT;[2026-06-17 13:09:33.030] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:33.131;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.25
+2026-06-17 13:09:33.131;TERMINAL;OUTPUT;[2026-06-17 13:09:33.131] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:33.233;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.60
+2026-06-17 13:09:33.233;TERMINAL;OUTPUT;[2026-06-17 13:09:33.233] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:33.333;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.42
+2026-06-17 13:09:33.333;TERMINAL;OUTPUT;[2026-06-17 13:09:33.333] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:33.435;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.61
+2026-06-17 13:09:33.437;TERMINAL;OUTPUT;[2026-06-17 13:09:33.435] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:33.537;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.67
+2026-06-17 13:09:33.538;TERMINAL;OUTPUT;[2026-06-17 13:09:33.537] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.7ms;;0
+2026-06-17 13:09:33.638;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.13
+2026-06-17 13:09:33.638;TERMINAL;OUTPUT;[2026-06-17 13:09:33.638] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:33.738;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.18
+2026-06-17 13:09:33.739;TERMINAL;OUTPUT;[2026-06-17 13:09:33.738] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:33.839;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.53
+2026-06-17 13:09:33.840;TERMINAL;OUTPUT;[2026-06-17 13:09:33.839] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:33.938;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.15
+2026-06-17 13:09:33.938;TERMINAL;OUTPUT;[2026-06-17 13:09:33.938] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:33.941;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.06
+2026-06-17 13:09:33.941;TERMINAL;OUTPUT;[2026-06-17 13:09:33.941] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:33.941;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.05
+2026-06-17 13:09:33.941;TERMINAL;OUTPUT;[2026-06-17 13:09:33.941] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.0ms;;0
+2026-06-17 13:09:34.040;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.24
+2026-06-17 13:09:34.040;TERMINAL;OUTPUT;[2026-06-17 13:09:34.040] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:34.146;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;13.59
+2026-06-17 13:09:34.147;TERMINAL;OUTPUT;[2026-06-17 13:09:34.146] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 13.6ms;;0
+2026-06-17 13:09:34.241;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.28
+2026-06-17 13:09:34.241;TERMINAL;OUTPUT;[2026-06-17 13:09:34.241] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:34.341;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.27
+2026-06-17 13:09:34.341;TERMINAL;OUTPUT;[2026-06-17 13:09:34.341] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:34.442;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.18
+2026-06-17 13:09:34.442;TERMINAL;OUTPUT;[2026-06-17 13:09:34.442] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:34.543;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.08
+2026-06-17 13:09:34.543;TERMINAL;OUTPUT;[2026-06-17 13:09:34.543] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:34.643;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.15
+2026-06-17 13:09:34.643;TERMINAL;OUTPUT;[2026-06-17 13:09:34.643] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:34.744;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.27
+2026-06-17 13:09:34.745;TERMINAL;OUTPUT;[2026-06-17 13:09:34.745] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:34.845;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.09
+2026-06-17 13:09:34.846;TERMINAL;OUTPUT;[2026-06-17 13:09:34.845] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:34.946;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.49
+2026-06-17 13:09:34.946;TERMINAL;OUTPUT;[2026-06-17 13:09:34.946] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:34.949;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.07
+2026-06-17 13:09:34.950;TERMINAL;OUTPUT;[2026-06-17 13:09:34.949] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:34.950;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.05
+2026-06-17 13:09:34.950;TERMINAL;OUTPUT;[2026-06-17 13:09:34.950] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.1ms;;0
+2026-06-17 13:09:35.047;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.17
+2026-06-17 13:09:35.048;TERMINAL;OUTPUT;[2026-06-17 13:09:35.047] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:35.148;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.53
+2026-06-17 13:09:35.149;TERMINAL;OUTPUT;[2026-06-17 13:09:35.148] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:35.248;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.27
+2026-06-17 13:09:35.248;TERMINAL;OUTPUT;[2026-06-17 13:09:35.248] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:35.350;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.65
+2026-06-17 13:09:35.351;TERMINAL;OUTPUT;[2026-06-17 13:09:35.350] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:35.450;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.04
+2026-06-17 13:09:35.756;TERMINAL;OUTPUT;[2026-06-17 13:09:35.755] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.0ms;;0
+2026-06-17 13:09:35.766;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.24
+2026-06-17 13:09:35.766;TERMINAL;OUTPUT;[2026-06-17 13:09:35.766] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:35.867;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.08
+2026-06-17 13:09:35.867;TERMINAL;OUTPUT;[2026-06-17 13:09:35.867] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:35.949;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.08
+2026-06-17 13:09:35.950;TERMINAL;OUTPUT;[2026-06-17 13:09:35.949] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:35.950;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.04
+2026-06-17 13:09:35.951;TERMINAL;OUTPUT;[2026-06-17 13:09:35.951] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.0ms;;0
+2026-06-17 13:09:35.968;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.18
+2026-06-17 13:09:35.968;TERMINAL;OUTPUT;[2026-06-17 13:09:35.968] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:36.070;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.47
+2026-06-17 13:09:36.070;TERMINAL;OUTPUT;[2026-06-17 13:09:36.070] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:36.170;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.06
+2026-06-17 13:09:36.172;TERMINAL;OUTPUT;[2026-06-17 13:09:36.171] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:36.272;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.16
+2026-06-17 13:09:36.273;TERMINAL;OUTPUT;[2026-06-17 13:09:36.272] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:36.374;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.52
+2026-06-17 13:09:36.376;TERMINAL;OUTPUT;[2026-06-17 13:09:36.374] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:36.473;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.63
+2026-06-17 13:09:36.474;TERMINAL;OUTPUT;[2026-06-17 13:09:36.473] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:36.574;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.10
+2026-06-17 13:09:36.575;TERMINAL;OUTPUT;[2026-06-17 13:09:36.574] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:36.676;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.20
+2026-06-17 13:09:36.677;TERMINAL;OUTPUT;[2026-06-17 13:09:36.676] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:36.778;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.39
+2026-06-17 13:09:36.780;TERMINAL;OUTPUT;[2026-06-17 13:09:36.779] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:36.878;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.12
+2026-06-17 13:09:36.878;TERMINAL;OUTPUT;[2026-06-17 13:09:36.878] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:36.950;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.10
+2026-06-17 13:09:36.951;TERMINAL;OUTPUT;[2026-06-17 13:09:36.950] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:36.952;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.05
+2026-06-17 13:09:36.952;TERMINAL;OUTPUT;[2026-06-17 13:09:36.952] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.0ms;;0
+2026-06-17 13:09:36.978;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.50
+2026-06-17 13:09:36.978;TERMINAL;OUTPUT;[2026-06-17 13:09:36.978] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:37.080;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.56
+2026-06-17 13:09:37.080;TERMINAL;OUTPUT;[2026-06-17 13:09:37.080] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:37.180;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.50
+2026-06-17 13:09:37.181;TERMINAL;OUTPUT;[2026-06-17 13:09:37.180] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:37.280;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.49
+2026-06-17 13:09:37.280;TERMINAL;OUTPUT;[2026-06-17 13:09:37.280] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:37.381;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.37
+2026-06-17 13:09:37.382;TERMINAL;OUTPUT;[2026-06-17 13:09:37.381] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:37.481;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.27
+2026-06-17 13:09:37.482;TERMINAL;OUTPUT;[2026-06-17 13:09:37.481] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:37.582;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.16
+2026-06-17 13:09:37.583;TERMINAL;OUTPUT;[2026-06-17 13:09:37.582] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:37.684;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.16
+2026-06-17 13:09:37.685;TERMINAL;OUTPUT;[2026-06-17 13:09:37.684] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:37.784;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.21
+2026-06-17 13:09:37.785;TERMINAL;OUTPUT;[2026-06-17 13:09:37.784] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:37.885;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.40
+2026-06-17 13:09:37.886;TERMINAL;OUTPUT;[2026-06-17 13:09:37.885] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:37.951;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.07
+2026-06-17 13:09:37.951;TERMINAL;OUTPUT;[2026-06-17 13:09:37.951] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:37.953;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.11
+2026-06-17 13:09:37.954;TERMINAL;OUTPUT;[2026-06-17 13:09:37.953] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.1ms;;0
+2026-06-17 13:09:37.985;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.40
+2026-06-17 13:09:37.986;TERMINAL;OUTPUT;[2026-06-17 13:09:37.986] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:38.085;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.26
+2026-06-17 13:09:38.086;TERMINAL;OUTPUT;[2026-06-17 13:09:38.085] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:38.187;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.22
+2026-06-17 13:09:38.188;TERMINAL;OUTPUT;[2026-06-17 13:09:38.187] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:38.288;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;9.46
+2026-06-17 13:09:38.290;TERMINAL;OUTPUT;[2026-06-17 13:09:38.290] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 9.5ms;;0
+2026-06-17 13:09:38.388;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.51
+2026-06-17 13:09:38.388;TERMINAL;OUTPUT;[2026-06-17 13:09:38.388] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:38.488;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.15
+2026-06-17 13:09:38.490;TERMINAL;OUTPUT;[2026-06-17 13:09:38.488] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:38.590;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.36
+2026-06-17 13:09:38.592;TERMINAL;OUTPUT;[2026-06-17 13:09:38.590] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:38.691;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.49
+2026-06-17 13:09:38.692;TERMINAL;OUTPUT;[2026-06-17 13:09:38.691] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:38.792;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.11
+2026-06-17 13:09:38.793;TERMINAL;OUTPUT;[2026-06-17 13:09:38.793] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:38.892;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.63
+2026-06-17 13:09:38.892;TERMINAL;OUTPUT;[2026-06-17 13:09:38.892] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:38.955;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.15
+2026-06-17 13:09:38.956;TERMINAL;OUTPUT;[2026-06-17 13:09:38.955] OsTech               Befehl: GS              │ Antwort:                                          │ 0.2ms;;0
+2026-06-17 13:09:38.957;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.07
+2026-06-17 13:09:38.962;TERMINAL;OUTPUT;[2026-06-17 13:09:38.961] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.1ms;;0
+2026-06-17 13:09:38.992;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.44
+2026-06-17 13:09:38.992;TERMINAL;OUTPUT;[2026-06-17 13:09:38.992] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:39.092;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.53
+2026-06-17 13:09:39.092;TERMINAL;OUTPUT;[2026-06-17 13:09:39.092] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:39.192;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.47
+2026-06-17 13:09:39.193;TERMINAL;OUTPUT;[2026-06-17 13:09:39.192] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:39.293;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.32
+2026-06-17 13:09:39.294;TERMINAL;OUTPUT;[2026-06-17 13:09:39.293] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:39.394;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.29
+2026-06-17 13:09:39.395;TERMINAL;OUTPUT;[2026-06-17 13:09:39.394] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:39.494;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.36
+2026-06-17 13:09:39.495;TERMINAL;OUTPUT;[2026-06-17 13:09:39.494] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:39.596;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.42
+2026-06-17 13:09:39.597;TERMINAL;OUTPUT;[2026-06-17 13:09:39.596] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:39.697;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.53
+2026-06-17 13:09:39.698;TERMINAL;OUTPUT;[2026-06-17 13:09:39.697] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:39.797;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.07
+2026-06-17 13:09:39.798;TERMINAL;OUTPUT;[2026-06-17 13:09:39.797] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:39.897;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.28
+2026-06-17 13:09:39.898;TERMINAL;OUTPUT;[2026-06-17 13:09:39.897] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:39.956;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.11
+2026-06-17 13:09:39.957;TERMINAL;OUTPUT;[2026-06-17 13:09:39.956] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:39.958;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.08
+2026-06-17 13:09:39.960;TERMINAL;OUTPUT;[2026-06-17 13:09:39.959] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.1ms;;0
+2026-06-17 13:09:40.000;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.64
+2026-06-17 13:09:40.001;TERMINAL;OUTPUT;[2026-06-17 13:09:40.000] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:40.101;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.10
+2026-06-17 13:09:40.102;TERMINAL;OUTPUT;[2026-06-17 13:09:40.101] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:40.200;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.47
+2026-06-17 13:09:40.202;TERMINAL;OUTPUT;[2026-06-17 13:09:40.200] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:40.301;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.07
+2026-06-17 13:09:40.302;TERMINAL;OUTPUT;[2026-06-17 13:09:40.301] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:40.401;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.19
+2026-06-17 13:09:40.402;TERMINAL;OUTPUT;[2026-06-17 13:09:40.401] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:40.503;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.34
+2026-06-17 13:09:40.504;TERMINAL;OUTPUT;[2026-06-17 13:09:40.503] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:40.603;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.10
+2026-06-17 13:09:40.603;TERMINAL;OUTPUT;[2026-06-17 13:09:40.603] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:40.702;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.17
+2026-06-17 13:09:40.703;TERMINAL;OUTPUT;[2026-06-17 13:09:40.702] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:40.803;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.36
+2026-06-17 13:09:40.804;TERMINAL;OUTPUT;[2026-06-17 13:09:40.803] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:40.905;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.40
+2026-06-17 13:09:40.906;TERMINAL;OUTPUT;[2026-06-17 13:09:40.905] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:40.955;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.07
+2026-06-17 13:09:40.956;TERMINAL;OUTPUT;[2026-06-17 13:09:40.955] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:40.957;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.05
+2026-06-17 13:09:40.959;TERMINAL;OUTPUT;[2026-06-17 13:09:40.957] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.0ms;;0
+2026-06-17 13:09:41.006;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.25
+2026-06-17 13:09:41.006;TERMINAL;OUTPUT;[2026-06-17 13:09:41.006] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:41.106;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.16
+2026-06-17 13:09:41.107;TERMINAL;OUTPUT;[2026-06-17 13:09:41.107] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:41.208;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.36
+2026-06-17 13:09:41.209;TERMINAL;OUTPUT;[2026-06-17 13:09:41.209] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:41.310;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.69
+2026-06-17 13:09:41.310;TERMINAL;OUTPUT;[2026-06-17 13:09:41.310] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.7ms;;0
+2026-06-17 13:09:41.410;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.61
+2026-06-17 13:09:41.410;TERMINAL;OUTPUT;[2026-06-17 13:09:41.410] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:41.510;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.16
+2026-06-17 13:09:41.510;TERMINAL;OUTPUT;[2026-06-17 13:09:41.510] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:41.610;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.30
+2026-06-17 13:09:41.610;TERMINAL;OUTPUT;[2026-06-17 13:09:41.610] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:41.712;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.53
+2026-06-17 13:09:41.712;TERMINAL;OUTPUT;[2026-06-17 13:09:41.712] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:41.812;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.57
+2026-06-17 13:09:41.812;TERMINAL;OUTPUT;[2026-06-17 13:09:41.812] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:41.913;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.47
+2026-06-17 13:09:41.913;TERMINAL;OUTPUT;[2026-06-17 13:09:41.913] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:41.968;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.09
+2026-06-17 13:09:41.969;TERMINAL;OUTPUT;[2026-06-17 13:09:41.968] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:41.971;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.07
+2026-06-17 13:09:41.972;TERMINAL;OUTPUT;[2026-06-17 13:09:41.972] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.1ms;;0
+2026-06-17 13:09:42.014;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.57
+2026-06-17 13:09:42.014;TERMINAL;OUTPUT;[2026-06-17 13:09:42.014] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:42.115;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.52
+2026-06-17 13:09:42.115;TERMINAL;OUTPUT;[2026-06-17 13:09:42.115] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:42.216;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.17
+2026-06-17 13:09:42.217;TERMINAL;OUTPUT;[2026-06-17 13:09:42.217] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:42.316;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.29
+2026-06-17 13:09:42.316;TERMINAL;OUTPUT;[2026-06-17 13:09:42.316] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:42.417;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.13
+2026-06-17 13:09:42.418;TERMINAL;OUTPUT;[2026-06-17 13:09:42.417] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:42.518;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.46
+2026-06-17 13:09:42.519;TERMINAL;OUTPUT;[2026-06-17 13:09:42.518] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:42.618;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.13
+2026-06-17 13:09:42.618;TERMINAL;OUTPUT;[2026-06-17 13:09:42.618] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:42.719;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.38
+2026-06-17 13:09:42.720;TERMINAL;OUTPUT;[2026-06-17 13:09:42.719] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:42.819;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.56
+2026-06-17 13:09:42.819;TERMINAL;OUTPUT;[2026-06-17 13:09:42.819] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:42.920;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.34
+2026-06-17 13:09:42.920;TERMINAL;OUTPUT;[2026-06-17 13:09:42.920] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:42.968;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.15
+2026-06-17 13:09:42.970;TERMINAL;OUTPUT;[2026-06-17 13:09:42.968] OsTech               Befehl: GS              │ Antwort:                                          │ 0.2ms;;0
+2026-06-17 13:09:42.970;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.07
+2026-06-17 13:09:42.971;TERMINAL;OUTPUT;[2026-06-17 13:09:42.970] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.1ms;;0
+2026-06-17 13:09:43.021;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.73
+2026-06-17 13:09:43.022;TERMINAL;OUTPUT;[2026-06-17 13:09:43.021] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.7ms;;0
+2026-06-17 13:09:43.122;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.15
+2026-06-17 13:09:43.123;TERMINAL;OUTPUT;[2026-06-17 13:09:43.123] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:43.223;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.07
+2026-06-17 13:09:43.223;TERMINAL;OUTPUT;[2026-06-17 13:09:43.223] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:43.325;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.37
+2026-06-17 13:09:43.327;TERMINAL;OUTPUT;[2026-06-17 13:09:43.326] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:43.425;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.27
+2026-06-17 13:09:43.426;TERMINAL;OUTPUT;[2026-06-17 13:09:43.426] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:43.526;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.51
+2026-06-17 13:09:43.528;TERMINAL;OUTPUT;[2026-06-17 13:09:43.528] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:43.627;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.48
+2026-06-17 13:09:43.628;TERMINAL;OUTPUT;[2026-06-17 13:09:43.627] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:43.728;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.42
+2026-06-17 13:09:43.729;TERMINAL;OUTPUT;[2026-06-17 13:09:43.728] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:43.829;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.53
+2026-06-17 13:09:43.829;TERMINAL;OUTPUT;[2026-06-17 13:09:43.829] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:43.930;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.53
+2026-06-17 13:09:43.930;TERMINAL;OUTPUT;[2026-06-17 13:09:43.930] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:43.969;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.13
+2026-06-17 13:09:43.970;TERMINAL;OUTPUT;[2026-06-17 13:09:43.969] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:43.970;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.06
+2026-06-17 13:09:43.971;TERMINAL;OUTPUT;[2026-06-17 13:09:43.970] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.1ms;;0
+2026-06-17 13:09:44.030;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.14
+2026-06-17 13:09:44.031;TERMINAL;OUTPUT;[2026-06-17 13:09:44.030] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:44.131;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.31
+2026-06-17 13:09:44.132;TERMINAL;OUTPUT;[2026-06-17 13:09:44.131] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:44.232;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.50
+2026-06-17 13:09:44.592;TERMINAL;OUTPUT;[2026-06-17 13:09:44.592] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:44.603;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.11
+2026-06-17 13:09:44.603;TERMINAL;OUTPUT;[2026-06-17 13:09:44.603] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:44.705;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.16
+2026-06-17 13:09:44.705;TERMINAL;OUTPUT;[2026-06-17 13:09:44.705] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:44.805;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.28
+2026-06-17 13:09:44.805;TERMINAL;OUTPUT;[2026-06-17 13:09:44.805] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:44.906;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.14
+2026-06-17 13:09:44.906;TERMINAL;OUTPUT;[2026-06-17 13:09:44.906] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:44.970;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.07
+2026-06-17 13:09:44.971;TERMINAL;OUTPUT;[2026-06-17 13:09:44.970] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:44.971;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.12
+2026-06-17 13:09:44.972;TERMINAL;OUTPUT;[2026-06-17 13:09:44.971] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.1ms;;0
+2026-06-17 13:09:45.007;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.33
+2026-06-17 13:09:45.009;TERMINAL;OUTPUT;[2026-06-17 13:09:45.008] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:45.109;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.06
+2026-06-17 13:09:45.109;TERMINAL;OUTPUT;[2026-06-17 13:09:45.109] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:45.210;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.58
+2026-06-17 13:09:45.210;TERMINAL;OUTPUT;[2026-06-17 13:09:45.210] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:45.310;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.05
+2026-06-17 13:09:45.311;TERMINAL;OUTPUT;[2026-06-17 13:09:45.310] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:45.411;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.24
+2026-06-17 13:09:45.411;TERMINAL;OUTPUT;[2026-06-17 13:09:45.411] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:45.512;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.36
+2026-06-17 13:09:45.512;TERMINAL;OUTPUT;[2026-06-17 13:09:45.512] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:45.614;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.45
+2026-06-17 13:09:45.614;TERMINAL;OUTPUT;[2026-06-17 13:09:45.614] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:45.715;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.32
+2026-06-17 13:09:45.715;TERMINAL;OUTPUT;[2026-06-17 13:09:45.715] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:45.816;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.28
+2026-06-17 13:09:45.816;TERMINAL;OUTPUT;[2026-06-17 13:09:45.816] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:45.917;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.38
+2026-06-17 13:09:45.917;TERMINAL;OUTPUT;[2026-06-17 13:09:45.917] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:45.971;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.06
+2026-06-17 13:09:45.972;TERMINAL;OUTPUT;[2026-06-17 13:09:45.971] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:45.972;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.04
+2026-06-17 13:09:45.973;TERMINAL;OUTPUT;[2026-06-17 13:09:45.972] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.0ms;;0
+2026-06-17 13:09:46.018;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.18
+2026-06-17 13:09:46.018;TERMINAL;OUTPUT;[2026-06-17 13:09:46.018] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:46.118;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.25
+2026-06-17 13:09:46.118;TERMINAL;OUTPUT;[2026-06-17 13:09:46.118] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:46.219;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.23
+2026-06-17 13:09:46.220;TERMINAL;OUTPUT;[2026-06-17 13:09:46.219] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:46.319;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.12
+2026-06-17 13:09:46.320;TERMINAL;OUTPUT;[2026-06-17 13:09:46.320] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:46.420;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.35
+2026-06-17 13:09:46.420;TERMINAL;OUTPUT;[2026-06-17 13:09:46.420] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:46.520;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.13
+2026-06-17 13:09:46.520;TERMINAL;OUTPUT;[2026-06-17 13:09:46.520] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:46.621;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.32
+2026-06-17 13:09:46.621;TERMINAL;OUTPUT;[2026-06-17 13:09:46.621] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:46.721;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.11
+2026-06-17 13:09:46.721;TERMINAL;OUTPUT;[2026-06-17 13:09:46.721] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:46.823;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.58
+2026-06-17 13:09:46.823;TERMINAL;OUTPUT;[2026-06-17 13:09:46.823] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.6ms;;0
+2026-06-17 13:09:46.922;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.35
+2026-06-17 13:09:46.922;TERMINAL;OUTPUT;[2026-06-17 13:09:46.922] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:46.972;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.06
+2026-06-17 13:09:46.972;TERMINAL;OUTPUT;[2026-06-17 13:09:46.972] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:46.972;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.04
+2026-06-17 13:09:46.972;TERMINAL;OUTPUT;[2026-06-17 13:09:46.972] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.0ms;;0
+2026-06-17 13:09:47.023;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.08
+2026-06-17 13:09:47.023;TERMINAL;OUTPUT;[2026-06-17 13:09:47.023] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:47.124;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.37
+2026-06-17 13:09:47.124;TERMINAL;OUTPUT;[2026-06-17 13:09:47.124] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:47.225;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.30
+2026-06-17 13:09:47.225;TERMINAL;OUTPUT;[2026-06-17 13:09:47.225] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:47.325;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.37
+2026-06-17 13:09:47.326;TERMINAL;OUTPUT;[2026-06-17 13:09:47.325] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0
+2026-06-17 13:09:47.427;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.27
+2026-06-17 13:09:47.427;TERMINAL;OUTPUT;[2026-06-17 13:09:47.427] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:47.538;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;10.42
+2026-06-17 13:09:47.540;TERMINAL;OUTPUT;[2026-06-17 13:09:47.540] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 10.4ms;;0
+2026-06-17 13:09:47.641;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;12.55
+2026-06-17 13:09:47.641;TERMINAL;OUTPUT;[2026-06-17 13:09:47.641] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 12.6ms;;0
+2026-06-17 13:09:47.738;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.49
+2026-06-17 13:09:47.738;TERMINAL;OUTPUT;[2026-06-17 13:09:47.738] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.5ms;;0
+2026-06-17 13:09:47.838;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.27
+2026-06-17 13:09:47.838;TERMINAL;OUTPUT;[2026-06-17 13:09:47.838] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:47.938;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.10
+2026-06-17 13:09:47.938;TERMINAL;OUTPUT;[2026-06-17 13:09:47.938] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.1ms;;0
+2026-06-17 13:09:47.972;OsTech;GS;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));;0.06
+2026-06-17 13:09:47.972;TERMINAL;OUTPUT;[2026-06-17 13:09:47.972] OsTech               Befehl: GS              │ Antwort:                                          │ 0.1ms;;0
+2026-06-17 13:09:47.972;OsTech;GT;ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22));ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C;0.04
+2026-06-17 13:09:47.972;TERMINAL;OUTPUT;[2026-06-17 13:09:47.972] OsTech               Befehl: GT              │ Antwort: ERROR: WriteFile failed (PermissionError(13, 'Das Gerät erkennt den Befehl nicht.', None, 22)) °C │ 0.0ms;;0
+2026-06-17 13:09:48.039;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.20
+2026-06-17 13:09:48.039;TERMINAL;OUTPUT;[2026-06-17 13:09:48.039] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:48.140;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.34
+2026-06-17 13:09:48.140;TERMINAL;OUTPUT;[2026-06-17 13:09:48.140] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.3ms;;0
+2026-06-17 13:09:48.241;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.18
+2026-06-17 13:09:48.242;TERMINAL;OUTPUT;[2026-06-17 13:09:48.241] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:48.345;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.72
+2026-06-17 13:09:48.346;TERMINAL;OUTPUT;[2026-06-17 13:09:48.345] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.7ms;;0
+2026-06-17 13:09:48.445;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;9.04
+2026-06-17 13:09:48.447;TERMINAL;OUTPUT;[2026-06-17 13:09:48.445] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 9.0ms;;0
+2026-06-17 13:09:48.544;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.15
+2026-06-17 13:09:48.546;TERMINAL;OUTPUT;[2026-06-17 13:09:48.545] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.2ms;;0
+2026-06-17 13:09:48.645;SR830;SNAP? 1,2;0.00231, -0.00145;0.00231, -0.00145;8.42
+2026-06-17 13:09:48.646;TERMINAL;OUTPUT;[2026-06-17 13:09:48.645] SR830                Befehl: SNAP? 1,2       │ Antwort: 0.00231, -0.00145                        │ 8.4ms;;0

@@ -1,0 +1,1131 @@
+INTRODUCTION
+The SR830 DSP Lock-in Amplifier may be remotely programmed via either the RS232 or GPIB
+(IEEE-488) interfaces. Any computer supporting
+one of these interfaces may be used to program
+the SR830. Both interfaces are receiving at all
+times, however, the SR830 will send responses
+to only one interface. Specify the output interface with the [Setup] key or use the OUTX command at the beginning of every program to
+direct the responses to the correct interface.
+COMMUNICATING WITH GPIB
+The SR830 supports the IEEE-488.1 (1978) interface standard. It also supports the required
+common commands of the IEEE-488.2 (1987)
+standard. Before attempting to communicate with
+the SR830 over the GPIB interface, the SR830's
+device address must be set. The address is set
+with the [Setup] key and may be set between 1
+and 30.
+COMMUNICATING WITH RS232
+The SR830 is configured as a DCE ( transmit on
+pin 3, receive on pin 2) device and supports CTS/
+DTR hardware handshaking. The CTS signal (pin
+5) is an output indicating that the SR830 is ready,
+while the DTR signal (pin 20) is an input that is
+used to control the SR830's data transmission. If
+desired, the handshake pins may be ignored and a
+simple 3 wire interface (pins 2,3 and 7) may be
+used. The RS232 interface baud rate and parity
+must be set. These are set with the [Setup] key.
+The RS232 word length is always 8 bits.
+STATUS INDICATORS AND QUEUES
+To assist in programming, the SR830 has 4 interface status indicators. The ACTIVE indicator flashes whenever a character is received or transmitted
+over either interface. The ERROR indicator flashes when an error, such as an illegal command, or
+parameter out of range, has been detected. The
+REMOTE indicator is on whenever the SR830 is in
+a remote state (front panel locked out). The SRQ
+indicator is on when the SR830 generates a service request. SRQ stays on until a serial poll is
+completed.
+To help find program errors, the SR830 can display its receive buffer on the displays. Use the
+[Setup] key to access the QUEUE display. The
+last 256 characters received by the SR830 may be
+displayed in hexadecimal ASCII. See the
+OPERATION section for a complete description.
+COMMAND SYNTAX
+Communications with the SR830 uses ASCII characters. Commands may be in either UPPER or
+lower case and may contain any number of
+embedded space characters. A command to the
+SR830 consists of a four character command
+mnemonic, arguments if necessary, and a command terminator. The terminator must be a linefeed <lf> or carriage return <cr> on RS232, or a
+linefeed <lf> or EOI on GPIB. No command processing occurs until a command terminator is
+received. Commands function identically on GPIB
+and RS232 whenever possible. Command mnemonics beginning with an asterisk "❊" are IEEE488.2 (1987) defined common commands. These
+commands also function identically on RS232.
+Commands may require one or more parameters.
+Multiple parameters are separated by commas (,).
+Multiple commands may be sent on one command
+line by separating them with semicolons (;). The
+difference between sending several commands on
+the same line and sending several independent
+commands is that when a command line is parsed
+and executed, the entire line is executed before
+any other device action proceeds.
+There is no need to wait between commands. The
+SR830 has a 256 character input buffer and processes commands in the order received. If the
+buffer fills up, the SR830 will hold off handshaking
+on the GPIB and attempt to hold off handshaking
+on RS232. Similarly, the SR830 has a 256 character output buffer to store outputs until the host
+computer is ready to receive. If either buffer overflows, both buffers are cleared and an error
+reported.
+The present value of a particular parameter may
+be determined by querying the SR830 for its
+value. A query is formed by appending a question
+mark "?" to the command mnemonic and omitting
+the desired parameter(s) from the command.
+Values returned by the SR830 are sent as a string
+of ASCII characters terminated by a carriage
+return <cr> on RS232 and by a line-feed <lf> on
+GPIB. If multiple queries are sent on one command line (separated by semicolons, of course)
+the answers will be returned individually, each with
+a terminator.
+Examples of Command Formats
+FMOD 1 <lf> Set reference source to
+internal
+FREQ 10E3 <lf> Set the internal reference frequency to 10000 Hz (10 kHz)
+❊IDN? <lf> Queries the device
+identification
+STRT <lf> Starts data acquisition
+OUTP? 1 <lf> Queries the value of X
+INTERFACE READY AND STATUS
+The Interface Ready bit (bit 1) in the Serial Poll
+Status Byte signals that the SR830 is ready to
+receive and execute a command. When a command is received, this bit is cleared indicating that
+an operation is in progress. While the operation is
+in progress, no other commands will be processed. Commands received during this time are
+stored in the buffer to be processed later. Only
+GPIB serial polling will generate a response while
+a command is in progress. When the command
+execution terminates, the Interface Ready bit is set
+again and new commands will be processed.
+Since most commands execute very quickly, the
+host computer does not need to continually check
+the Interface Ready bit. Commands may be sent
+one after another and they will be processed
+immediately.
+When using the GPIB interface, serial polling may
+be used to check the Interface Ready bit in the
+Serial Poll Byte while an operation is in progress.
+After the Interface Ready bit becomes set, signalling the completion of the command, then the ERR
+or ESB bit may be checked to verify successful
+completion of the command.
+If the RS232 interface is used, or serial polling is
+not available, then the ❊STB?, ❊ESR?, ERRS?,
+and LIAS? status query commands may be used
+to query the Status Bytes. Since the SR830 processes one command at a time, the status query
+will not be processed until the previous operation
+is finished. Thus a response to the status query in
+itself signals that the previous command is finished. The query response may then be checked
+for various errors.
+GET (GROUP EXECUTE TRIGGER)
+The GPIB interface command GET is the same as
+the TRIG command. GET is the same as a trigger
+input. GET only has an effect if the sampling rate
+is triggered or if triggers start a scan.
+DETAILED COMMAND LIST
+The four letter mnemonic in each command sequence specifies the command. The rest of the sequence consists of parameters. Multiple parameters are separated by commas. Parameters shown in { } are optional or
+may be queried while those not in { } are required. Commands that may be queried have a question mark in
+parentheses (?) after the mnemonic. Commands that may ONLY be queried have a ? after the mnemonic.
+Commands that MAY NOT be queried have no ?. Do not send ( ) or { } as part of the command.
+The variables are defined as follows.
+ i, j, k, l, m integers
+x, y, z real numbers
+f frequency
+s string
+All numeric variables may be expressed in integer, floating point or exponential formats ( i.e., the number five
+can be either 5, 5.0, or .5E1). Strings are sent as a sequence of ASCII characters.
+Remember!
+All responses are directed only to the selected output interface!
+Use the OUTX command to select the correct interface at the beginning of every
+program.
+
+Referenz and Phase Commands
+
+PHAS (?) {x}
+The PHAS command sets or queries the reference phase shift. The
+parameter x is the phase (real number of degrees). The PHAS x command will set the phase shift to x. The value of x will be rounded to 0.01°.
+The phase may be programmed from -360.00 ≤ x ≤ 729.99 and will be
+wrapped around at ±180°. For example, the PHAS 541.0 command will
+set the phase to -179.00° (541-360=181=-179). The PHAS? queries the
+phase shift.
+
+FMOD (?) {i}
+The FMOD command sets or queries the reference source. The parameter i selects internal (i=1) or external (i=0).
+
+FREQ (?) {f}
+The FREQ command sets or queries the reference frequency. The
+FREQ? query command will return the reference frequency (in internal or
+external mode).
+The FREQ f command sets the frequency of the internal oscillator. This
+command is allowed only if the reference source is internal. The parameter f is a frequency (real number of Hz). The value of f will be rounded to
+5 digits or 0.0001 Hz, whichever is greater. The value of f is limited to
+0.001 ≤ f ≤ 102000. If the harmonic number is greater than 1, then the
+frequency is limited to nxf ≤ 102 kHz where n is the harmonic number.
+
+RSLP (?) {i}
+The RSLP command sets or queries the reference trigger when using the
+external reference mode. The parameter i selects sine zero crossing
+(i=0), TTL rising edge (i=1), , or TTL falling edge (i=2). At frequencies
+below 1 Hz, the a TTL reference must be used.
+
+HARM (?) {i}
+The HARM command sets or queries the detection harmonic. This
+parameter is an integer from 1 to 19999. The HARM i command will set
+the lock-in to detect at the ith harmonic of the reference frequency. The
+value of i is limited by ixf ≤ 102 kHz. If the value of i requires a detection
+frequency greater than 102 kHz, then the harmonic number will be set to
+the largest value of i such that ixf ≤ 102 kHz.
+
+SLVL (?) {x}
+The SLVL command sets or queries the amplitude of the sine output.
+The parameter x is a voltage (real number of Volts). The value of x will
+be rounded to 0.002V. The value of x is limited to 0.004 ≤ x ≤ 5.000.
+
+Input and Filter commands
+
+ISRC (?) {i} 
+The ISRC command sets or queries the input configuration. The parameter i selects A (i=0), A-B (i=1), I (1 MΩ) (i=2) or I (100 MΩ) (i=3).
+Changing the current gain does not change the instrument sensitivity.
+Sensitivities above 10 nA require a current gain of 1 MΩ. Sensitivities
+between 20 nA and 1 µA automatically select the 1 MΩ current gain. At
+sensitivities below 20 nA, changing the sensitivity does not change the
+current gain.
+
+IGND (?) {i}
+The IGND command sets or queries the input shield grounding. The
+parameter i selects Float (i=0) or Ground (i=1).
+
+ICPL (?) {i}
+The ICPL command sets or queries the input coupling. The parameter i
+selects AC (i=0) or DC (i=1).
+
+ILIN (?) {i}
+The ILIN command sets or queries the input line notch filter status. The
+parameter i selects Out or no filters (i=0), Line notch in (i=1), 2xLine
+notch in (i=2) or Both notch filters in (i=3).
+
+Gain Time Constant Commands 
+
+SENS (?) {i}
+The SENS command sets or queries the sensitivity. The parameter i
+selects a sensitivity below.
+i sensitivity i sensitivity
+0 2 nV/fA 13 50 µV/pA
+1 5 nV/fA 14 100 µV/pA
+2 10 nV/fA 15 200 µV/pA
+3 20 nV/fA 16 500 µV/pA
+4 50 nV/fA 17 1 mV/nA
+5 100 nV/fA 18 2 mV/nA
+6 200 nV/fA 19 5 mV/nA
+7 500 nV/fA 20 10 mV/nA
+8 1 µV/pA 21 20 mV/nA
+9 2 µV/pA 22 50 mV/nA
+10 5 µV/pA 23 100 mV/nA
+11 10 µV/pA 24 200 mV/nA
+12 20 µV/pA 25 500 mV/nA
+26 1 V/µA
+
+RMOD (?) {i}
+The RMOD command sets or queries the reserve mode. The parameter i
+selects High Reserve (i=0), Normal (i=1) or Low Noise (minimum) (i=2).
+See the description of the [Reserve] key for the actual reserves for each
+sensitivity.
+
+OFLT (?) {i}
+The OFLT command sets or queries the time constant. The parameter i
+selects a time constant below.
+i time constant i time constant
+0 10 µs 10 1 s
+1 30 µs 11 3 s
+2 100 µs 12 10 s
+3 300 µs 13 30 s
+4 1 ms 14 100 s
+5 3 ms 15 300 s
+6 10 ms 16 1 ks
+7 30 ms 17 3 ks
+8 100 ms 18 10 ks
+9 300 ms 19 30 ks
+Time constants greater than 30s may NOT be set if the
+harmonic x ref. frequency (detection frequency) exceeds 200 Hz. Time
+constants shorter than the minimum time constant (based upon the filter
+slope and dynamic reserve) will set the time constant to the minimum
+allowed time constant. See the Gain and TIme Constant operation
+section.
+
+OFSL (?) {i}
+The OFSL command sets or queries the low pass filter slope. The
+parameter i selects 6 dB/oct (i=0), 12 dB/oct (i=1), 18 dB/oct (i=2) or
+24 dB/oct (i=3).
+
+SYNC (?) {i}
+The SYNC command sets or queries the synchronous filter status. The
+parameter i selects Off (i=0) or synchronous filtering below 200 Hz (i=1).
+Synchronous filtering is turned on only if the detection frequency (reference x harmonic number) is less than 200 Hz.
+
+Display and Output Commands
+
+DDEF (?) i {, j, k}
+The DDEF command selects the CH1 and CH2 displays. The parameter
+i selects CH1 (i=1) or CH2 (i=2) and is required. The DDEF i, j, k command sets display i to parameter j with ratio k as listed below.
+CH1 (i=1) CH2 (i=2)
+j display j display
+0 X 0 Y
+1 R 1 θ
+2 X Noise 2 Y Noise
+3 Aux In 1 3 Aux In 3
+4 Aux In 2 4 Aux In 4
+k ratio k ratio
+0 none 0 none
+1 Aux In 1 1 Aux In 3
+2 Aux In 2 2 Aux In 4
+The DDEF? i command queries the display and ratio of display i. The
+returned string contains both j and k separated by a comma. For example, if the DDEF? 1 command returns "1,0" then the CH1 display is R
+with no ratio.
+
+FPOP (?) i {, j}
+The FPOP command sets or queries the front panel (CH1 and CH2)
+output sources. The parameter i selects CH1 (i=1) or CH2 (i=2) and is
+required. The FPOP i, j command sets output i to quantity j where j is
+listed below.
+CH1 (i=1) CH2 (i=2)
+j output quantity j output quantity
+0 CH 1 Display 0 CH 2 Display
+1 X 1 Y
+
+OEXP (?) i {, x, j}
+The OEXP command sets or queries the output offsets and expands.
+The parameter i selects X (i=1), Y (i=2) or R (i=3) and is required. The
+parameter x is the offset in percent (-105.00 ≤ x ≤ 105.00). The parameter j selects no expand (j=0), expand by 10 (j=1) or 100 (j=2). The OEXP
+i, x, j command will set the offset and expand for quantity i. This command requires BOTH x and j. The OEXP? i command queries the offset
+and expand of quantity i. The returned string contains both the offset and
+expand separated by a comma. For example, if the OEXP? 2 command
+returns "50.00,1" then the Y offset is 50.00% and the Y expand is 10.
+Setting an offset to zero turns the offset off. Querying an offset which is
+off will return 0% for the offset value.
+
+AOFF i
+The AOFF i command automatically offsets X (i=1), Y (i=2) or R (i=3) to
+zero. The parameter i is required. This command is equivalent to pressing the [Auto Offset] keys.
+
+OAUX? i
+The OAUX? command queries the Aux Input values. The parameter i
+selects an Aux Input (1, 2, 3 or 4) and is required. The Aux Input voltages
+are returned as ASCII strings with units of Volts. The resolution is
+1/3 mV. This command is a query only command.
+
+AUXV (?) i {, x}
+The AUXV command sets or queries the Aux Output voltage when the
+output. The parameter i selects an Aux Output (1, 2, 3 or 4) and is
+required. The parameter x is the output voltage (real number of Volts)
+and is limited to -10.500 ≤ x ≤ 10.500. The output voltage will be set to
+the nearest mV.
+
+Remote Programming
+
+OUTX (?) {i}
+The OUTX command sets the output interface to RS232 (i=0) or GPIB
+(i=1). The OUTX i command should be sent before any query commands to direct the responses to the interface in use.
+OVRM i In general, every GPIB interface command will put the SR830 into the
+REMOTE state with the front panel deactivated. To defeat this feature,
+use the OVRM 1 command to overide the GPIB remote. In this mode, the
+front panel is not locked out when the unit is in the REMOTE state. The
+OVRM 0 command returns the unit to normal remote operation.
+
+KCLK (?) {i}
+The KCLK command sets or queries the key click On (i=1) or Off (i=0)
+state.
+
+ALRM (?) {i}
+The ALRM command sets or queries the alarm On (i=1) or Off (i=0)
+state.
+
+SSET i
+The SSET i command saves the lock-in setup in setting buffer i (1≤i≤9).
+The setting buffers are retained when the power is turned off.
+
+RSET i
+ The RSET i command recalls the lock-in setup from setting buffer i
+(1≤i≤9). Interface parameters are not changed when a setting buffer is
+recalled with the RSET command. If setting i has not been saved prior to
+the RSET i command, then an error will result.
+
+Auto Functions
+
+AGAN
+The AGAN command performs the Auto Gain function. This command is
+the same as pressing the [Auto Gain] key. Auto Gain may take some
+time if the time constant is long. AGAN does nothing if the time constant
+is greater than 1 second. Check the command execution in progress bit
+in the Serial Poll Status Byte (bit 1) to determine when the function is
+finished.
+
+ARSV
+The ARSV command performs the Auto Reserve function. This command is the same as pressing the [Auto Reserve] key. Auto Reserve
+may take some time. Check the command execution in progress bit in
+the Serial Poll Status Byte (bit 1) to determine when the function is
+finished.
+
+APHS
+The APHS command performs the Auto Phase function. This command
+is the same as pressing the [Auto Phase] key. The outputs will take many
+time constants to reach their new values. Do not send the APHS command again without waiting the appropriate amount of time. If the phase
+is unstable, then APHS will do nothing. Query the new value of the phase
+shift to see if APHS changed the phase shift.
+
+AOFF i
+The AOFF i command automatically offsets X (i=1), Y (i=2) or R (i=3) to
+zero. The parameter i is required. This command is equivalent to pressing the [Auto Offset] keys
+
+DATA STORAGE COMMANDS
+
+Data Storage
+The SR830 can store up to 16383 points from both the Channel 1 and Channel 2 displays in an internal data
+buffer. The data buffer is NOT retained when the power is turned off. The data buffer is accessible only via
+the computer interface.
+Configure the displays to show the desired quantity (with appropriate ratio, offset and expand). The data
+buffer stores the quantities which are displayed. Only quantities which are displayed on the CH1 or CH2 displays can be stored. Frequency, for example, can not be stored.
+
+Data Points and Bins
+
+Data points stored in the buffer are sometimes referred to by their bin position within the buffer. The oldest
+data point is bin0, the next point is bin1, etc. A buffer with N points numbers them from 0 to N-1.
+
+Sample Rate
+
+The Sample Rate can be varied from 512 Hz down to 62.5 mHz (1 point every 16 sec). The sample rate sets
+how often points are added to the storage buffer. Both displays are sampled at the same rate (and at the
+same times).
+In addition to the internal sample rates, samples can be triggered by an external TTL trigger. In this mode, a
+sample is recorded within 2 ms of a rising edge trigger on the rear panel Trigger input. Triggers which occur
+faster than 512 Hz are ignored.
+
+Storage Time
+
+The buffer holds 16383 samples taken at the sample rate. The entire storage time is 16383 divided by the
+sample rate.
+
+End of Scan
+
+When the buffer becomes full, data storage can stop or continue.
+The first case is called 1 Shot (data points are stored for a single buffer length). At the end of the buffer, data
+storage stops and an audio alarm sounds.
+The second case is called Loop. In this case, data storage continues at the end of the buffer. The data buffer
+will store 16383 points and start storing at the beginning again. The most recent 16383 points will be contained in the buffer. Once the buffer has looped around, the oldest point (at any time) is at bin#0 and the most
+recent point is at bin#16382.
+The default mode is Loop.
+
+Starting and Stopping a Scan
+
+The STRT, PAUS and REST commands are used to control data storage. Basically, the STRT command
+starts data storage after a reset or pause. The PAUS command pauses data storage but does not reset the
+buffer. The REST stops data storage and resets the buffer data.
+In addition, the rear panel Trigger input can be used to start data storage. To select this mode, use the TSTR
+command. In this mode, a rising TTL trigger will act the same as the STRT command. The sample rate can
+be either internal or Triggered. In the first case, the trigger starts the storage and data is sampled at the programmed sample rate (up to 512 Hz). In the latter case, the first trigger will start the storage and data will be
+sampled at every subsequent trigger.
+
+Aliasing Effects
+
+In any sampled data stream, it is possible to sample a high frequency signal such that it will appear to be a
+much lower frequency. This is called aliasing.
+For example, suppose the lock-in is detecting a signal near 1 Hz with a relatively short time constant. The X
+output will have a DC component and a 2 Hz component (2xf). If the sample rate is 2 Hz, then the samples
+may be taken as illustrated below.
+The samples represent a sine wave much slower than 2 Hz that isn't actually present in the output! In this
+case, a much higher sampling rate will solve the problem.
+Aliasing occurs whenever the output signal being sampled contains signals at frequencies greater
+than 1/2 the sample rate. The effect is most noticeable when trying to sample an output frequency at an integer multiple of the sample rate (as above). The above aliasing problem will be the same for a 1 kHz output
+(500 times the sample rate) as for the 2 Hz output.
+Generally, the highest possible sample rate should be used given the desired storage time. The lock-in time
+constant and filter slope should be chosen to attenuate signals at frequencies higher than 1/2 the sample rate
+as much as possible.
+
+SRAT (?) {i}
+The SRAT command sets or queries the data sample rate. The parameter i selects the sample rate listed below.
+i quantity i quantity
+0 62.5 mHz 7 8 Hz
+1 125 mHz 8 16 Hz
+2 250 mHz 9 32 Hz
+3 500 mHz 10 64 Hz
+4 1 Hz 11 128 Hz
+5 2 Hz 12 256 Hz
+6 4 Hz 13 512 Hz
+14 Trigger
+
+SEND (?) {i}
+The SEND command sets or queries the end of buffer mode. The parameter i selects 1 Shot (i=0) or Loop (i=1). If Loop mode is used, make sure
+to pause data storage before reading the data to avoid confusion about
+which point is the most recent.
+
+TRIG
+The TRIG command is the software trigger command. This command
+has the same effect as a trigger at the rear panel trigger input.
+
+TSTR (?) {i}
+The TSTR command sets or queries the trigger start mode. The parameter i=1 selects trigger starts the scan and i=0 turns the trigger start feature off.
+
+STRT
+The STRT command starts or resumes data storage. STRT is ignored if
+storage is already in progres
+
+PAUS
+The PAUS command pauses data storage. If storage is already paused
+or reset then this command is ignored.
+
+REST
+The REST command resets the data buffers. The REST command can
+be sent at any time - any storage in progress, paused or not, will be
+reset. This command will erase the data buffer. 
+
+DATA TRANSFER COMMANDS
+
+OUTP ? i
+The OUTP? i command reads the value of X, Y, R or θ. The parameter
+i selects X (i=1), Y (i=2), R (i=3) or θ (i=4). Values are returned as ASCII
+floating point numbers with units of Volts or degrees. For example, the
+response might be "-1.01026". This command is a query only command.
+
+OUTR ? i
+The OUTR? i command reads the value of the CH1 or CH2 display.
+The parameter i selects the display (i=1 or 2). Values are returned as
+ASCII floating point numbers with units of the display. For example, the
+response might be "-1.01026". This command is a query only command.
+
+SNAP ? i,j {,k,l,m,n}
+The SNAP? command records the values of either 2, 3, 4, 5 or 6 parameters at a single instant. For example, SNAP? is a way to query values of
+X and Y (or R and θ) which are taken at the same time. This is important
+when the time constant is very short. Using the OUTP? or OUTR? commands will result in time delays, which may be greater than the time constant, between reading X and Y (or R and θ).
+The SNAP? command requires at least two parameters and at most six
+parameters. The parameters i, j, k, l, m, n select the parameters below.
+i,j,k,l,m,n parameter
+1 X
+2 Y
+3 R
+4 θ
+5 Aux In 1
+6 Aux In 2
+7 Aux In 3
+8 Aux In 4
+9 Reference Frequency
+10 CH1 display
+11 CH2 display
+The requested values are returned in a single string with the values separated by commas and in the order in which they were requested. For
+example, the SNAP?1,2,9,5 will return the values of X, Y, Freq and
+Aux In 1. These values will be returned in a single string such as
+"0.951359,0.0253297,1000.00,1.234".
+The first value is X, the second is Y, the third is f, and the fourth is
+Aux In 1.
+The values of X and Y are recorded at a single instant. The values of R
+and θ are also recorded at a single instant. Thus reading X,Y OR R,θ
+yields a coherent snapshot of the output signal. If X,Y,R and θ are all
+read, then the values of X,Y are recorded approximately 10µs apart from
+R,θ. Thus, the values of X and Y may not yield the exact values of R and
+θ from a single SNAP? query.
+The values of the Aux Inputs may have an uncertainty of up to 32µs. The
+frequency is computed only every other period or 40 ms, whichever is
+longer.
+The SNAP? command is a query only command. The SNAP? command
+is used to record various parameters simultaneously, not to transfer data
+quickly.
+
+OAUX? i
+The OAUX? command reads the Aux Input values. The parameter i
+selects an Aux Input (1, 2, 3 or 4) and is required. The Aux Input voltages
+are returned as ASCII strings with units of Volts. The resolution is
+1/3 mV. This command is a query only command.
+
+SPTS ?
+The SPTS? command queries the number of points stored in the buffer.
+Both displays have the same number of points. If the buffer is reset, then
+0 is returned. Remember, SPTS? returns N where N is the number of
+points - the points are numbered from 0 (oldest) to N-1 (most recent).
+The SPTS? command can be sent at any time, even while storage is in
+progress. This command is a query only command.
+
+TRCA ? i, j, k
+The TRCA? command queries the points stored in the Channel i buffer.
+The values are returned as ASCII floating point numbers with the units of
+the trace. Multiple points are separated by commas and the final point is
+followed by a terminator. For example, the response with two points
+might be "-1.234567e-009,+7.654321e-009,".
+The parameter i selects the display buffer (i=1, 2) and is required. Points
+are read from the buffer starting at bin j (j≥0). A total of k bins are read
+(k≥1). To read a single point, set k=1. Both j and k are required. If j+k
+exceeds the number of stored points (as returned by the SPTS? query),
+then an error occurs. Remember, SPTS? returns N where N is the total
+number of bins - the TRCA? command numbers the bins from 0 (oldest)
+to N-1 (most recent). If data storage is set to Loop mode, make sure that
+storage is paused before reading any data. This is because the points
+are indexed relative to the most recent point which is continually
+changing.
+
+TRCB ? i, j, k
+The TRCB? command queries the points stored in the Channel i buffer.
+The values are returned as IEEE format binary floating point numbers
+(with the units of the trace). There are 4 bytes per point. Multiple points
+are not separated by any delimiter. The bytes can be read directly into a
+floating point array (in most languages).
+Do not query the IFC (no command in progress) status bit after sending
+the TRCB command. This bit will not be set until the transfer is complete.
+When using the GPIB interface, EOI is sent with the final byte. The points
+must be read using a binary transfer (see your GPIB interface card software manual). Make sure that the software is configured to NOT terminate reading upon receipt of a CR or LF.
+When using the RS232 interface, the word length must be 8 bits. The
+points must be read as binary bytes (no checking for linefeeds, carriage
+returns or other control characters). Most serial interface drivers are
+designed for ASCII text only and will not work here. The data transfer does
+not pause between bytes. The receiving interface must always be ready
+to receive the next byte. In general, using binary transfers on the RS232 
+interface is not recommended.
+The parameter i selects the display buffer (i=1, 2) and is required. Points
+are read from the buffer starting at bin j (j≥0). A total of k bins are read
+(k≥1) for a total transfer of 4k bytes. To read a single point, set k=1. Both
+j and k are required. If j+k exceeds the number of stored points (as
+returned by the SPTS? query), then an error occurs. Remember, SPTS?
+returns N where N is the total number of bins - the TRCB? command
+numbers the bins from 0 (oldest) to N-1 (most recent). If data storage is
+set to Loop mode, make sure that storage is paused before reading any
+data. This is because the points are indexed relative to the most recent
+point which is continually changing.
+
+TRCL ? i, j, k
+The TRCL? command queries the points stored in the Channel i buffer.
+The values are returned in a non-normalized floating point format (with
+the units of the trace). There are 4 bytes per point. Multiple points are not
+separated by any delimiter. The bytes CANNOT be read directly into a
+floating point array.
+Each point consists of four bytes. Byte 0 is the LSB and Byte 3 is the
+MSB. The format is illustrated below.
+
+ 16 bits     16 bits
+0      exp   mantissa
+byte3 byte2 byte1 byte0
+The mantissa is a signed 16 bit integer (-32768 to 32767). The exponent
+is a signed integer whose value ranges from 0 to 248 (thus byte 3 is
+always zero). The value of a data point is simply,
+value = m x 2 (exp-124)
+where m is the mantissa and exp is the exponent.
+The data within the SR830 is stored in this format. Data transfers using
+this format are faster than IEEE floating point format. If data transfer
+speed is important, the TRCL? command should be used.
+Do not query the IFC (no command in progress) status bit after sending
+the TRCL command. This bit will not be set until the transfer is complete.
+When using the GPIB interface, EOI is sent with the final byte. The points
+must be read using a binary transfer (see your GPIB interface card software manual). Make sure that the software is configured to NOT terminate reading upon receipt of a CR or LF.
+When using the RS232 interface, the word length must be 8 bits. The
+points must be read as binary bytes (no checking for linefeeds, carriage
+returns or other control characters). Most serial interface drivers are
+designed for ASCII text only and will not work here. In addition, the data
+transfer does not pause between bytes. The receiving interface must
+always be ready to receive the next byte. In general, using binary transfers on the
+RS232 interface is not recommended.
+The parameter i selects the display buffer (i=1, 2) and is required. Points are read
+starting at bin j (j≥0). A total of k bins are read (k≥1) for a total transfer of 4k bytes. To
+read a single point, set k=1. Both j and k are required. If j+k exceeds the number of
+stored points (as returned by the SPTS? Query), then an error occurs. Remember,
+SPTS? Returns N where N is the total number of bins – the TRCB? command numbers
+the bins from 9 (oldest) to N-1 (most recent). If data storage is set to Loop mode, make
+sure that storage is paused before reading any data. This is because the points are
+indexed relative to the most recent point which is continually changing.
+
+FAST (?) {i}
+The FAST command sets the data transfer mode on and off. The parameter i selects:
+ i=0: Off
+ i=1: On (DOS programs or other dedicated data collection computers)
+ i=2: On (Windows Operating System Programs)
+ When the fast transfer mode is on, whenever data is sampled (during a scan), the
+values of X and Y are automatically transmitted over GPIB (not available over RS232).
+The sample rate sets the frequency of the data transfers. It is important that the
+receiving interface be able to keep up with the transfers.
+To use the FAST2 mode, a ROM version of 1.06 or higher is required. The FAST2
+version uses the lock-in transmit queue to buffer the GPIB data being sent to the host.
+Since the transmit queue can buffer a maximum of 63 X and Y data pairs, the host can
+only be diverted for short periods of time (e.g. 120mS at 512Hz sample rate) without
+causing the lock-in to "time out" and abort the FAST mode data transfer.
+The values of X and Y are transferred as signed integers, 2 bytes long (16 bits). X is
+sent first followed by Y for a total of 4 bytes per sample. The values range from -32768
+to 32767. The value ±30000 represents ±full scale (i.e. the sensitivity).
+Offsets and expands are included in the values of X and Y. The transferred values are
+(raw data - offset) x expand. The resulting value must still be a 16 bit integer. The value
+±30000 now represents ±full scale divided by the expand factor.
+At fast sample rates, it is important that the receiving interface be able to keep up. If the
+SR830 finds that the interface is not ready to receive a point, then the fast transfer
+mode is turned off. The fast transfer mode may be turned off with the FAST0 command.
+The transfer mode should be turned on (using FAST1 or FAST 2) before a scan is
+started. Then use the STRD command (see below) to start a scan. After sending the
+STRD command, immediately make the SR830 a talker and the controlling interface a
+listener. Remember, the first transfer will occur with the first point in the scan. If the
+scan is started from the front panel or from a trigger, then make sure that the SR830 is
+a talker and the controlling interface a listener BEFORE the scan actually starts.
+
+STRD
+After using FAST1 or FAST 2 to turn on fast data transfer, use the STRD command to
+start the scan. STRD starts a scan after a delay of 0.5 sec. This delay allows the
+controlling interface to place itself in the read mode before the first data points are
+transmitted. Do not use the STRT command to start the scan. See the programming
+examples at the end of this section. 
+
+INTERFACE COMMANDS
+
+❊RST
+The ❊RST command resets the SR830 to its default configurations. The
+communications setup is not changed. All other modes and settings are
+set to their default conditions and values. This command takes some
+time to complete. This command resets any data scan in progress. Data
+stored in the buffers will be lost.
+
+❊IDN?
+The ❊IDN? query returns the SR830's device identification string. This
+string is in the format
+"Stanford_Research_Systems,SR830,s/n00111,ver1.000".
+In this example, the serial number is 00111 and the firmware version is
+1.000.
+
+LOCL (?) {i}
+The LOCL command sets the local/remote function. If i=0 the SR830 is
+LOCAL, if i=1 the SR830 will go REMOTE, and if i=2 the SR830 will go
+into LOCAL LOCKOUT state. The states duplicate the GPIB local/remote
+states. In the LOCAL state both command execution and keyboard input
+are allowed. In the REMOTE state command execution is allowed but the
+keyboard and knob are locked out except for the [LOCAL] key which
+returns the SR830 to the LOCAL state. In the LOCAL LOCKOUT state all
+front panel operation is locked out, including the [LOCAL] key.
+The REMOTE indicator is directly above the [LOCAL] key.
+The Overide Remote mode must be set to No in order for the front panel
+to be locked out. If Overide Remote is Yes, then the front panel is active
+even in the REMOTE state.
+
+OVRM (?) {i}
+The OVRM command sets or queries the GPIB Overide Remote Yes/No
+condition. The parameter i selects No (i=0) or Yes (i=1). When Overide
+Remote is set to Yes, then the front panel is not locked out when the unit
+is in the REMOTE state. The REMOTE indicator will still be on and the
+[LOCAL] key will still return the unit to the Local state.
+The default mode is Overide Remote Yes. To lock-out the front panel,
+use the OVRM0 command before local lock-out.
+
+TRIG
+The TRIG command is the software trigger command. This command
+has the same effect as a trigger at the rear panel trigger input.
+
+STATUS REPORTING COMMANDS
+
+The Status Byte definitions follow this section.
+
+❊CLS
+The ❊CLS command clears all status registers. The status enable registers are NOT cleared.
+
+❊ESE (?) {i} {,j}
+The ❊ESE i command sets the standard event enable register to the
+decimal value i (0-255). The ❊ESE i,j command sets bit i (0-7) to j (0 or
+1). The ❊ESE? command queries the value (0-255) of the status byte
+enable register. The ❊ESE? i command queries the value (0 or 1) of bit i.
+
+❊ESR? {i}
+The ❊ESR? command queries the value of the standard event status
+byte. The value is returned as a decimal number from 0 to 255. The
+❊ESR? i command queries the value (0 or 1) of bit i (0-7). Reading the
+entire byte will clear it while reading bit i will clear just bit i.
+
+❊SRE (?) {i} {,j}
+The ❊SRE i command sets the serial poll enable register to the decimal value i (0-255). The ❊SRE i,j command sets bit i (0-7) to j (0 or
+1).The ❊SRE? command queries the value (0-255) of the serial poll
+enable register. The ❊SRE? i command queries the value (0 or 1) of bit i.
+
+❊STB? {i}
+The ❊STB? command queries the value of the serial poll status byte.
+The value is returned as a decimal number from 0 to 255. The ❊STB? i
+command queries the value (0 or 1) of bit i (0-7). Reading this byte has
+no effect on its value.
+
+❊PSC (?) {i}
+The ❊PSC command sets the value of the power-on status clear bit. If
+i=1 the power-on status clear bit is set and all status registers and enable
+registers are cleared on power up. If i=0 the bit is cleared and the status
+enable registers maintain their values at power down. This allows a service request to be generated at power up.
+
+ERRE (?) {i} {,j}
+The ERRE i command sets the error status enable register to the decimal value i (0-255). The ERRE i,j command sets bit i (0-7) to j (0 or 1).
+The ERRE? command queries the value (0-255) of the error status
+enable register. The ERRE? i command queries the value (0 or 1) of bit i.
+ERRS? {i} The ERRS? command queries the value of the error status byte. The
+value is returned as a decimal number from 0 to 255. The ERRS? i command queries the value (0 or 1) of bit i (0-7). Reading the entire byte will
+clear it while reading bit i will clear just bit i.
+
+LIAE (?) {i} {,j}
+The LIAE command sets the lock-in (LIA) status enable register to the
+decimal value i (0-255). The LIAE i,j command sets bit i (0-7) to j (0 or 1).
+The LIAE? command queries the value of the LIA status enable register.
+The LIAE? i command queries the value (0 or 1) of bit i.
+
+LIAS? {i}
+The LIAS? command queries the value of the lock-in (LIA) status byte.
+The value is returned as a decimal number from 0 to 255. The LIAS? i
+command queries the value (0 or 1) of bit i (0-7). Reading the entire byte
+will clear it while reading bit i will clear just bit i.
+
+STATUS BYTE DEFINITIONS
+The SR830 reports on its status by means of four status bytes: the Serial Poll Status byte, the Standard Event
+Status byte, the LIA Status byte, and the Error Status byte.
+The status bits are set to 1 when the event or state described in the tables below has occurred or is present.
+SERIAL POLL bit name usage
+STATUS BYTE
+0 SCN No scan in progress (Stop or Done). A Paused
+scan is considered to be in progress.
+1 IFC No command execution in progress.
+2 ERR An enabled bit in the error status byte has been
+set.
+3 LIA An enabled bit in the LIA status byte has been
+set.
+4 MAV The interface output buffer is non-empty.
+5 ESB An enabled bit in the standard status byte has
+been set.
+6 SRQ SRQ (service request) has occurred.
+7 Unused
+The ERR, LIA, and ESB bits are set whenever any bit in both their respective status bytes AND enable registers is set. Use the ✳SRE, ✳ESE, ERRE and LIAE commands to set enable register bits. The ERR, LIA and
+ESB bits are not cleared until ALL enabled status bits in the Error, LIA and Standard Event status bytes are
+cleared (by reading the status bytes or using ✳CLS).
+Using ✳STB? to read the Serial Poll Status Byte
+A bit in the Serial Poll status byte is NOT cleared by reading the status byte using ✳STB?. The bit stays set
+as long as the status condition exists. This is true even for SRQ. SRQ will be set whenever the same bit in the
+serial poll status byte AND enable register is set. This is independent of whether a serial poll has occurred to
+clear the service request.
+Using SERIAL POLL
+Except for SRQ, a bit in the Serial Poll status byte is NOT cleared by serial polling the status byte. When
+reading the status byte using a serial poll, the SRQ bit signals that the SR830 is requesting service. The SRQ
+bit will be set (1) the first time the SR830 is polled following a service request. The serial poll automatically
+clears the service request. Subsequent serial polls will return SRQ cleared (0) until another service request
+occurs. Polling the status byte and reading it with ✳STB? can return different values for SRQ. When polled,
+SRQ indicates a service request has occurred. When read, SRQ indicates that an enabled status bit is set.
+SERVICE REQUESTS (SRQ)
+A GPIB service request (SRQ) will be generated whenever a bit in both the Serial Poll Status byte AND Serial
+Poll Enable register is set. Use ✳SRE to set bits in the Serial Poll Enable register. A service request is only
+generated when an enabled Serial Poll Status bit becomes set (changes from 0 to 1). An enabled status bit
+which becomes set and remains set will generate a single SRQ. If another service request from the same
+status bit is desired, the requesting status bit must first be cleared. In the case of the ERR, LIA and ESB bits,
+this means clearing the enabled bits in the ERR, LIA and ESB status bytes (by reading them). Multiple enabled bits in these status bytes will generate a single SRQ. Another SRQ (from ERR, LIA or ESB) can only be
+generated after clearing the ERR, LIA or ESB bits in the Serial Poll status byte. To clear these bits, ALL enabled bits in the ERR, LIA or ESB status bytes must be cleared.
+The controller should respond to the SRQ by performing a serial poll to read the Serial Poll status byte to
+determine the requesting status bit. Bit 6 (SRQ) will be reset by the serial poll.
+For example, to generate a service request when a RESRV overload occurs, bit 0 in the LIA Status Enable
+register needs to be set (LIAE 0,1 command) and bit 3 in the Serial Poll Enable register must be set
+(✳SRE 3,1 command). When a reserve overload occurs, bit 0 in the LIA Status byte is set. Since bit 0 in the
+LIA Status byte AND Enable register is set, this ALSO sets bit 3 (LIA) in the Serial Poll Status byte. Since bit
+3 in the Serial Poll Status byte AND Enable register is set, an SRQ is generated. Bit 6 (SRQ) in the Serial Poll
+Status byte is set. Further RESRV overloads will not generate another SRQ until the RESRV overload status
+bit is cleared. The RESRV status bit is cleared by reading the LIA Status byte (with LIAS?). Presumably, the
+controller is alerted to the overload via the SRQ, performs a serial poll to clear the SRQ, does something to
+try to remedy the situation (change gain, experimental parameters, etc.) and then clears the RESRV status bit
+by reading the LIA status register. A subsequent RESRV overload will then generate another SRQ.
+STANDARD EVENT bit name usage
+STATUS BYTE
+0 INP Set on input queue overflow (too many commands received at once, queues cleared).
+1 Unused
+2 QRY Set on output queue overflow (too many
+responses waiting to be transmitted, queues
+cleared).
+3 Unused
+4 EXE Set when a command can not execute correctly
+or a parameter is out of range.
+5 CMD Set when an illegal command is received.
+6 URQ Set by any key press or knob rotation.
+7 PON Set by power-on.
+The bits in this register remain set until cleared by reading them or by the ❊CLS command
+LIA STATUS BYTE bit name usage
+0 INPUT/RESRV Set when an Input or Amplifier overload is
+detected.
+1 FILTR Set when a Time Constant filter overload is
+detected.
+2 OUTPT Set when an Output overload is detected.
+3 UNLK Set when a reference unlock is detected.
+4 RANGE Set when the detection frequency switches
+ranges (harmonic x ref. frequency decreases
+below 199.21 Hz or increases above
+203.12 Hz). Time constants above 30 s and
+Synchronous filtering are turned off in the upper
+frequency range.
+5 TC Set when the time constant is changed indirectly, either by changing frequency range, dynamic
+reserve, filter slope or expand.
+6 TRIG Set when data storage is triggered. Only if samples or scans are in externally triggered mode.
+7 unused
+The LIA Status bits stay set until cleared by reading or by the ❊CLS command.
+ERROR STATUS BYTE bit name usage
+0 Unused
+1 Backup Error Set at power up when the battery backup has
+failed.
+2 RAM Error Set when the RAM Memory test finds an error.
+3 Unused
+4 ROM Error Set when the ROM Memory test finds an error.
+5 GPIB Error Set when GPIB fast data transfer mode aborted.
+6 DSP Error Set when the DSP test finds an error.
+7 Math Error Set when an internal math error occurs.
+The Error Status bits stay set until cleared by reading or by the ❊CLS command.
+
+
+
+
+
+
+
+EXAMPLE PROGRAM 1
+Using Microsoft C (v5.1) with the National Instruments GPIB card
+on the IBM PC.
+To successfully interface the SR830 to a PC via the GPIB interface, the instrument, interface card, and interface drivers must all be configured properly. To configure the SR830, the GPIB address must be set using the
+[Setup] key. The default GPIB address is 8; use this address unless a conflict occurs with other instruments in
+your system. The SR830 will be set to GPIB address 8 whenever a reset is performed (power on with the
+[Setup] key down).
+Make sure that you follow all the instructions for installing the GPIB card. The National Instruments card
+cannot be simply unpacked and put into your computer. To configure the card you must set jumpers and
+switches on the card to set the I/O address and interrupt levels. You must run the program "IBCONF" to configure the resident GPIB driver for you GPIB card. Please refer to the National Instruments manual for information. In this example, the following options must be set with IBCONF:
+Device name: LIA
+Device address: 8
+Terminate Read on EOS: No (for binary transfers)
+Once all the hardware and GPIB drivers are configured, use "IBIC". This terminal emulation program allows
+you to send commands to the SR830 directly from your computer's keyboard. If you cannot talk to the SR830
+via "IBIC", then your programs will not run. Use the simple commands provided by National Instruments. Use
+"IBWRT" and "IBRD" to write and read from the SR830. After you are familiar with these simple commands,
+you can explore more complex programming commands.
+/*******************************************************************************************************/
+/* Example program using Microsoft C V5.1 and the National Instruments GPIB card.
+Connect the Sine Out to the A Input with a BNC cable.
+Run this program by typing the program name followed by a space and the device name.
+The device name is the name used in IBCONF to configure the National Instruments driver.
+For example, if the program is called LIATEST and the above configuration is used,
+then type LIATEST LIA.
+Binary X and Y data will be transferred for 10 seconds to the PC using the FAST transfer command.
+After the fast transfer is complete, the existing magnitude (R) data in the data buffer will be transferred
+in IEEE floating point format as well as the LIA non-normalized floating point format (faster transfer) */
+#include <conio.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include "decl.h"
+#define SR830 argv[1]
+/* function prototypes */
+void main(int, char *[]);
+void txLia(char *);
+void initGpib(char *);
+void setupLia(void);
+void printOutBinaryResults(void);
+void printOutIEEEResults(void);
+void printOutLIAResults(void);
+/* National Instruments Interface Function Prototypes (488.1 Calls - see the National software manual).
+ These are declared in "decl.h"
+int ibfind(char*);
+void ibwrt(int,char *,int);
+void ibrd(int,char *,unsigned long);
+void ibrsp(int,char *);
+void ibeos(int,int);
+void ibtmo(int,int);
+*/
+/* global variables */
+int lia; /* SR830 handle */
+int rxBuf[660*2]; /* FAST mode data buffer */
+float rfBuf[1000]; /* Floating point data buffer */
+void main(int argc, char *argv[])
+{
+int nPts,i;
+char tstr[20];
+if (argc<2) {
+printf("\nUsage: liatest <devName>\n");
+exit(1);
+}
+else
+initGpib(SR830);
+txLia("OUTX1"); /* Set the SR830 to output responses to the GPIB port */
+setupLia(); /* Setup the SR830 */
+printf("\nAcquiring Data\n");
+ibtmo(lia,0); /* turn off timeout for lia or set the timeout longer than the scan (10 seconds). The
+timeout measures the time to transfer the FULL number of bytes, not the time since
+the most recent byte is received.*/
+txLia("FAST2;STRD"); /* Turn FAST mode data transfer ON, then start scan using the STRD start
+after delay command. The STRD command MUST be used if the scan is to
+be started by this program! Do NOT use STRT. */
+/* take data for 10 seconds and then stop */
+ibrd(lia,(char *)rxBuf,2564L); /* get FAST mode data for 10 seconds.
+10 seconds of data at 64 Hz sample rate has 64*10 + 1 points,
+each point consists of X (2 bytes) and Y (2 bytes) for a total of
+4*(64*10+1) = 2564 bytes. */
+i=(int)ibcnt; /* save total number of bytes read */
+i=(int)ibcnt; /* save total number of bytes read */
+txLia("PAUS"); /* pause the data storage so no new points are taken */
+printOutBinaryResults(); /* format and print the results */
+printf("\n%d bytes received.\nPress <Enter> to continue.",i);
+getch(); printf("\n");
+printf("Reading Results in IEEE Binary Format\n");
+txLia("SPTS?"); /* how many points in CH1 (R) buffer? */
+ibrd(lia,tstr,20L); /* get the answer */
+sscanf(tstr,"%d",&nPts); /* convert from a string to an int */
+printf ("SPTS?=%d\n",nPts);
+sprintf(tstr,"TRCB?1,0,%d",nPts); /* use TRCB? to read the points in IEEE floating point format */
+ibwrt(lia,tstr,strlen(tstr)); /* note that we cannot use txLia here because the IFC RDY bit will
+not be set until the transfer is complete! */
+ibrd(lia,(char *)rfBuf,(long)nPts*4L); /* read directly into a FLOAT array, 4 bytes per point */
+printf ("\nReceived %d bytes in IEEE binary format\n",ibcnt);
+printOutIEEEResults(); /* format and print results */
+printf ("Press <Enter> to continue");
+getch(); printf("\n");
+printf("Reading Results in LIA Binary Format\n");
+sprintf(tstr,"TRCL?1,0,%d",nPts); /* use TRCL? to read the points in LIA floating point format */
+ibwrt(lia,tstr,strlen(tstr)); /* note that we cannot use txLia here because the IFC RDY bit will
+not be set until the transfer is complete! */
+ibrd(lia,(char *)rfBuf,(long)nPts*4L); /* read into FLOAT array but the values are NOT floats! */
+printf ("\nReceived %d bytes in LIA binary format\n",ibcnt);
+printOutLIAResults(); /* format and print results */
+printf ("End of Program");
+}
+void printOutBinaryResults(void)
+{
+/* calculates the first 10 values of R based on the X and Y values taken in FAST mode by the SR830 */
+int i;
+float x,y,r;
+int *ptr;
+printf("\n\n");
+ptr = rxBuf; /* ptr points to the first X,Y pair of values. X and Y are each integers. */
+for (i=0;i<10;i++) {
+x = (float) (*ptr++) /(float) 30000.0; /* 30000 is full scale which is 1 V in this case */
+y = (float) (*ptr++) /(float) 30000.0; /* for other scales, multiply by the full scale voltage */
+r = (float) sqrt(x*x + y*y); /* compute R from X and Y */
+printf("%d %e\n",i,r);
+}
+}
+void printOutIEEEResults(void)
+{
+/* prints the first 10 values of R transferred in IEEE floating point format by the SR830 */
+int i;
+printf("\n\n");
+for (i=0;i<10;i++)
+printf("%d %e\n",i,rfBuf[i]); /* this is simple since the values are already IEEE floats */
+}
+void printOutLIAResults(void)
+{
+/* calculates the first 10 values of R transferred in LIA float format by the SR830 */
+int i,mant,exp;
+int *ptr;
+float val;
+printf("\n\n");
+ptr =(int *) rfBuf; /* ptr points to integers in rfBuf, not floats! */
+for (i=0;i<10;i++) {
+mant = *ptr++; /* first comes the mantissa (16 bits) */
+exp = *ptr++ - 124; /* then the binary exponent (16 bits) offset by 124 */
+val = (float) mant * (float) pow(2.0,(double) exp);
+printf("%d %e\n",i,val);
+}
+}
+void initGpib(char *devName)
+{
+if ((lia=ibfind(devName))<0) {
+printf("\nCannot Find SR830 \n\a");
+exit(1);
+}
+}
+void txLia(char *str)
+{
+char serPol;
+ibwrt(lia,str,strlen(str));
+do {
+ibrsp(lia,&serPol); /* now poll for IFC RDY */
+} while ((serPol&2)==0); /* until the command finishes executing */
+}
+void setupLia(void)
+{
+txLia("*RST"); /* initialize the lock-in */
+txLia("SRAT10; SEND0"); /* set 64 Hz sample rate, stop at end */
+txLia("DDEF1,1,0; DDEF2,1,0"); /* set CH1=R, CH2=theta. Buffers store CH1 and CH2 */
+printf("Scan is Initialized, Press <Enter> to Begin Scan...");
+getch();
+}
+
+
+USING SR530 PROGRAMS WITH THE SR830
+The SR830 responds to most SR530 programming commands. This allows the SR830 to drop into an existing
+SR530 application with a minimum of program changes. Of course, some changes will be required and some
+features are unique to one instrument or the other. For example, SR530 commands can not put the SR830
+into a configuration which is not allowed by the SR830. All program routines which query the SR530
+status MUST be rewritten to query the equivalent SR830 status using the SR830 status commands.
+The SR530 emulation mode is intended to facilitate the transition to the SR830. New applications programs
+should use the SR830 commands in order to take advantage of all of the SR830 features.
+The SR575 program will NOT run reliably with the SR830. This is because the SR575 is optimized for
+speed and the SR830 command execution time for some commands is longer than in the SR530.
+The SR530 commands are documented in the SR530 manual. SR530 command parameters follow the
+SR530 conventions. Exceptions are noted below.
+OUTX i The SR830 OUTX i command sets the output interface to RS232 (i=0) or
+GPIB (i=1). The OUTX i command MUST be at the start of ANY
+SR830 program to direct responses to the interface in use.
+FMOD i The SR530 is always in external reference mode. Use the FMOD 0 command to set the SR830 to external reference. To use the SR830
+internal oscillator, use the FMOD 1 command.
+AX
+AY
+AR The AX, AY and AR commands auto offset the X, Y and R outputs.
+Unlike the SR530, the X and Y offsets have no effect on R.
+AP The AP command performs the Auto Phase function. AP has no effect if
+the phase is unstable.
+B {n} The SR830 has no bandpass filter. This command is emulated but no
+changes are made to the SR830 configuration.
+C {n} Changes the Reference display.
+D {n} Change the dynamic reserve. Unlike the SR530, all reserves are
+allowed at all sensitivities.
+E m {,n} Change the Channel m expand. n=2 selects expand by 100. Note that
+expands in the SR830 affect the X and Y BNC outputs as well as the
+Display outputs.
+F {x} The F command Reads the frequency. The F x command sets the
+internal oscillator frequency to x Hz.
+G {n} Change the sensitivity from 10 nV (n=1) to 500 mV (n=24). Settings
+below 100 nV are always allowed. The 1V sensitivity can be set
+using G25. Querying this sensitivity returns a value of 24.
+H The SR830 does not sense the pre-amplifier. This command is emulated and always returns 0.
+I {n} Change the remote/local status. The SR830 Override Remote mode
+can override the I2 command. Use the OVRM command to change
+this.
+J Not implemented. Do not use.
+K Not implemented. Do not use.
+L m {,n} Change the line notch filter status.
+M {n} Change the reference mode to 2f. This command actually sets the
+harmonic detect number to n+1 in order to access harmonics
+higher than 2f.
+N {m} Change the noise bandwidth. This command has no effect on the time
+constants. If the S4 command is used to change the display to
+Xnoise,Ynoise, then the N m command changes the effective ENBW
+with which the output noise will be reported when queried using the
+Q1 or Q2 commands. The N command only affects the response to
+Q1 or Q2 and only if the S4 command is used first.
+OX {n} {,v}
+OY {n} {,v}
+OR {n} {,v} Change the X, Y or R offsets. Remember, v is an input voltage (not a
+percentage) for the SR530. Unlike the SR530, the X and Y offsets
+have no effect on R.
+P {v} Change the reference phase shift. The value of v is limited to
+-360.0≤v≤729.99. The phase shift is also defined differently for the
+SR830. Check the sense of phase rotation if your application is
+phase sensitive.
+Q1
+Q2
+QX
+QY Read the output values in Volts or degrees. When the current input is
+selected, the outputs are returned in Amps.
+R {n} Change the reference input mode.
+S {n} Change the Output displays. The SR830 only responds if n=0 (X,Y),
+n=2 (R,θ) or n=4 (Xnoise,Ynoise).
+T m {,n} Change the time constant.
+If m=1, then T1,n sets the time constant from 1 ms (n=1) to 30 ks
+(n=16). Time constants greater than 30 s are available only if the
+detection frequency is below 200 Hz. The time constant slope is not
+changed. The T1 query returns a maximum value of 11, even if the
+time constant is greater than 100 s.
+If m=2:
+T2,0 changes the slope to 6 dB/oct, time constant not changed.
+T2,1 changes the time constant to 100 ms with 12 dB/oct slope.
+T2,2 changes the time constant to 1 s with 12 dB/oct slope.
+Use the T2,n command to change the filter slope, then use T1,n to
+select the time constant.
+U m {,n} Not implemented. Do not use.
+V {n} Change the value of the SRQ mask. This command changes the serial
+poll enable register of the SR830. The serial poll byte is that of the
+SR830 not the SR530! Programs which query the SR530 status need
+to be changed to query the equivalent SR830 status byte.
+W n Not implemented. Do not use.
+X n {,v} Set or query the auxiliary analog ports. If n=1,2,3 or 4, the value of Aux
+Input n is returned. If n=5 or 6, then the Xn,v sets the value of Aux
+Output 1 or 2 to v Volts. The X5 ratio is NOT implemented. Ratio outputs must be done using the SR830 display ratio mode.
+Y {n} Not implemented. Do not use. Use the SR830 status commands to
+read the SR830 status bytes.
+Z Reset the SR830. The instrument is reset to the SR830 default setup
+listed in the Operation section. This differs slightly from the SR530
+default. (The sensitivity is set to 1 V, not 500 mV).
