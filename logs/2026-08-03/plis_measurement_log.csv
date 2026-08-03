@@ -1,0 +1,1050 @@
+Timestamp;Device;Command;Raw_Response;Decoded_Info;Latency_ms
+
+
+
+
+
+
+
+
+
+
+2026-08-03 20:33:08;SESSION;START;HARDWARE;;0
+2026-08-03 20:33:08.848;CONFIG;PORT_LASER;None;;0.00
+2026-08-03 20:33:08.849;CONFIG;PORT_LOCKIN;None;;0.00
+2026-08-03 20:33:08.849;CONFIG;BAUDRATE_LASER;9600;;0.00
+2026-08-03 20:33:08.850;CONFIG;BAUDRATE_LOCKIN;19200;;0.00
+2026-08-03 20:33:08.850;CONFIG;INTERVAL_LASER;1.0;;0.00
+2026-08-03 20:33:08.851;CONFIG;INTERVAL_LOCKIN;0.1;;0.00
+2026-08-03 20:33:08.851;CONFIG;LOG_PREFIX;M;;0.00
+2026-08-03 20:33:08.852;CONFIG;SIMULATE;False;;0.00
+2026-08-03 20:33:08.852;CONFIG;CAPTURE_INPUT;True;;0.00
+2026-08-03 20:33:08.854;CONFIG;INSERT_SEPARATOR;True;;0.00
+2026-08-03 20:33:08.855;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:08.855;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:33:08.856;TERMINAL;OUTPUT;HARDWARE RS232 / USB KOMMUNIKATIONSSYSTEM - AKTIVER MODUS;;0
+2026-08-03 20:33:08.857;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:33:08.857;TERMINAL;OUTPUT;✓ pyserial ist verfügbar - Hardware-Modus aktiv;;0
+2026-08-03 20:33:08.858;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:08.859;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:33:08.859;TERMINAL;OUTPUT;SUCHE NACH VERFÜGBAREN SERIELLEN PORTS...;;0
+2026-08-03 20:33:08.860;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:33:08.870;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:08.871;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:33:09.181;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:09.181;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:33:09.487;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:09.488;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:33:09.793;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:09.793;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:33:10.104;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:10.105;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:33:10.413;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:10.414;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:33:10.722;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:10.722;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:33:11.032;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:11.033;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:33:11.344;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:11.345;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:33:11.655;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:11.656;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:33:11.969;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:11.970;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:33:12.280;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:12.282;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:33:12.593;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:12.594;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:33:12.907;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:12.907;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:33:13.216;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:13.217;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:33:13.524;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:13.524;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:33:13.834;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:13.835;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:33:14.143;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:14.144;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:33:14.456;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:14.457;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:33:14.761;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:14.762;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:33:15.073;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:15.074;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:33:15.382;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:15.383;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:33:15.691;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:15.692;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:33:16.002;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:16.003;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:33:16.308;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:16.308;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:33:16.620;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:16.621;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:33:16.922;TERMINAL;OUTPUT;Keine seriellen Ports gefunden.;;0
+2026-08-03 20:33:16.924;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:16.925;TERMINAL;OUTPUT;⏳ Es wurden keine Ports gefunden. Prüfe weiter, während du den Adapter anschließt...;;0
+2026-08-03 20:33:16.927;TERMINAL;OUTPUT;;;0
+2026-08-03 20:33:16.928;TERMINAL;OUTPUT;[OsTech-Laser] Gib den Port ein (z.B. COM3 oder /dev/serial/by-id/usb-...): ;;0
+
+
+
+
+
+
+
+
+
+
+2026-08-03 20:35:34;SESSION;START;HARDWARE;;0
+2026-08-03 20:35:34.013;CONFIG;PORT_LASER;COM3;;0.00
+2026-08-03 20:35:34.014;CONFIG;PORT_LOCKIN;COM4;;0.00
+2026-08-03 20:35:34.015;CONFIG;BAUDRATE_LASER;9600;;0.00
+2026-08-03 20:35:34.015;CONFIG;BAUDRATE_LOCKIN;19200;;0.00
+2026-08-03 20:35:34.016;CONFIG;INTERVAL_LASER;1.0;;0.00
+2026-08-03 20:35:34.016;CONFIG;INTERVAL_LOCKIN;0.1;;0.00
+2026-08-03 20:35:34.017;CONFIG;LOG_PREFIX;M;;0.00
+2026-08-03 20:35:34.017;CONFIG;SIMULATE;False;;0.00
+2026-08-03 20:35:34.018;CONFIG;CAPTURE_INPUT;True;;0.00
+2026-08-03 20:35:34.018;CONFIG;INSERT_SEPARATOR;True;;0.00
+2026-08-03 20:35:34.019;TERMINAL;OUTPUT;;;0
+2026-08-03 20:35:34.019;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:35:34.020;TERMINAL;OUTPUT;HARDWARE RS232 / USB KOMMUNIKATIONSSYSTEM - AKTIVER MODUS;;0
+2026-08-03 20:35:34.020;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:35:34.021;TERMINAL;OUTPUT;✓ pyserial ist verfügbar - Hardware-Modus aktiv;;0
+
+
+
+
+
+
+
+
+
+
+2026-08-03 20:35:34;SESSION;START;HARDWARE;;0
+2026-08-03 20:35:34.022;TERMINAL;OUTPUT;[Worker] CSV-Logging initialisiert: logs\2026-08-03\plis_measurement_log.csv;;0
+2026-08-03 20:35:34.023;TERMINAL;OUTPUT;;;0
+2026-08-03 20:35:34.023;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:35:34.024;TERMINAL;OUTPUT;STARTE AKTIVE RS232/USB-KOMMUNIKATION;;0
+2026-08-03 20:35:34.025;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:35:34.025;TERMINAL;OUTPUT;🔴 OsTech Laser-Treiber:        COM3;;0
+2026-08-03 20:35:34.026;TERMINAL;OUTPUT;   └─ Baudrate: 9600, Protokoll: 8N1;;0
+2026-08-03 20:35:34.027;TERMINAL;OUTPUT;   └─ Befehle: GT (Temp), GS (Status), GMS (Laser ON/OFF);;0
+2026-08-03 20:35:34.027;TERMINAL;OUTPUT;;;0
+2026-08-03 20:35:34.028;TERMINAL;OUTPUT;🔵 SR830 Lock-In-Verstärker:    COM4;;0
+2026-08-03 20:35:34.028;TERMINAL;OUTPUT;   └─ Baudrate: 19200, Protokoll: 8N1;;0
+2026-08-03 20:35:34.029;TERMINAL;OUTPUT;   └─ Befehle: SNAP? (X/Y-Daten), PHAS? (Phase), FREQ? (Frequenz);;0
+2026-08-03 20:35:34.030;TERMINAL;OUTPUT;;;0
+2026-08-03 20:35:34.030;TERMINAL;OUTPUT;"📊 Datenspeicherung: logs\2026-08-03\plis_measurement_log.csv (Spalten: Zeitstempel; Gerät; Befehl; Rohantwort; Dekodiert; Latenz)";;0
+2026-08-03 20:35:34.031;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:35:34.032;TERMINAL;OUTPUT;;;0
+2026-08-03 20:35:34.032;TERMINAL;OUTPUT;⌨️  Interaktive Befehle:;;0
+2026-08-03 20:35:34.033;TERMINAL;OUTPUT;   • 'scan'  - Verfügbare Ports neu scannen;;0
+2026-08-03 20:35:34.034;TERMINAL;OUTPUT;   • 'test'  - Alle bekannten Befehle an Geräte senden;;0
+2026-08-03 20:35:34.035;TERMINAL;OUTPUT;   • 'quit'  - Programm beenden;;0
+2026-08-03 20:35:34.037;TERMINAL;OUTPUT;;;0
+2026-08-03 20:35:34.037;TERMINAL;OUTPUT;⏱️  Autom. Abfragen (jede 1.0s Laser, jede 0.1s LockIn);;0
+2026-08-03 20:35:34.038;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:35:34.041;TERMINAL;OUTPUT;[OsTech] Verbindungsfehler an COM3: could not open port 'COM3': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2);;0
+2026-08-03 20:35:34.042;TERMINAL;OUTPUT;[SR830] Verbindungsfehler an COM4: could not open port 'COM4': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2);;0
+2026-08-03 20:35:34.042;TERMINAL;OUTPUT;;;0
+2026-08-03 20:35:34.043;TERMINAL;OUTPUT;=== ASYNCHRONER DATEN-WORKER GESTARTET ===;;0
+2026-08-03 20:35:34.143;SR830;SNAP? 1,2;;;0.00
+2026-08-03 20:35:34.144;TERMINAL;OUTPUT;Exception in thread ;;0
+2026-08-03 20:35:34.144;TERMINAL;OUTPUT;Thread-1;;0
+2026-08-03 20:35:34.145;TERMINAL;OUTPUT;:;;0
+2026-08-03 20:35:34.146;TERMINAL;OUTPUT;Traceback (most recent call last):;;0
+2026-08-03 20:35:34.147;TERMINAL;OUTPUT;"  File ""C:\Users\ivenh\anaconda3\Lib\threading.py"", line 1075, in _bootstrap_inner";;0
+2026-08-03 20:35:34.153;TERMINAL;OUTPUT;self.run();;0
+2026-08-03 20:35:34.154;TERMINAL;OUTPUT;"  File ""C:\Users\ivenh\Coding\Projekte\Python\Softwear_Projekt\Komunikation.py"", line 200, in run";;0
+2026-08-03 20:35:34.157;TERMINAL;OUTPUT;"self.log_and_forward(""SR830"", ""SNAP? 1,2"", res, res, lat)";;0
+2026-08-03 20:35:34.157;TERMINAL;OUTPUT;"  File ""C:\Users\ivenh\Coding\Projekte\Python\Softwear_Projekt\Komunikation.py"", line 231, in log_and_forward";;0
+2026-08-03 20:35:34.158;TERMINAL;OUTPUT;"print(f""[{datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}] {device:20} Befehl: {command:15} │ Antwort: {decoded_txt:40} │ {latency:.1f}ms"")";;0
+2026-08-03 20:35:34.161;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:35:34.162;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:35:34.162;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:35:34.163;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:35:34.163;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:35:34.164;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:35:34.165;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:35:34.166;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:35:34.167;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:35:34.167;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:35:34.168;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:35:34.169;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:35:34.169;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:35:34.170;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:35:34.171;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:35:34.171;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:35:34.184;TERMINAL;OUTPUT;TypeError;;0
+2026-08-03 20:35:34.185;TERMINAL;OUTPUT;: ;;0
+2026-08-03 20:35:34.186;TERMINAL;OUTPUT;unsupported format string passed to NoneType.__format__;;0
+2026-08-03 20:35:36.042;TERMINAL;OUTPUT;;;0
+2026-08-03 20:35:36.043;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:35:36.043;TERMINAL;OUTPUT;SENDE BEKANNTE BEFEHLE AN GERÄTE;;0
+2026-08-03 20:35:36.044;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:35:36.045;TERMINAL;OUTPUT;Gerät           | Befehl               | Beschreibung;;0
+2026-08-03 20:35:36.045;TERMINAL;OUTPUT;--------------------------------------------------------------------------------;;0
+2026-08-03 20:35:36.046;TERMINAL;OUTPUT;OsTech          | GS                   | Status abfragen;;0
+2026-08-03 20:35:36.248;TERMINAL;OUTPUT;OsTech          | GT                   | Temperatur abfragen;;0
+2026-08-03 20:35:36.450;TERMINAL;OUTPUT;OsTech          | GMS 0x4000           | Laser Current ON;;0
+2026-08-03 20:35:36.652;TERMINAL;OUTPUT;OsTech          | GMS 0x0000           | Laser Current OFF;;0
+2026-08-03 20:35:36.854;TERMINAL;OUTPUT;SR830           | PHAS?                | Phase abfragen;;0
+2026-08-03 20:35:37.055;TERMINAL;OUTPUT;SR830           | SNAP? 1,2            | Lock-In X/Y Daten;;0
+2026-08-03 20:35:37.258;TERMINAL;OUTPUT;SR830           | FREQ?                | Frequenz abfragen;;0
+2026-08-03 20:35:37.460;TERMINAL;OUTPUT;SR830           | HARM?                | Harmonische abfragen;;0
+2026-08-03 20:35:37.661;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:35:37.662;TERMINAL;OUTPUT;;;0
+2026-08-03 20:35:37.663;TERMINAL;OUTPUT;⏳ Warte auf Antworten (30 Sekunden)...;;0
+2026-08-03 20:35:52.675;TERMINAL;OUTPUT;;;0
+2026-08-03 20:35:52.676;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:35:52.677;TERMINAL;OUTPUT;INTERAKTIVER MODUS - EINGABE ERWARTET;;0
+2026-08-03 20:35:52.677;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:35:52.678;TERMINAL;OUTPUT;;;0
+2026-08-03 20:35:52.678;TERMINAL;OUTPUT;> Eingabe (scan/test/quit): ;;0
+2026-08-03 20:36:14.598;TERMINAL;OUTPUT;"[INPUT] 
+> Eingabe (scan/test/quit): scan";;0
+2026-08-03 20:36:14.599;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:14.600;TERMINAL;OUTPUT;🔍 Scanne Ports...;;0
+2026-08-03 20:36:14.609;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:14.609;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:36:14.917;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:14.918;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:36:15.226;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:15.227;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:36:15.536;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:15.537;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:36:15.849;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:15.850;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:36:16.161;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:16.162;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:36:16.472;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:16.472;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:36:16.782;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:16.782;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:36:17.092;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:17.093;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:36:17.402;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:17.403;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:36:17.708;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:17.708;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:36:18.020;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:18.020;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:36:18.328;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:18.329;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:36:18.638;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:18.639;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:36:18.948;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:18.949;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:36:19.259;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:19.260;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:36:19.572;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:19.574;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:36:19.879;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:19.881;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:36:20.186;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:20.186;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:36:20.492;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:20.493;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:36:20.799;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:20.799;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:36:21.111;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:21.112;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:36:21.423;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:21.424;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:36:21.736;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:21.738;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:36:22.049;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:22.050;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:36:22.359;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:22.360;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:36:22.662;TERMINAL;OUTPUT;Keine seriellen Ports gefunden.;;0
+2026-08-03 20:36:22.664;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:22.665;TERMINAL;OUTPUT;> Eingabe (scan/test/quit): ;;0
+2026-08-03 20:36:39.350;TERMINAL;OUTPUT;"[INPUT] 
+> Eingabe (scan/test/quit): tese";;0
+2026-08-03 20:36:39.351;TERMINAL;OUTPUT;  ❌ Unbekannter Befehl. Nutze: scan, test oder quit;;0
+2026-08-03 20:36:39.354;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:39.355;TERMINAL;OUTPUT;> Eingabe (scan/test/quit): ;;0
+2026-08-03 20:36:41.550;TERMINAL;OUTPUT;"[INPUT] 
+> Eingabe (scan/test/quit): test";;0
+2026-08-03 20:36:41.552;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:41.553;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:36:41.553;TERMINAL;OUTPUT;SENDE BEKANNTE BEFEHLE AN GERÄTE;;0
+2026-08-03 20:36:41.554;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:36:41.555;TERMINAL;OUTPUT;Gerät           | Befehl               | Beschreibung;;0
+2026-08-03 20:36:41.556;TERMINAL;OUTPUT;--------------------------------------------------------------------------------;;0
+2026-08-03 20:36:41.556;TERMINAL;OUTPUT;OsTech          | GS                   | Status abfragen;;0
+2026-08-03 20:36:41.758;TERMINAL;OUTPUT;OsTech          | GT                   | Temperatur abfragen;;0
+2026-08-03 20:36:41.960;TERMINAL;OUTPUT;OsTech          | GMS 0x4000           | Laser Current ON;;0
+2026-08-03 20:36:42.162;TERMINAL;OUTPUT;OsTech          | GMS 0x0000           | Laser Current OFF;;0
+2026-08-03 20:36:42.365;TERMINAL;OUTPUT;SR830           | PHAS?                | Phase abfragen;;0
+2026-08-03 20:36:42.567;TERMINAL;OUTPUT;SR830           | SNAP? 1,2            | Lock-In X/Y Daten;;0
+2026-08-03 20:36:42.768;TERMINAL;OUTPUT;SR830           | FREQ?                | Frequenz abfragen;;0
+2026-08-03 20:36:42.970;TERMINAL;OUTPUT;SR830           | HARM?                | Harmonische abfragen;;0
+2026-08-03 20:36:43.172;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:36:43.173;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:43.174;TERMINAL;OUTPUT;⏳ Warte auf Antworten (20 Sekunden)...;;0
+2026-08-03 20:36:53.182;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:53.183;TERMINAL;OUTPUT;> Eingabe (scan/test/quit): ;;0
+2026-08-03 20:36:57.479;TERMINAL;OUTPUT;"[INPUT] 
+> Eingabe (scan/test/quit): quit";;0
+2026-08-03 20:36:57.480;TERMINAL;OUTPUT;✓ Beende Programm...;;0
+2026-08-03 20:36:57.481;TERMINAL;OUTPUT;;;0
+2026-08-03 20:36:57.482;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:36:57.482;TERMINAL;OUTPUT;SHUTDOWN;;0
+2026-08-03 20:36:57.483;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:36:57.484;TERMINAL;OUTPUT;✓ Worker beendet;;0
+2026-08-03 20:36:57.484;TERMINAL;OUTPUT;✓ Logdatei: logs\2026-08-03\plis_measurement_log.csv;;0
+2026-08-03 20:36:57.485;TERMINAL;OUTPUT;================================================================================;;0
+
+
+
+
+
+
+
+
+
+
+2026-08-03 20:37:10;SESSION;START;HARDWARE;;0
+2026-08-03 20:37:10.431;CONFIG;PORT_LASER;None;;0.00
+2026-08-03 20:37:10.431;CONFIG;PORT_LOCKIN;None;;0.00
+2026-08-03 20:37:10.432;CONFIG;BAUDRATE_LASER;9600;;0.00
+2026-08-03 20:37:10.432;CONFIG;BAUDRATE_LOCKIN;19200;;0.00
+2026-08-03 20:37:10.433;CONFIG;INTERVAL_LASER;1.0;;0.00
+2026-08-03 20:37:10.433;CONFIG;INTERVAL_LOCKIN;0.1;;0.00
+2026-08-03 20:37:10.434;CONFIG;LOG_PREFIX;M;;0.00
+2026-08-03 20:37:10.434;CONFIG;SIMULATE;False;;0.00
+2026-08-03 20:37:10.434;CONFIG;CAPTURE_INPUT;True;;0.00
+2026-08-03 20:37:10.435;CONFIG;INSERT_SEPARATOR;True;;0.00
+2026-08-03 20:37:10.435;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:10.436;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:37:10.436;TERMINAL;OUTPUT;HARDWARE RS232 / USB KOMMUNIKATIONSSYSTEM - AKTIVER MODUS;;0
+2026-08-03 20:37:10.437;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:37:10.437;TERMINAL;OUTPUT;✓ pyserial ist verfügbar - Hardware-Modus aktiv;;0
+2026-08-03 20:37:10.439;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:10.439;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:37:10.440;TERMINAL;OUTPUT;SUCHE NACH VERFÜGBAREN SERIELLEN PORTS...;;0
+2026-08-03 20:37:10.440;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:37:10.447;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:10.448;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:37:10.760;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:10.760;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:37:11.071;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:11.072;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:37:11.378;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:11.378;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:37:11.689;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:11.690;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:37:12.001;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:12.002;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:37:12.311;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:12.312;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:37:12.623;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:12.624;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:37:12.932;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:12.933;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:37:13.244;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:13.246;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:37:13.552;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:13.552;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:37:13.864;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:13.864;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:37:14.176;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:14.177;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:37:14.484;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:14.484;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:37:14.796;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:14.797;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:37:15.104;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:15.105;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:37:15.411;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:15.411;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:37:15.717;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:15.718;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:37:16.029;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:16.030;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:37:16.340;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:16.341;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:37:16.653;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:16.654;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:37:16.960;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:16.960;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:37:17.268;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:17.268;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:37:17.577;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:17.578;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:37:17.889;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:17.890;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:37:18.203;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:18.203;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:37:18.506;TERMINAL;OUTPUT;Keine seriellen Ports gefunden.;;0
+2026-08-03 20:37:18.507;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:18.509;TERMINAL;OUTPUT;⏳ Es wurden keine Ports gefunden. Prüfe weiter, während du den Adapter anschließt...;;0
+2026-08-03 20:37:18.510;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:18.511;TERMINAL;OUTPUT;[OsTech-Laser] Gib den Port ein (z.B. COM3 oder /dev/serial/by-id/usb-...): ;;0
+2026-08-03 20:37:30.590;TERMINAL;OUTPUT;"[INPUT] 
+[OsTech-Laser] Gib den Port ein (z.B. COM3 oder /dev/serial/by-id/usb-...): COM3";;0
+2026-08-03 20:37:30.591;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:30.592;TERMINAL;OUTPUT;[SR830-LockIn] Gib den Port ein (z.B. COM4 oder /dev/serial/by-id/usb-...): ;;0
+2026-08-03 20:37:32.990;TERMINAL;OUTPUT;"[INPUT] 
+[SR830-LockIn] Gib den Port ein (z.B. COM4 oder /dev/serial/by-id/usb-...): COM4";;0
+
+
+
+
+
+
+
+
+
+
+2026-08-03 20:37:32;SESSION;START;HARDWARE;;0
+2026-08-03 20:37:32.992;TERMINAL;OUTPUT;[Worker] CSV-Logging initialisiert: logs\2026-08-03\plis_measurement_log.csv;;0
+2026-08-03 20:37:32.993;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:32.994;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:37:32.995;TERMINAL;OUTPUT;STARTE AKTIVE RS232/USB-KOMMUNIKATION;;0
+2026-08-03 20:37:32.995;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:37:32.997;TERMINAL;OUTPUT;🔴 OsTech Laser-Treiber:        COM3;;0
+2026-08-03 20:37:32.997;TERMINAL;OUTPUT;   └─ Baudrate: 9600, Protokoll: 8N1;;0
+2026-08-03 20:37:32.998;TERMINAL;OUTPUT;   └─ Befehle: GT (Temp), GS (Status), GMS (Laser ON/OFF);;0
+2026-08-03 20:37:32.999;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:32.999;TERMINAL;OUTPUT;🔵 SR830 Lock-In-Verstärker:    COM4;;0
+2026-08-03 20:37:33.001;TERMINAL;OUTPUT;   └─ Baudrate: 19200, Protokoll: 8N1;;0
+2026-08-03 20:37:33.002;TERMINAL;OUTPUT;   └─ Befehle: SNAP? (X/Y-Daten), PHAS? (Phase), FREQ? (Frequenz);;0
+2026-08-03 20:37:33.003;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:33.003;TERMINAL;OUTPUT;"📊 Datenspeicherung: logs\2026-08-03\plis_measurement_log.csv (Spalten: Zeitstempel; Gerät; Befehl; Rohantwort; Dekodiert; Latenz)";;0
+2026-08-03 20:37:33.004;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:37:33.004;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:33.005;TERMINAL;OUTPUT;⌨️  Interaktive Befehle:;;0
+2026-08-03 20:37:33.006;TERMINAL;OUTPUT;   • 'scan'  - Verfügbare Ports neu scannen;;0
+2026-08-03 20:37:33.006;TERMINAL;OUTPUT;   • 'test'  - Alle bekannten Befehle an Geräte senden;;0
+2026-08-03 20:37:33.007;TERMINAL;OUTPUT;   • 'quit'  - Programm beenden;;0
+2026-08-03 20:37:33.008;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:33.009;TERMINAL;OUTPUT;⏱️  Autom. Abfragen (jede 1.0s Laser, jede 0.1s LockIn);;0
+2026-08-03 20:37:33.009;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:37:33.013;TERMINAL;OUTPUT;[OsTech] Verbindungsfehler an COM3: could not open port 'COM3': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2);;0
+2026-08-03 20:37:33.014;TERMINAL;OUTPUT;[SR830] Verbindungsfehler an COM4: could not open port 'COM4': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2);;0
+2026-08-03 20:37:33.015;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:33.016;TERMINAL;OUTPUT;=== ASYNCHRONER DATEN-WORKER GESTARTET ===;;0
+2026-08-03 20:37:33.117;SR830;SNAP? 1,2;;;0.00
+2026-08-03 20:37:33.118;TERMINAL;OUTPUT;Exception in thread ;;0
+2026-08-03 20:37:33.119;TERMINAL;OUTPUT;Thread-1;;0
+2026-08-03 20:37:33.120;TERMINAL;OUTPUT;:;;0
+2026-08-03 20:37:33.121;TERMINAL;OUTPUT;Traceback (most recent call last):;;0
+2026-08-03 20:37:33.122;TERMINAL;OUTPUT;"  File ""C:\Users\ivenh\anaconda3\Lib\threading.py"", line 1075, in _bootstrap_inner";;0
+2026-08-03 20:37:33.122;TERMINAL;OUTPUT;self.run();;0
+2026-08-03 20:37:33.123;TERMINAL;OUTPUT;"  File ""C:\Users\ivenh\Coding\Projekte\Python\Softwear_Projekt\Komunikation.py"", line 200, in run";;0
+2026-08-03 20:37:33.124;TERMINAL;OUTPUT;"self.log_and_forward(""SR830"", ""SNAP? 1,2"", res, res, lat)";;0
+2026-08-03 20:37:33.125;TERMINAL;OUTPUT;"  File ""C:\Users\ivenh\Coding\Projekte\Python\Softwear_Projekt\Komunikation.py"", line 231, in log_and_forward";;0
+2026-08-03 20:37:33.126;TERMINAL;OUTPUT;"print(f""[{datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}] {device:20} Befehl: {command:15} │ Antwort: {decoded_txt:40} │ {latency:.1f}ms"")";;0
+2026-08-03 20:37:33.128;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:37:33.128;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:37:33.129;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:37:33.129;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:37:33.130;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:37:33.130;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:37:33.131;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:37:33.131;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:37:33.132;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:37:33.132;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:37:33.133;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:37:33.133;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:37:33.134;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:37:33.134;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:37:33.135;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:37:33.135;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:37:33.136;TERMINAL;OUTPUT;TypeError;;0
+2026-08-03 20:37:33.136;TERMINAL;OUTPUT;: ;;0
+2026-08-03 20:37:33.137;TERMINAL;OUTPUT;unsupported format string passed to NoneType.__format__;;0
+2026-08-03 20:37:35.014;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:35.015;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:37:35.015;TERMINAL;OUTPUT;SENDE BEKANNTE BEFEHLE AN GERÄTE;;0
+2026-08-03 20:37:35.017;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:37:35.018;TERMINAL;OUTPUT;Gerät           | Befehl               | Beschreibung;;0
+2026-08-03 20:37:35.019;TERMINAL;OUTPUT;--------------------------------------------------------------------------------;;0
+2026-08-03 20:37:35.020;TERMINAL;OUTPUT;OsTech          | GS                   | Status abfragen;;0
+2026-08-03 20:37:35.222;TERMINAL;OUTPUT;OsTech          | GT                   | Temperatur abfragen;;0
+2026-08-03 20:37:35.424;TERMINAL;OUTPUT;OsTech          | GMS 0x4000           | Laser Current ON;;0
+2026-08-03 20:37:35.625;TERMINAL;OUTPUT;OsTech          | GMS 0x0000           | Laser Current OFF;;0
+2026-08-03 20:37:35.827;TERMINAL;OUTPUT;SR830           | PHAS?                | Phase abfragen;;0
+2026-08-03 20:37:36.029;TERMINAL;OUTPUT;SR830           | SNAP? 1,2            | Lock-In X/Y Daten;;0
+2026-08-03 20:37:36.232;TERMINAL;OUTPUT;SR830           | FREQ?                | Frequenz abfragen;;0
+2026-08-03 20:37:36.434;TERMINAL;OUTPUT;SR830           | HARM?                | Harmonische abfragen;;0
+2026-08-03 20:37:36.636;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:37:36.638;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:36.640;TERMINAL;OUTPUT;⏳ Warte auf Antworten (30 Sekunden)...;;0
+2026-08-03 20:37:51.653;TERMINAL;OUTPUT;;;0
+2026-08-03 20:37:51.655;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:37:51.657;TERMINAL;OUTPUT;SHUTDOWN;;0
+2026-08-03 20:37:51.657;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:37:51.659;TERMINAL;OUTPUT;✓ Worker beendet;;0
+2026-08-03 20:37:51.659;TERMINAL;OUTPUT;✓ Logdatei: logs\2026-08-03\plis_measurement_log.csv;;0
+2026-08-03 20:37:51.661;TERMINAL;OUTPUT;================================================================================;;0
+
+
+
+
+
+
+
+
+
+
+2026-08-03 20:42:35;SESSION;START;HARDWARE;;0
+2026-08-03 20:42:35.229;CONFIG;PORT_LASER;None;;0.00
+2026-08-03 20:42:35.229;CONFIG;PORT_LOCKIN;None;;0.00
+2026-08-03 20:42:35.230;CONFIG;BAUDRATE_LASER;9600;;0.00
+2026-08-03 20:42:35.230;CONFIG;BAUDRATE_LOCKIN;19200;;0.00
+2026-08-03 20:42:35.231;CONFIG;INTERVAL_LASER;1.0;;0.00
+2026-08-03 20:42:35.231;CONFIG;INTERVAL_LOCKIN;0.1;;0.00
+2026-08-03 20:42:35.232;CONFIG;LOG_PREFIX;M;;0.00
+2026-08-03 20:42:35.232;CONFIG;SIMULATE;False;;0.00
+2026-08-03 20:42:35.233;CONFIG;CAPTURE_INPUT;True;;0.00
+2026-08-03 20:42:35.233;CONFIG;INSERT_SEPARATOR;True;;0.00
+2026-08-03 20:42:35.234;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:35.234;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:42:35.234;TERMINAL;OUTPUT;HARDWARE RS232 / USB KOMMUNIKATIONSSYSTEM - AKTIVER MODUS;;0
+2026-08-03 20:42:35.235;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:42:35.236;TERMINAL;OUTPUT;✓ pyserial ist verfügbar - Hardware-Modus aktiv;;0
+2026-08-03 20:42:35.236;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:35.237;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:42:35.238;TERMINAL;OUTPUT;SUCHE NACH VERFÜGBAREN SERIELLEN PORTS...;;0
+2026-08-03 20:42:35.238;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:42:35.247;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:35.250;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:42:35.556;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:35.556;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:42:35.864;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:35.864;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:42:36.173;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:36.174;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:42:36.482;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:36.482;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:42:36.790;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:36.791;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:42:37.100;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:37.101;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:42:37.412;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:37.413;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:42:37.722;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:37.723;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:42:38.034;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:38.035;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:42:38.344;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:38.345;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:42:38.655;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:38.655;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:42:38.961;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:38.962;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:42:39.269;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:39.269;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:42:39.581;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:39.582;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:42:39.894;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:39.894;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:42:40.199;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:40.200;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:42:40.509;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:40.511;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:42:40.817;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:40.818;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:42:41.126;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:41.127;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:42:41.433;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:41.433;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:42:41.739;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:41.739;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:42:42.051;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:42.052;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:42:42.362;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:42.363;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:42:42.670;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:42.670;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:42:42.975;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:42.976;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:42:43.277;TERMINAL;OUTPUT;Keine seriellen Ports gefunden.;;0
+2026-08-03 20:42:43.279;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:43.281;TERMINAL;OUTPUT;⏳ Es wurden keine Ports gefunden. Prüfe weiter, während du den Adapter anschließt...;;0
+2026-08-03 20:42:43.284;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:43.285;TERMINAL;OUTPUT;[OsTech-Laser] Gib den Port ein (z.B. COM3 oder /dev/serial/by-id/usb-...): ;;0
+2026-08-03 20:42:51.188;TERMINAL;OUTPUT;"[INPUT] 
+[OsTech-Laser] Gib den Port ein (z.B. COM3 oder /dev/serial/by-id/usb-...): /help";;0
+2026-08-03 20:42:51.190;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:51.190;TERMINAL;OUTPUT;[SR830-LockIn] Gib den Port ein (z.B. COM4 oder /dev/serial/by-id/usb-...): ;;0
+2026-08-03 20:42:54.452;TERMINAL;OUTPUT;"[INPUT] 
+[SR830-LockIn] Gib den Port ein (z.B. COM4 oder /dev/serial/by-id/usb-...): /COm3";;0
+
+
+
+
+
+
+
+
+
+
+2026-08-03 20:42:54;SESSION;START;HARDWARE;;0
+2026-08-03 20:42:54.455;TERMINAL;OUTPUT;[Worker] CSV-Logging initialisiert: logs\2026-08-03\plis_measurement_log.csv;;0
+2026-08-03 20:42:54.455;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:54.456;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:42:54.457;TERMINAL;OUTPUT;STARTE AKTIVE RS232/USB-KOMMUNIKATION;;0
+2026-08-03 20:42:54.457;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:42:54.466;TERMINAL;OUTPUT;🔴 OsTech Laser-Treiber:        /help;;0
+2026-08-03 20:42:54.466;TERMINAL;OUTPUT;   └─ Baudrate: 9600, Protokoll: 8N1;;0
+2026-08-03 20:42:54.467;TERMINAL;OUTPUT;   └─ Befehle: GT (Temp), GS (Status), GMS (Laser ON/OFF);;0
+2026-08-03 20:42:54.468;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:54.469;TERMINAL;OUTPUT;🔵 SR830 Lock-In-Verstärker:    /COm3;;0
+2026-08-03 20:42:54.469;TERMINAL;OUTPUT;   └─ Baudrate: 19200, Protokoll: 8N1;;0
+2026-08-03 20:42:54.470;TERMINAL;OUTPUT;   └─ Befehle: SNAP? (X/Y-Daten), PHAS? (Phase), FREQ? (Frequenz);;0
+2026-08-03 20:42:54.470;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:54.471;TERMINAL;OUTPUT;"📊 Datenspeicherung: logs\2026-08-03\plis_measurement_log.csv (Spalten: Zeitstempel; Gerät; Befehl; Rohantwort; Dekodiert; Latenz)";;0
+2026-08-03 20:42:54.472;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:42:54.472;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:54.473;TERMINAL;OUTPUT;⌨️  Interaktive Befehle:;;0
+2026-08-03 20:42:54.473;TERMINAL;OUTPUT;   • 'scan' / 's'  - Verfügbare Ports neu scannen;;0
+2026-08-03 20:42:54.474;TERMINAL;OUTPUT;   • 'test' / 't'  - Alle bekannten Befehle an Geräte senden;;0
+2026-08-03 20:42:54.475;TERMINAL;OUTPUT;   • 'help' / '/help' / '?'  - Diese Hilfe anzeigen;;0
+2026-08-03 20:42:54.475;TERMINAL;OUTPUT;   • 'quit' / 'q'  - Programm beenden;;0
+2026-08-03 20:42:54.476;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:54.476;TERMINAL;OUTPUT;⏱️  Autom. Abfragen (jede 1.0s Laser, jede 0.1s LockIn);;0
+2026-08-03 20:42:54.476;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:42:54.479;TERMINAL;OUTPUT;[OsTech] Verbindungsfehler an /help: could not open port '/help': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2);;0
+2026-08-03 20:42:54.480;TERMINAL;OUTPUT;[SR830] Verbindungsfehler an /COm3: could not open port '/COm3': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2);;0
+2026-08-03 20:42:54.481;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:54.482;TERMINAL;OUTPUT;=== ASYNCHRONER DATEN-WORKER GESTARTET ===;;0
+2026-08-03 20:42:54.584;SR830;SNAP? 1,2;;;0.00
+2026-08-03 20:42:54.585;TERMINAL;OUTPUT;Exception in thread ;;0
+2026-08-03 20:42:54.586;TERMINAL;OUTPUT;Thread-1;;0
+2026-08-03 20:42:54.587;TERMINAL;OUTPUT;:;;0
+2026-08-03 20:42:54.588;TERMINAL;OUTPUT;Traceback (most recent call last):;;0
+2026-08-03 20:42:54.588;TERMINAL;OUTPUT;"  File ""C:\Users\ivenh\AppData\Local\Programs\Python\Python312\Lib\threading.py"", line 1075, in _bootstrap_inner";;0
+2026-08-03 20:42:54.595;TERMINAL;OUTPUT;self.run();;0
+2026-08-03 20:42:54.595;TERMINAL;OUTPUT;"  File ""c:\Users\ivenh\Coding\Projekte\Python\Softwear_Projekt\Komunikation.py"", line 200, in run";;0
+2026-08-03 20:42:54.596;TERMINAL;OUTPUT;"self.log_and_forward(""SR830"", ""SNAP? 1,2"", res, res, lat)";;0
+2026-08-03 20:42:54.597;TERMINAL;OUTPUT;"  File ""c:\Users\ivenh\Coding\Projekte\Python\Softwear_Projekt\Komunikation.py"", line 231, in log_and_forward";;0
+2026-08-03 20:42:54.598;TERMINAL;OUTPUT;"print(f""[{datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}] {device:20} Befehl: {command:15} │ Antwort: {decoded_txt:40} │ {latency:.1f}ms"")";;0
+2026-08-03 20:42:54.601;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:42:54.601;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:42:54.602;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:42:54.602;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:42:54.603;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:42:54.603;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:42:54.603;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:42:54.604;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:42:54.605;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:42:54.605;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:42:54.606;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:42:54.607;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:42:54.607;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:42:54.608;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:42:54.608;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:42:54.609;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:42:54.610;TERMINAL;OUTPUT;TypeError;;0
+2026-08-03 20:42:54.611;TERMINAL;OUTPUT;: ;;0
+2026-08-03 20:42:54.611;TERMINAL;OUTPUT;unsupported format string passed to NoneType.__format__;;0
+2026-08-03 20:42:56.479;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:56.481;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:42:56.482;TERMINAL;OUTPUT;SENDE BEKANNTE BEFEHLE AN GERÄTE;;0
+2026-08-03 20:42:56.483;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:42:56.484;TERMINAL;OUTPUT;Gerät           | Befehl               | Beschreibung;;0
+2026-08-03 20:42:56.484;TERMINAL;OUTPUT;--------------------------------------------------------------------------------;;0
+2026-08-03 20:42:56.486;TERMINAL;OUTPUT;OsTech          | GS                   | Status abfragen;;0
+2026-08-03 20:42:56.688;TERMINAL;OUTPUT;OsTech          | GT                   | Temperatur abfragen;;0
+2026-08-03 20:42:56.890;TERMINAL;OUTPUT;OsTech          | GMS 0x4000           | Laser Current ON;;0
+2026-08-03 20:42:57.093;TERMINAL;OUTPUT;OsTech          | GMS 0x0000           | Laser Current OFF;;0
+2026-08-03 20:42:57.296;TERMINAL;OUTPUT;SR830           | PHAS?                | Phase abfragen;;0
+2026-08-03 20:42:57.497;TERMINAL;OUTPUT;SR830           | SNAP? 1,2            | Lock-In X/Y Daten;;0
+2026-08-03 20:42:57.698;TERMINAL;OUTPUT;SR830           | FREQ?                | Frequenz abfragen;;0
+2026-08-03 20:42:57.901;TERMINAL;OUTPUT;SR830           | HARM?                | Harmonische abfragen;;0
+2026-08-03 20:42:58.103;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:42:58.104;TERMINAL;OUTPUT;;;0
+2026-08-03 20:42:58.105;TERMINAL;OUTPUT;⏳ Warte auf Antworten (30 Sekunden)...;;0
+2026-08-03 20:43:13.119;TERMINAL;OUTPUT;;;0
+2026-08-03 20:43:13.120;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:43:13.122;TERMINAL;OUTPUT;INTERAKTIVER MODUS - EINGABE ERWARTET;;0
+2026-08-03 20:43:13.123;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:43:13.125;TERMINAL;OUTPUT;;;0
+2026-08-03 20:43:13.126;TERMINAL;OUTPUT;> Eingabe (scan/test/help/quit): ;;0
+2026-08-03 20:43:20.949;TERMINAL;OUTPUT;"[INPUT] 
+> Eingabe (scan/test/help/quit): help";;0
+2026-08-03 20:43:20.950;TERMINAL;OUTPUT;;;0
+2026-08-03 20:43:20.951;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:43:20.951;TERMINAL;OUTPUT;HILFE - VERFÜGBARE BEFEHLE;;0
+2026-08-03 20:43:20.952;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:43:20.953;TERMINAL;OUTPUT;Allgemein:;;0
+2026-08-03 20:43:20.953;TERMINAL;OUTPUT;  /help, help, ?      - Zeigt diese Hilfe an;;0
+2026-08-03 20:43:20.954;TERMINAL;OUTPUT;  scan, s             - Ports neu scannen;;0
+2026-08-03 20:43:20.956;TERMINAL;OUTPUT;  test, t             - bekannte Befehle an die Geräte senden;;0
+2026-08-03 20:43:20.956;TERMINAL;OUTPUT;  quit, q, exit       - Programm beenden;;0
+2026-08-03 20:43:20.957;TERMINAL;OUTPUT;Gerätebefehle im interaktiven Modus:;;0
+2026-08-03 20:43:20.958;TERMINAL;OUTPUT;  laser gs            - Status des Lasers abfragen;;0
+2026-08-03 20:43:20.959;TERMINAL;OUTPUT;  laser gt            - Temperatur abfragen;;0
+2026-08-03 20:43:20.959;TERMINAL;OUTPUT;  laser on            - Laser einschalten;;0
+2026-08-03 20:43:20.960;TERMINAL;OUTPUT;  laser off           - Laser ausschalten;;0
+2026-08-03 20:43:20.961;TERMINAL;OUTPUT;  lockin phas         - Phase abfragen;;0
+2026-08-03 20:43:20.961;TERMINAL;OUTPUT;  lockin freq         - Frequenz abfragen;;0
+2026-08-03 20:43:20.962;TERMINAL;OUTPUT;  lockin snap         - X/Y-Werte abfragen;;0
+2026-08-03 20:43:20.963;TERMINAL;OUTPUT;Hinweis: Für die meisten Fälle reichen 'scan', 'test', 'help' und 'quit' aus.;;0
+2026-08-03 20:43:20.963;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:43:20.964;TERMINAL;OUTPUT;;;0
+2026-08-03 20:43:20.965;TERMINAL;OUTPUT;> Eingabe (scan/test/help/quit): ;;0
+2026-08-03 20:43:34.548;TERMINAL;OUTPUT;"[INPUT] 
+> Eingabe (scan/test/help/quit): laser gt";;0
+2026-08-03 20:43:34.549;TERMINAL;OUTPUT;  ❌ Unbekannter Befehl.;;0
+2026-08-03 20:43:34.550;TERMINAL;OUTPUT;     Eingabe: laser gt;;0
+2026-08-03 20:43:34.551;TERMINAL;OUTPUT;     Nutze: scan, test, help oder quit;;0
+2026-08-03 20:43:34.551;TERMINAL;OUTPUT;;;0
+2026-08-03 20:43:34.552;TERMINAL;OUTPUT;> Eingabe (scan/test/help/quit): ;;0
+2026-08-03 20:43:44.348;TERMINAL;OUTPUT;"[INPUT] 
+> Eingabe (scan/test/help/quit): laser gs";;0
+2026-08-03 20:43:44.349;TERMINAL;OUTPUT;  ❌ Unbekannter Befehl.;;0
+2026-08-03 20:43:44.350;TERMINAL;OUTPUT;     Eingabe: laser gs;;0
+2026-08-03 20:43:44.351;TERMINAL;OUTPUT;     Nutze: scan, test, help oder quit;;0
+2026-08-03 20:43:44.352;TERMINAL;OUTPUT;;;0
+2026-08-03 20:43:44.352;TERMINAL;OUTPUT;> Eingabe (scan/test/help/quit): ;;0
+2026-08-03 20:43:59.028;TERMINAL;OUTPUT;"[INPUT] 
+> Eingabe (scan/test/help/quit): laser gs";;0
+2026-08-03 20:43:59.029;TERMINAL;OUTPUT;  ❌ Unbekannter Befehl.;;0
+2026-08-03 20:43:59.030;TERMINAL;OUTPUT;     Eingabe: laser gs;;0
+2026-08-03 20:43:59.030;TERMINAL;OUTPUT;     Nutze: scan, test, help oder quit;;0
+2026-08-03 20:43:59.031;TERMINAL;OUTPUT;;;0
+2026-08-03 20:43:59.031;TERMINAL;OUTPUT;> Eingabe (scan/test/help/quit): ;;0
+2026-08-03 20:44:01.596;TERMINAL;OUTPUT;"[INPUT] 
+> Eingabe (scan/test/help/quit): gs";;0
+2026-08-03 20:44:01.597;TERMINAL;OUTPUT;  ❌ Unbekannter Befehl.;;0
+2026-08-03 20:44:01.598;TERMINAL;OUTPUT;     Eingabe: gs;;0
+2026-08-03 20:44:01.599;TERMINAL;OUTPUT;     Nutze: scan, test, help oder quit;;0
+2026-08-03 20:44:01.600;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:01.601;TERMINAL;OUTPUT;> Eingabe (scan/test/help/quit): ;;0
+2026-08-03 20:44:07.284;TERMINAL;OUTPUT;"[INPUT] 
+> Eingabe (scan/test/help/quit):  s";;0
+2026-08-03 20:44:07.286;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:07.287;TERMINAL;OUTPUT;🔍 Scanne Ports...;;0
+2026-08-03 20:44:07.293;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:07.293;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:44:07.603;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:07.604;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:44:07.914;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:07.914;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:44:08.220;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:08.221;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:44:08.531;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:08.531;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:44:08.838;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:08.839;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:44:09.152;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:09.153;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:44:09.460;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:09.461;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:44:09.772;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:09.773;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:44:10.079;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:10.080;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:44:10.389;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:10.390;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:44:10.701;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:10.701;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:44:11.011;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:11.012;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:44:11.324;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:11.324;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:44:11.636;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:11.637;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:44:11.948;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:11.949;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:44:12.254;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:12.255;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:44:12.567;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:12.568;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:44:12.876;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:12.876;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:44:13.186;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:13.188;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:44:13.499;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:13.500;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:44:13.812;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:13.813;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:44:14.120;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:14.121;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:44:14.430;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:14.431;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:44:14.745;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:14.747;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:44:15.053;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:15.054;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:44:15.355;TERMINAL;OUTPUT;Keine seriellen Ports gefunden.;;0
+2026-08-03 20:44:15.356;TERMINAL;OUTPUT;;;0
+2026-08-03 20:44:15.357;TERMINAL;OUTPUT;> Eingabe (scan/test/help/quit): ;;0
+2026-08-03 20:47:23.830;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:23.831;TERMINAL;OUTPUT;✓ Beende Programm (Strg+C)...;;0
+2026-08-03 20:47:23.832;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:23.832;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:47:23.833;TERMINAL;OUTPUT;SHUTDOWN;;0
+2026-08-03 20:47:23.834;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:47:23.834;TERMINAL;OUTPUT;✓ Worker beendet;;0
+2026-08-03 20:47:23.835;TERMINAL;OUTPUT;✓ Logdatei: logs\2026-08-03\plis_measurement_log.csv;;0
+2026-08-03 20:47:23.836;TERMINAL;OUTPUT;================================================================================;;0
+
+
+
+
+
+
+
+
+
+
+2026-08-03 20:47:24;SESSION;START;HARDWARE;;0
+2026-08-03 20:47:24.132;CONFIG;PORT_LASER;None;;0.00
+2026-08-03 20:47:24.132;CONFIG;PORT_LOCKIN;None;;0.00
+2026-08-03 20:47:24.133;CONFIG;BAUDRATE_LASER;9600;;0.00
+2026-08-03 20:47:24.133;CONFIG;BAUDRATE_LOCKIN;19200;;0.00
+2026-08-03 20:47:24.134;CONFIG;INTERVAL_LASER;1.0;;0.00
+2026-08-03 20:47:24.134;CONFIG;INTERVAL_LOCKIN;0.1;;0.00
+2026-08-03 20:47:24.134;CONFIG;LOG_PREFIX;M;;0.00
+2026-08-03 20:47:24.135;CONFIG;SIMULATE;False;;0.00
+2026-08-03 20:47:24.135;CONFIG;CAPTURE_INPUT;True;;0.00
+2026-08-03 20:47:24.135;CONFIG;INSERT_SEPARATOR;True;;0.00
+2026-08-03 20:47:24.136;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:24.136;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:47:24.138;TERMINAL;OUTPUT;HARDWARE RS232 / USB KOMMUNIKATIONSSYSTEM - AKTIVER MODUS;;0
+2026-08-03 20:47:24.138;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:47:24.139;TERMINAL;OUTPUT;✓ pyserial ist verfügbar - Hardware-Modus aktiv;;0
+2026-08-03 20:47:24.139;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:24.140;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:47:24.142;TERMINAL;OUTPUT;SUCHE NACH VERFÜGBAREN SERIELLEN PORTS...;;0
+2026-08-03 20:47:24.143;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:47:24.150;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:24.150;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:47:24.460;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:24.461;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:47:24.769;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:24.769;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:47:25.075;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:25.075;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:47:25.381;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:25.382;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:47:25.687;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:25.688;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:47:25.994;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:25.994;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:47:26.303;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:26.304;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:47:26.613;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:26.613;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:47:26.920;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:26.920;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:47:27.225;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:27.226;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:47:27.536;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:27.536;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:47:27.847;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:27.848;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:47:28.158;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:28.159;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:47:28.465;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:28.465;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:47:28.775;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:28.775;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:47:29.083;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:29.084;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:47:29.390;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:29.390;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:47:29.695;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:29.696;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:47:30.003;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:30.004;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:47:30.309;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:30.309;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:47:30.616;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:30.617;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:47:30.922;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:30.923;TERMINAL;OUTPUT;Suche serielle Ports... -;;0
+2026-08-03 20:47:31.232;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:31.233;TERMINAL;OUTPUT;Suche serielle Ports... \;;0
+2026-08-03 20:47:31.539;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:31.540;TERMINAL;OUTPUT;Suche serielle Ports... |;;0
+2026-08-03 20:47:31.845;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:31.846;TERMINAL;OUTPUT;Suche serielle Ports... /;;0
+2026-08-03 20:47:32.148;TERMINAL;OUTPUT;Keine seriellen Ports gefunden.;;0
+2026-08-03 20:47:32.149;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:32.150;TERMINAL;OUTPUT;⏳ Es wurden keine Ports gefunden. Prüfe weiter, während du den Adapter anschließt...;;0
+2026-08-03 20:47:32.151;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:32.151;TERMINAL;OUTPUT;[OsTech-Laser] Gib den Port ein (z.B. COM3 oder /dev/serial/by-id/usb-...): ;;0
+2026-08-03 20:47:48.667;TERMINAL;OUTPUT;"[INPUT] 
+[OsTech-Laser] Gib den Port ein (z.B. COM3 oder /dev/serial/by-id/usb-...): C3";;0
+2026-08-03 20:47:48.668;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:48.669;TERMINAL;OUTPUT;[SR830-LockIn] Gib den Port ein (z.B. COM4 oder /dev/serial/by-id/usb-...): ;;0
+2026-08-03 20:47:52.811;TERMINAL;OUTPUT;"[INPUT] 
+[SR830-LockIn] Gib den Port ein (z.B. COM4 oder /dev/serial/by-id/usb-...): COM4";;0
+
+
+
+
+
+
+
+
+
+
+2026-08-03 20:47:52;SESSION;START;HARDWARE;;0
+2026-08-03 20:47:52.814;TERMINAL;OUTPUT;[Worker] CSV-Logging initialisiert: logs\2026-08-03\plis_measurement_log.csv;;0
+2026-08-03 20:47:52.815;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:52.816;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:47:52.817;TERMINAL;OUTPUT;STARTE AKTIVE RS232/USB-KOMMUNIKATION;;0
+2026-08-03 20:47:52.818;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:47:52.818;TERMINAL;OUTPUT;🔴 OsTech Laser-Treiber:        C3;;0
+2026-08-03 20:47:52.819;TERMINAL;OUTPUT;   └─ Baudrate: 9600, Protokoll: 8N1;;0
+2026-08-03 20:47:52.819;TERMINAL;OUTPUT;   └─ Befehle: GT (Temp), GS (Status), GMS (Laser ON/OFF);;0
+2026-08-03 20:47:52.821;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:52.822;TERMINAL;OUTPUT;🔵 SR830 Lock-In-Verstärker:    COM4;;0
+2026-08-03 20:47:52.822;TERMINAL;OUTPUT;   └─ Baudrate: 19200, Protokoll: 8N1;;0
+2026-08-03 20:47:52.823;TERMINAL;OUTPUT;   └─ Befehle: SNAP? (X/Y-Daten), PHAS? (Phase), FREQ? (Frequenz);;0
+2026-08-03 20:47:52.823;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:52.824;TERMINAL;OUTPUT;"📊 Datenspeicherung: logs\2026-08-03\plis_measurement_log.csv (Spalten: Zeitstempel; Gerät; Befehl; Rohantwort; Dekodiert; Latenz)";;0
+2026-08-03 20:47:52.824;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:47:52.825;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:52.826;TERMINAL;OUTPUT;⌨️  Interaktive Befehle:;;0
+2026-08-03 20:47:52.826;TERMINAL;OUTPUT;   • 'scan' / 's'  - Verfügbare Ports neu scannen;;0
+2026-08-03 20:47:52.827;TERMINAL;OUTPUT;   • 'test' / 't'  - Alle bekannten Befehle an Geräte senden;;0
+2026-08-03 20:47:52.828;TERMINAL;OUTPUT;   • 'connect'     - Verbindung zu Laser und Lock-In öffnen;;0
+2026-08-03 20:47:52.828;TERMINAL;OUTPUT;   • 'disconnect'  - Verbindung sauber schließen;;0
+2026-08-03 20:47:52.829;TERMINAL;OUTPUT;   • 'laser gs'    - Laser-Status abfragen;;0
+2026-08-03 20:47:52.830;TERMINAL;OUTPUT;   • 'laser gt'    - Laser-Temperatur abfragen;;0
+2026-08-03 20:47:52.830;TERMINAL;OUTPUT;   • 'laser on'    - Laser einschalten;;0
+2026-08-03 20:47:52.831;TERMINAL;OUTPUT;   • 'laser off'   - Laser ausschalten;;0
+2026-08-03 20:47:52.831;TERMINAL;OUTPUT;   • 'lockin phas' - Lock-In-Phase abfragen;;0
+2026-08-03 20:47:52.832;TERMINAL;OUTPUT;   • 'lockin freq' - Lock-In-Frequenz abfragen;;0
+2026-08-03 20:47:52.833;TERMINAL;OUTPUT;   • 'lockin snap' - Lock-In-X/Y-Werte abfragen;;0
+2026-08-03 20:47:52.833;TERMINAL;OUTPUT;   • 'help' / '/help' / '?'  - Diese Hilfe anzeigen;;0
+2026-08-03 20:47:52.834;TERMINAL;OUTPUT;   • 'quit' / 'q'  - Programm beenden;;0
+2026-08-03 20:47:52.835;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:52.835;TERMINAL;OUTPUT;⏱️  Autom. Abfragen (jede 1.0s Laser, jede 0.1s LockIn);;0
+2026-08-03 20:47:52.836;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:47:52.837;TERMINAL;OUTPUT;[OsTech] Verbindungsfehler an C3: could not open port 'C3': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2);;0
+2026-08-03 20:47:52.838;TERMINAL;OUTPUT;[SR830] Verbindungsfehler an COM4: could not open port 'COM4': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2);;0
+2026-08-03 20:47:52.839;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:52.839;TERMINAL;OUTPUT;=== ASYNCHRONER DATEN-WORKER GESTARTET ===;;0
+2026-08-03 20:47:52.939;SR830;SNAP? 1,2;;;0.00
+2026-08-03 20:47:52.940;TERMINAL;OUTPUT;Exception in thread ;;0
+2026-08-03 20:47:52.940;TERMINAL;OUTPUT;Thread-1;;0
+2026-08-03 20:47:52.941;TERMINAL;OUTPUT;:;;0
+2026-08-03 20:47:52.942;TERMINAL;OUTPUT;Traceback (most recent call last):;;0
+2026-08-03 20:47:52.942;TERMINAL;OUTPUT;"  File ""C:\Users\ivenh\AppData\Local\Programs\Python\Python312\Lib\threading.py"", line 1075, in _bootstrap_inner";;0
+2026-08-03 20:47:52.943;TERMINAL;OUTPUT;self.run();;0
+2026-08-03 20:47:52.944;TERMINAL;OUTPUT;"  File ""c:\Users\ivenh\Coding\Projekte\Python\Softwear_Projekt\Komunikation.py"", line 200, in run";;0
+2026-08-03 20:47:52.945;TERMINAL;OUTPUT;"self.log_and_forward(""SR830"", ""SNAP? 1,2"", res, res, lat)";;0
+2026-08-03 20:47:52.945;TERMINAL;OUTPUT;"  File ""c:\Users\ivenh\Coding\Projekte\Python\Softwear_Projekt\Komunikation.py"", line 231, in log_and_forward";;0
+2026-08-03 20:47:52.946;TERMINAL;OUTPUT;"print(f""[{datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}] {device:20} Befehl: {command:15} │ Antwort: {decoded_txt:40} │ {latency:.1f}ms"")";;0
+2026-08-03 20:47:52.948;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:47:52.949;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:47:52.950;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:47:52.950;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:47:52.951;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:47:52.952;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:47:52.952;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:47:52.953;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:47:52.954;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:47:52.954;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:47:52.955;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:47:52.955;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:47:52.956;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:47:52.956;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:47:52.957;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:47:52.957;TERMINAL;OUTPUT;^;;0
+2026-08-03 20:47:52.958;TERMINAL;OUTPUT;TypeError;;0
+2026-08-03 20:47:52.958;TERMINAL;OUTPUT;: ;;0
+2026-08-03 20:47:52.959;TERMINAL;OUTPUT;unsupported format string passed to NoneType.__format__;;0
+2026-08-03 20:47:54.839;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:54.840;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:47:54.842;TERMINAL;OUTPUT;SENDE BEKANNTE BEFEHLE AN GERÄTE;;0
+2026-08-03 20:47:54.844;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:47:54.844;TERMINAL;OUTPUT;Gerät           | Befehl               | Beschreibung;;0
+2026-08-03 20:47:54.845;TERMINAL;OUTPUT;--------------------------------------------------------------------------------;;0
+2026-08-03 20:47:54.845;TERMINAL;OUTPUT;OsTech          | GS                   | Status abfragen;;0
+2026-08-03 20:47:55.048;TERMINAL;OUTPUT;OsTech          | GT                   | Temperatur abfragen;;0
+2026-08-03 20:47:55.250;TERMINAL;OUTPUT;OsTech          | GMS 0x4000           | Laser Current ON;;0
+2026-08-03 20:47:55.453;TERMINAL;OUTPUT;OsTech          | GMS 0x0000           | Laser Current OFF;;0
+2026-08-03 20:47:55.655;TERMINAL;OUTPUT;SR830           | PHAS?                | Phase abfragen;;0
+2026-08-03 20:47:55.857;TERMINAL;OUTPUT;SR830           | SNAP? 1,2            | Lock-In X/Y Daten;;0
+2026-08-03 20:47:56.058;TERMINAL;OUTPUT;SR830           | FREQ?                | Frequenz abfragen;;0
+2026-08-03 20:47:56.259;TERMINAL;OUTPUT;SR830           | HARM?                | Harmonische abfragen;;0
+2026-08-03 20:47:56.461;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:47:56.463;TERMINAL;OUTPUT;;;0
+2026-08-03 20:47:56.465;TERMINAL;OUTPUT;⏳ Warte auf Antworten (30 Sekunden)...;;0
+2026-08-03 20:48:11.477;TERMINAL;OUTPUT;;;0
+2026-08-03 20:48:11.478;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:48:11.479;TERMINAL;OUTPUT;INTERAKTIVER MODUS - EINGABE ERWARTET;;0
+2026-08-03 20:48:11.480;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:48:11.480;TERMINAL;OUTPUT;;;0
+2026-08-03 20:48:11.481;TERMINAL;OUTPUT;> Eingabe (scan/test/help/quit): ;;0
+2026-08-03 20:48:14.843;TERMINAL;OUTPUT;"[INPUT] 
+> Eingabe (scan/test/help/quit): help";;0
+2026-08-03 20:48:14.844;TERMINAL;OUTPUT;;;0
+2026-08-03 20:48:14.844;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:48:14.846;TERMINAL;OUTPUT;HILFE - VERFÜGBARE BEFEHLE;;0
+2026-08-03 20:48:14.847;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:48:14.848;TERMINAL;OUTPUT;Allgemein:;;0
+2026-08-03 20:48:14.849;TERMINAL;OUTPUT;  /help, help, ?      - Zeigt diese Hilfe an;;0
+2026-08-03 20:48:14.850;TERMINAL;OUTPUT;  scan, s             - Ports neu scannen;;0
+2026-08-03 20:48:14.851;TERMINAL;OUTPUT;  test, t             - bekannte Befehle an die Geräte senden;;0
+2026-08-03 20:48:14.851;TERMINAL;OUTPUT;  connect             - Verbindung zu Laser und Lock-In öffnen;;0
+2026-08-03 20:48:14.852;TERMINAL;OUTPUT;  disconnect          - Verbindung sauber schließen;;0
+2026-08-03 20:48:14.852;TERMINAL;OUTPUT;  quit, q, exit       - Programm beenden;;0
+2026-08-03 20:48:14.853;TERMINAL;OUTPUT;Gerätebefehle im interaktiven Modus:;;0
+2026-08-03 20:48:14.854;TERMINAL;OUTPUT;  laser gs            - Status des Lasers abfragen;;0
+2026-08-03 20:48:14.854;TERMINAL;OUTPUT;  laser gt            - Temperatur abfragen;;0
+2026-08-03 20:48:14.855;TERMINAL;OUTPUT;  laser on            - Laser einschalten;;0
+2026-08-03 20:48:14.856;TERMINAL;OUTPUT;  laser off           - Laser ausschalten;;0
+2026-08-03 20:48:14.856;TERMINAL;OUTPUT;  lockin phas         - Phase abfragen;;0
+2026-08-03 20:48:14.857;TERMINAL;OUTPUT;  lockin freq         - Frequenz abfragen;;0
+2026-08-03 20:48:14.858;TERMINAL;OUTPUT;  lockin snap         - X/Y-Werte abfragen;;0
+2026-08-03 20:48:14.858;TERMINAL;OUTPUT;  gs, gt, phas, freq, snap - Kurzformen für die gleichen Befehle;;0
+2026-08-03 20:48:14.859;TERMINAL;OUTPUT;"Hinweis: Die Verbindung wird beim Start aufgebaut; danach können die Gerätebefehle direkt verwendet werden.";;0
+2026-08-03 20:48:14.859;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:48:14.860;TERMINAL;OUTPUT;;;0
+2026-08-03 20:48:14.861;TERMINAL;OUTPUT;> Eingabe (scan/test/help/quit): ;;0
+2026-08-03 20:48:19.947;TERMINAL;OUTPUT;"[INPUT] 
+> Eingabe (scan/test/help/quit): laser gs";;0
+2026-08-03 20:48:19.948;TERMINAL;OUTPUT;[Laser] GS -> None (0.0ms);;0
+2026-08-03 20:48:19.949;TERMINAL;OUTPUT;;;0
+2026-08-03 20:48:19.950;TERMINAL;OUTPUT;> Eingabe (scan/test/help/quit): ;;0
+2026-08-03 20:48:45.011;TERMINAL;OUTPUT;"[INPUT] 
+> Eingabe (scan/test/help/quit): lockin snap";;0
+2026-08-03 20:48:45.012;TERMINAL;OUTPUT;[LockIn] SNAP? 1,2 -> None (0.0ms);;0
+2026-08-03 20:48:45.013;TERMINAL;OUTPUT;;;0
+2026-08-03 20:48:45.013;TERMINAL;OUTPUT;> Eingabe (scan/test/help/quit): ;;0
+2026-08-03 20:54:45.188;TERMINAL;OUTPUT;"[INPUT] 
+> Eingabe (scan/test/help/quit): C:\Users\ivenh\AppData\Local\Programs\Python\Python312\python.exe c:/Users/ivenh/Coding/Projekte/Python/Softwear_Projekt/main.py";;0
+2026-08-03 20:54:45.188;TERMINAL;OUTPUT;  ❌ Unbekannter Befehl.;;0
+2026-08-03 20:54:45.189;TERMINAL;OUTPUT;     Eingabe: c:\users\ivenh\appdata\local\programs\python\python312\python.exe c:/users/ivenh/coding/projekte/python/softwear_projekt/main.py;;0
+2026-08-03 20:54:45.189;TERMINAL;OUTPUT;     Nutze: scan, test, help oder quit;;0
+2026-08-03 20:54:45.190;TERMINAL;OUTPUT;;;0
+2026-08-03 20:54:45.191;TERMINAL;OUTPUT;> Eingabe (scan/test/help/quit): ;;0
+2026-08-03 20:54:50.446;TERMINAL;OUTPUT;"[INPUT] 
+> Eingabe (scan/test/help/quit): C:\Users\ivenh\AppData\Local\Programs\Python\Python312\python.exe c:/Users/ivenh/Coding/Projekte/Python/Softwear_Projekt/main.py";;0
+2026-08-03 20:54:50.447;TERMINAL;OUTPUT;  ❌ Unbekannter Befehl.;;0
+2026-08-03 20:54:50.447;TERMINAL;OUTPUT;     Eingabe: c:\users\ivenh\appdata\local\programs\python\python312\python.exe c:/users/ivenh/coding/projekte/python/softwear_projekt/main.py;;0
+2026-08-03 20:54:50.448;TERMINAL;OUTPUT;     Nutze: scan, test, help oder quit;;0
+2026-08-03 20:54:50.449;TERMINAL;OUTPUT;;;0
+2026-08-03 20:54:50.449;TERMINAL;OUTPUT;> Eingabe (scan/test/help/quit): ;;0
+2026-08-03 20:54:56.675;TERMINAL;OUTPUT;"[INPUT] 
+> Eingabe (scan/test/help/quit): C:\Users\ivenh\AppData\Local\Programs\Python\Python312\python.exe c:/Users/ivenh/Coding/Projekte/Python/Softwear_Projekt/main.py";;0
+2026-08-03 20:54:56.677;TERMINAL;OUTPUT;  ❌ Unbekannter Befehl.;;0
+2026-08-03 20:54:56.678;TERMINAL;OUTPUT;     Eingabe: c:\users\ivenh\appdata\local\programs\python\python312\python.exe c:/users/ivenh/coding/projekte/python/softwear_projekt/main.py;;0
+2026-08-03 20:54:56.678;TERMINAL;OUTPUT;     Nutze: scan, test, help oder quit;;0
+2026-08-03 20:54:56.679;TERMINAL;OUTPUT;;;0
+2026-08-03 20:54:56.679;TERMINAL;OUTPUT;> Eingabe (scan/test/help/quit): ;;0
+2026-08-03 20:54:59.345;TERMINAL;OUTPUT;"[INPUT] 
+> Eingabe (scan/test/help/quit): q";;0
+2026-08-03 20:54:59.346;TERMINAL;OUTPUT;✓ Beende Programm...;;0
+2026-08-03 20:54:59.347;TERMINAL;OUTPUT;;;0
+2026-08-03 20:54:59.347;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:54:59.348;TERMINAL;OUTPUT;SHUTDOWN;;0
+2026-08-03 20:54:59.349;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-03 20:54:59.349;TERMINAL;OUTPUT;✓ Worker beendet;;0
+2026-08-03 20:54:59.350;TERMINAL;OUTPUT;✓ Logdatei: logs\2026-08-03\plis_measurement_log.csv;;0
+2026-08-03 20:54:59.351;TERMINAL;OUTPUT;================================================================================;;0

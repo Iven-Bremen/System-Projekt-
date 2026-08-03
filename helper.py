@@ -18,6 +18,7 @@ from Komunikation import (
     SERIAL_AVAILABLE,
     auto_detect_device_ports,
     print_auto_detected_ports,
+    OsTechStatusDecoder,
 )
 from Log import make_log_path, start_terminal_logging, append_csv_row
 from Terminal import (
@@ -36,6 +37,8 @@ from Terminal import (
     exit_message,
     interrupted_message,
     shutdown_summary,
+    parse_interactive_command,
+    show_help,
 )
 
 
@@ -227,23 +230,80 @@ class ProgramRunner:
         interactive_header()
         while True:
             try:
-                cmd = input("\n> Eingabe (scan/test/quit): ").strip().lower()
-                if cmd == "quit":
+                raw_cmd = input("\n> Eingabe (scan/test/help/quit): ").strip()
+                command, payload = parse_interactive_command(raw_cmd)
+
+                if command == "quit":
                     exit_message()
                     break
-                elif cmd == "scan":
+                elif command == "scan":
                     scan_started()
                     ports = scan_ports_with_spinner(timeout=config.PORT_SCAN_TIMEOUT)
                     print_available_ports(ports)
-                elif cmd == "test":
+                elif command == "test":
                     test_started()
                     send_all_commands(self.gui_to_device)
                     waiting_for_responses(config.INTERACTIVE_WAIT)
                     for _ in range(config.INTERACTIVE_WAIT):
                         drain_result_queue(self.device_to_gui)
                         time.sleep(0.5)
+                elif command == "help":
+                    show_help()
+                elif command == "connect":
+                    if self.worker is None:
+                        print("[INFO] Worker ist noch nicht initialisiert.")
+                    else:
+                        self.worker.laser.connect()
+                        self.worker.lockin.connect()
+                        print("[INFO] Verbindung zu Laser und Lock-In geöffnet.")
+                elif command == "disconnect":
+                    if self.worker is None:
+                        print("[INFO] Worker ist noch nicht initialisiert.")
+                    else:
+                        self.worker.laser.close()
+                        self.worker.lockin.close()
+                        print("[INFO] Verbindung zu Laser und Lock-In geschlossen.")
+                elif command == "device":
+                    if self.worker is None:
+                        print("[INFO] Worker ist noch nicht initialisiert.")
+                    else:
+                        device = payload.get("device")
+                        action = payload.get("action")
+                        if device == "laser":
+                            if action == "gs":
+                                res, lat = self.worker.laser.query("GS")
+                                decoded = OsTechStatusDecoder.decode(res)
+                                decoded_text = " | ".join(decoded["active_states"])
+                                print(f"[Laser] GS -> {decoded_text or res} ({lat:.1f}ms)")
+                            elif action == "gt":
+                                res, lat = self.worker.laser.query("GT")
+                                print(f"[Laser] GT -> {res} ({lat:.1f}ms)")
+                            elif action == "on":
+                                res, lat = self.worker.laser.query("GMS 0x4000")
+                                print(f"[Laser] GMS 0x4000 -> {res} ({lat:.1f}ms)")
+                            elif action == "off":
+                                res, lat = self.worker.laser.query("GMS 0x0000")
+                                print(f"[Laser] GMS 0x0000 -> {res} ({lat:.1f}ms)")
+                            else:
+                                print(f"[INFO] Unbekannter Laser-Befehl: {action}")
+                        elif device == "lockin":
+                            if action == "phas":
+                                res, lat = self.worker.lockin.query("PHAS?")
+                                print(f"[LockIn] PHAS? -> {res} ({lat:.1f}ms)")
+                            elif action == "freq":
+                                res, lat = self.worker.lockin.query("FREQ?")
+                                print(f"[LockIn] FREQ? -> {res} ({lat:.1f}ms)")
+                            elif action == "snap":
+                                res, lat = self.worker.lockin.query("SNAP? 1,2")
+                                print(f"[LockIn] SNAP? 1,2 -> {res} ({lat:.1f}ms)")
+                            else:
+                                print(f"[INFO] Unbekannter LockIn-Befehl: {action}")
+                        else:
+                            print(f"[INFO] Unbekanntes Gerät: {device}")
+                elif command == "noop":
+                    continue
                 else:
-                    unknown_command()
+                    unknown_command(payload)
 
                 drain_result_queue(self.device_to_gui)
             except KeyboardInterrupt:

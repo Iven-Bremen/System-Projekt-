@@ -12,13 +12,15 @@ CSV_COLUMNS = ["Timestamp", "Device", "Command", "Raw_Response", "Decoded_Info",
 
 
 def make_log_path(prefix="M", base_name=None):
-    """Erzeuge den Tagesordner und liefere den CSV-Pfad zurueck."""
+    """Erzeuge pro Programmstart einen eigenen Ordner mit Datum und Startzeit."""
     prefix = prefix.upper() if isinstance(prefix, str) else "M"
     if prefix not in ("M", "T"):
         prefix = "M"
 
-    date_folder = datetime.now().strftime("%Y-%m-%d")
-    log_dir = os.path.join("logs", date_folder)
+    now = datetime.now()
+    date_folder = now.strftime("%Y-%m-%d")
+    start_time_folder = now.strftime("%H-%M-%S")
+    log_dir = os.path.join("logs", date_folder, start_time_folder)
     os.makedirs(log_dir, exist_ok=True)
 
     if base_name:

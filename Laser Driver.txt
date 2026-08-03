@@ -1,0 +1,213 @@
+7 Remote control
+All OsTech modules may be controlled over a serial interface. The transfer parameters
+of the serial interface are fixed to 9600 baud 8N1.
+
+7.1 Standard mode
+In standard mode you can send commands and parameters to the device in text format
+and the device answers in the same way. The answer of the device always contains
+comments and the parameters and values are given back. This mode is optimal for
+working at a PC using any terminal program.
+After sending a character you will receive an echo of your input, i. e. all sent
+characters return immediately. All characters are changed to upper case. All inputs
+have to be finished by
+CR ✆to process the input;
+CR ✆is also returned. If a command
+returns a value, the answer is also finished by
+CR ✆. No linefeed
+LF ✆is added after the ✞
+CR ✆, but most terminals are able to generate this automatically. You may invalidate
+any sequence by sending
+Esc ✆. Single characters may be deleted from the buffer by
+backspace
+. Between commands and their parameters you can insert as many
+spaces as you want (no space is also okay). But note that the whole command line
+must not be longer than 14 characters.
+sent command: LCT222.3
+CR ✆ every character is returned
+received answer: Laser Current Target: 222.3 mA
+CR ✆ verbose answer
+
+7.2 Reduced mode
+The reduced mode works similarly to the standard mode. The difference is that you
+merely receive the values and numbers without any comment or unit.
+sent command: LCT222.3
+CR ✆ every character is returned
+received answer: 222.3 mA
+CR ✆ short answer
+For a single command this mode can be reached by simply adding the prefix R. So
+LCT222.3 would become RLCT222.3. To switch to this mode permanently use the
+command GMS32768. The command GMC32768 switches back to standard mode.
+
+7.3 Binary mode
+In binary mode no comments are returned and values are sent binary coded (MSB first)
+with a checksum following. This mode is optimal if you want to control the device
+automatically by a master computer. The checksum is computed by adding every
+single byte of a word or float value to the fixed value 0x55 (ignoring the overflow).
+For e. g. a float value whose four bytes are all 0x00 (= 0.0) the checksum is 0x55. If
+all bytes are 0x01 then the checksum would be 0x59 and so on.
+sent command: LCT222.3
+CR ✆ every character is returned
+received answer: MSB . . . LSB, checksum binary coded answer
+There are four data types with the following return structure:
+• float 4 bytes + checksum
+• short or word 2 bytes + checksum
+• string 0. . . 255 bytes + 0x00
+• boolean 1 byte: • 0xAA for run or on
+• 0x55 for stop or off
+The device always starts in standard mode. Binary mode is initialized by setting a bit
+in the general mode variable of the device as follows:
+sent command: GMS8
+CR ✆ set bit 0x08 of mode variable
+To return to standard mode this bit has to be cleared:
+sent command: GMC8
+CR ✆ clear bit 0x08 of mode variable
+
+7.4 Software
+At http://www.ostech.de you may download software to interact with OsTech
+devices.
+• the terminal program OSTERM
+• LabVIEW™ VIs, including a runtime version
+Sample routines in C and C++ are also available on request.
+
+8 Error codes
+When an error occurs, the driver generates an error code. The error code can be
+determined by the GE command. Furthermore, the error is shown on the display. A
+list of error codes and their causes follows:
+error code cause
+0 no error, everything ok
+1 interlock open
+2 laser compliance voltage not OK or no laser connected
+3 internal supply voltage not OK
+4 laser temperature sensor open
+5 crystal temperature sensor open
+6 laser temperature exceeds upper limit
+7 laser temperature lower than lower limit
+8 laser short-circuit or no laser connected
+9 device temperature (GT) too high
+10 laser temperature exceeds maximum laser temperature (LTM)
+11 crystal temperature exceeds upper limit
+12 crystal temperature lower than lower limit
+16 laser current greater than maximum current limit (LCLM)
+17 current error
+18 total power limit exceeded
+
+9 Command reference
+9.1 Laser commands (L)
+cmd type min max default unit description
+L bool S R S laser stop/run
+LTM float −99 200 35 ◦C laser temperature maximum
+LG bool S R S gate option
+9.1.1 Laser current commands (LC)
+cmd type min max default unit description
+LCL float 0 Imax + 5% Imax + 5% mA current limit
+LCT float 0 Imax 0 mA current target
+LCA float — no parameter — mA actual current
+LCB float 0 Imax 0 mA base or bias current
+9.1.2 Laser voltage commands (LV)
+cmd type min max default unit description
+LVA float — no parameter — V actual laser voltage
+LVC float 1.3 6 3 V compliance voltage
+9.1.3 Laser photo current (LPC) and power (LP) commands
+cmd type min max default unit description
+LPCA float — no parameter — µA laser photo current actual
+LPCT float 0 20 0 µA laser photo current target
+LPCC bool S R S laser photo current control
+LPA float — no parameter — W laser power actual
+LPT float 0 0 W laser power target
+LPF bool — no parameter — laser power fix procedure
+9.1.4 Laser modulation commands (LM)
+cmd type min max default unit description
+LMDI bool S R S internal digital modulation
+LMDX bool S R S external digital modulation
+LMAX bool S R S external analog modulation
+LMW float 1 > 48 h 1000 µs pulse width
+LMP float LMW + 1 > 48 h 2000 µs pulse period
+LMDIC word 0 65534 0 number of pulses
+LMDXN bool R S S negate modulation input
+9.1.5 Laser sequencer commands (LZ)
+The LZTR command is available in every laser driver:
+cmd type min max default unit description
+LZTR float 300 34000 300 ms ramp time (refers to Imax)
+The following commands are optionally available on request:
+cmd type min max default unit description
+LZR bool — no parameter — ms sequencer run (stop with LS)
+LZP word ms sequencer point select
+LZPT word ms subsequence time (duration)
+LZPC float ms subsequence current (end)
+9.1.6 Pilot laser commands (P)
+cmd type min max default unit description
+PL bool S R S pilot laser stop/run
+PP word 0 16 0 pilot laser modulation
+
+9.2 Temperature sensor and TEC commands (xT)
+In these commands x has to be replaced by a digit (or letter) to select the temperature
+sensor or TEC. The first temperature sensor or TEC corresponds to 1, the second to 2,
+the third to 3 and so on.
+As the first temperature sensor or TEC is usually used for a laser and the second
+for a crystal, a deprecated option for selecting them is the use of the letters L and C,
+respectively.
+
+9.2.1 Temperature sensor commands
+In new firmware versions the sensor commands are also available with prefix nS
+instead of xT where n corresponds to the number of the temperature sensor.
+cmd type min max default unit description
+xTA float — no parameter — ◦C actual temperature
+xTLU float −99 200 40 ◦C upper temperature limit
+xTLL float −99 200 0
+◦C lower temperature Limit
+xTSCk float NTC
+B3980
+sensor coefficients,
+k = 0 . . . 3
+xTSM word 0 1 0 sensor approximation model
+• 0: polynomial model
+• 1: Steinhart-Hart equation
+9.2.2 TEC commands
+cmd type min max default unit description
+xTC bool S R S temperature controller
+stop/run
+xTT float −99 200 20 ◦C temperature target
+xTCA float — no parameter — actual current
+xTCL float 0 IPmax
+IPmax mA current limit
+xTVA float — no parameter — V actual voltage
+xTCCK float 0 255 2 PID parameter: gain factor
+xTCCN float 0 255 60 s PID parameter: reset time
+xTCCV float 0 99 1 s PID parameter: rate time
+
+9.3 General commands
+cmd type min max default unit description
+GD bool — no parameter — set defaults
+GF float 1.2 24 5 V fan voltage (max. 300 mA)
+GFD float 1.2 24 5 V default fan voltage
+cmd type min max default unit description
+GX bool S R S external control stop/run
+GT float — no parameter — ◦C device temperature (head)
+GVS word — no parameter — software version
+GVN word — no parameter — serial number
+9.3.1 Status command
+cmd type min max default unit description
+GS word — no parameter — get status
+The status bits have the following meanings:
+0x0001 interlock OK
+0x0004 driver supply OK 0x0400 LT sensor OK
+0x0008 driver temperature OK 0x0800 CT sensor OK
+0x0010 LTLU not OK
+0x0020 LTLL not OK 0x2000 LTM not OK
+0x0040 CTLU not OK 0x4000 LC ON
+0x0080 CTLL not OK 0x8000 LC error
+9.3.2 Mode commands
+cmd type min max default unit description
+GM word — no parameter — get mode
+GMC word clear mode bit(s)
+GMS word set mode bit(s)
+GMT word toggle mode bit(s)
+The mode bits have the following meanings:
+0x0001 laser current ON 0x0100 first TEC (laser) ON
+0x0002 input echo OFF 0x0200 second TEC (crystal) ON
+0x0400 pilot laser ON
+0x0008 binary mode 0x0800 laser current control (LCC) OFF
+0x0010 laser voltage control OFF 0x1000 use external interface after startup
+0x0020 LMDI ON 0x2000 LMDX OFF
+0x0040 LMDX ON 0x4000 gate option
+0x0080 LMAX ON 0x8000 reduced mode
