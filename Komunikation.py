@@ -8,7 +8,7 @@ Die Struktur folgt dem allgemeinen Muster eines seriellen Hosts:
 - Antwort lesen
 - Ergebnis weiterverarbeiten
 
-Im Gegensatz zum externen Beispiel aus dem GitHub-Repo ist dieses Projekt auf
+Im Gegensatz zum externen Beispiele aus GitHub ist dieses Projekt auf
 zwei konkrete Geräte und ein eigenes Protokoll ausgerichtet. Die Grundidee ist
 aber dieselbe: ein einfacher, gut dokumentierter Serial-Loop mit sauberem
 Fehlerhandling.
@@ -79,6 +79,28 @@ class OsTechDriver:
         self.simulator = simulator
         self.ser = None
 
+    def _reset_serial_buffers(self):
+        if self.ser is None:
+            return
+        for method_name in ("reset_input_buffer", "reset_output_buffer"):
+            method = getattr(self.ser, method_name, None)
+            if callable(method):
+                try:
+                    method()
+                except Exception:
+                    pass
+
+    def _ensure_connection(self):
+        if self.simulate:
+            return True
+        if self.ser is not None:
+            try:
+                if self.ser.is_open:
+                    return True
+            except Exception:
+                pass
+        return self.connect()
+
     def connect(self):
         if self.simulate:
             print(f"[OsTech] MOCK-MODUS: Virtuell verbunden mit {self.port}")
@@ -86,14 +108,28 @@ class OsTechDriver:
         if serial is None:
             print("[OsTech] pyserial ist nicht verfügbar.")
             return False
-        try:
-            self.ser = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
-            print(f"[OsTech] HARDWARE: Erfolgreich verbunden mit {self.port}")
-            return True
-        except Exception as e:
-            print(f"[OsTech] Verbindungsfehler an {self.port}: {e}")
-            self.ser = None
-            return False
+
+        for attempt in range(2):
+            try:
+                self.ser = serial.Serial(
+                    self.port,
+                    self.baudrate,
+                    timeout=self.timeout,
+                    write_timeout=self.timeout,
+                )
+                self._reset_serial_buffers()
+                time.sleep(0.05)
+                print(f"[OsTech] HARDWARE: Erfolgreich verbunden mit {self.port}")
+                return True
+            except Exception as e:
+                self.ser = None
+                if attempt == 0:
+                    time.sleep(0.2)
+                    continue
+                print(f"[OsTech] Verbindungsfehler an {self.port}: {e}")
+                return False
+
+        return False
 
     def close(self):
         if self.ser is not None:
@@ -124,13 +160,21 @@ class OsTechDriver:
                 return "0x4405", latency
             return "OK", latency
 
-        try:
-            self.ser.write(f"{cmd}\r\n".encode("utf-8"))
-            response = self.ser.readline().decode("utf-8").strip()
-            latency = (time.perf_counter() - start_time) * 1000
-            return response, latency
-        except Exception as e:
-            return f"ERROR: {e}", (time.perf_counter() - start_time) * 1000
+        if not self._ensure_connection():
+            return None, (time.perf_counter() - start_time) * 1000
+
+        for attempt in range(2):
+            try:
+                self._reset_serial_buffers()
+                self.ser.write(f"{cmd}\r\n".encode("utf-8"))
+                response = self.ser.readline().decode("utf-8", errors="ignore").strip()
+                latency = (time.perf_counter() - start_time) * 1000
+                return response, latency
+            except Exception as e:
+                self.close()
+                if attempt == 0 and self._ensure_connection():
+                    continue
+                return f"ERROR: {e}", (time.perf_counter() - start_time) * 1000
 
 
 class SR830Driver(LAM):

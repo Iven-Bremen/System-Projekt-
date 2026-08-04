@@ -5,6 +5,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import lockin_amplifier
 import Komunikation
 from Komunikation import OsTechStatusDecoder, _looks_like_os_tech_response, _looks_like_sr830_response
 from lockin_amplifier import LAM as LAMClass
@@ -93,3 +94,47 @@ def test_lam_logs_sent_and_received_commands(tmp_path):
     assert "TX" in content
     assert "RX" in content
     assert "PHAS" in content
+
+
+def test_lam_retries_after_transient_serial_error(monkeypatch):
+    class FakeSerialPort:
+        def __init__(self, fail_once=False):
+            self.write_calls = 0
+            self.closed = False
+            self.fail_once = fail_once
+
+        def write(self, data):
+            self.write_calls += 1
+            if self.fail_once and self.write_calls == 1:
+                raise RuntimeError("temporary write failure")
+            return len(data)
+
+        def readline(self):
+            return b"14.52\n"
+
+        def close(self):
+            self.closed = True
+
+    class FakeSerialModule:
+        def __init__(self):
+            self.created_ports = []
+            self.fail_next_port = True
+
+        def Serial(self, *args, **kwargs):
+            port = FakeSerialPort(fail_once=self.fail_next_port)
+            self.created_ports.append(port)
+            self.fail_next_port = False
+            return port
+
+    fake_serial_module = FakeSerialModule()
+    monkeypatch.setattr(lockin_amplifier, "serial", fake_serial_module)
+
+    lam = LAMClass(port="COM1", simulate=False, timeout=0.1)
+    assert lam.connect() is True
+
+    response, latency = lam.query("PHAS?")
+
+    assert response == "14.52"
+    assert latency >= 0
+    assert len(fake_serial_module.created_ports) >= 2
+    assert fake_serial_module.created_ports[-1].closed is False

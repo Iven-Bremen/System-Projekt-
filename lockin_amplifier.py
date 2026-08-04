@@ -148,6 +148,30 @@ class LAM:
 
         return value
 
+    def _reset_serial_buffers(self):
+        """Leert eingehende und ausgehende Puffer, falls die Bibliothek das unterstützt."""
+        if self.ser is None:
+            return
+        for method_name in ("reset_input_buffer", "reset_output_buffer"):
+            method = getattr(self.ser, method_name, None)
+            if callable(method):
+                try:
+                    method()
+                except Exception:
+                    pass
+
+    def _ensure_connection(self):
+        """Stellt sicher, dass eine aktive serielle Verbindung besteht."""
+        if self.simulate:
+            return True
+        if self.ser is not None:
+            try:
+                if self.ser.is_open:
+                    return True
+            except Exception:
+                pass
+        return self.connect()
+
     def connect(self):
         """Öffnet die serielle Verbindung zum SR830.
 
@@ -160,14 +184,28 @@ class LAM:
         if serial is None:
             print("[SR830] pyserial ist nicht verfügbar.")
             return False
-        try:
-            self.ser = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
-            print(f"[SR830] HARDWARE: Erfolgreich verbunden mit {self.port}")
-            return True
-        except Exception as exc:
-            print(f"[SR830] Verbindungsfehler an {self.port}: {exc}")
-            self.ser = None
-            return False
+
+        for attempt in range(2):
+            try:
+                self.ser = serial.Serial(
+                    self.port,
+                    self.baudrate,
+                    timeout=self.timeout,
+                    write_timeout=self.timeout,
+                )
+                self._reset_serial_buffers()
+                time.sleep(0.05)
+                print(f"[SR830] HARDWARE: Erfolgreich verbunden mit {self.port}")
+                return True
+            except Exception as exc:
+                self.ser = None
+                if attempt == 0:
+                    time.sleep(0.2)
+                    continue
+                print(f"[SR830] Verbindungsfehler an {self.port}: {exc}")
+                return False
+
+        return False
 
     def disconnect(self):
         """Schließt die aktive serielle Verbindung sauber."""
@@ -399,30 +437,48 @@ class LAM:
             self._log_transaction("RX", command, value=reply, latency_ms=latency)
             return reply, latency
 
-        try:
-            self.ser.write(f"{command}\n".encode("utf-8"))
-            response = self.ser.readline().decode("utf-8").strip()
+        if not self._ensure_connection():
+            response = "ERROR: not connected"
             latency = (time.perf_counter() - start_time) * 1000
             self._log_transaction("RX", command, value=response, latency_ms=latency)
             return response, latency
-        except Exception as exc:
-            response = f"ERROR: {exc}"
-            latency = (time.perf_counter() - start_time) * 1000
-            self._log_transaction("RX", command, value=response, latency_ms=latency)
-            return response, latency
+
+        for attempt in range(2):
+            try:
+                self._reset_serial_buffers()
+                self.ser.write(f"{command}\r\n".encode("utf-8"))
+                response = self.ser.readline().decode("utf-8", errors="ignore").strip()
+                latency = (time.perf_counter() - start_time) * 1000
+                self._log_transaction("RX", command, value=response, latency_ms=latency)
+                return response, latency
+            except Exception as exc:
+                self.disconnect()
+                if attempt == 0 and self._ensure_connection():
+                    continue
+                response = f"ERROR: {exc}"
+                latency = (time.perf_counter() - start_time) * 1000
+                self._log_transaction("RX", command, value=response, latency_ms=latency)
+                return response, latency
 
     def _send_command(self, command):
         """Interne Hilfsfunktion zum Senden eines Kommandos über die serielle Verbindung."""
         if self.simulate:
             time.sleep(0.008)
             return True
-        if self.ser is None:
+
+        if not self._ensure_connection():
             return False
-        try:
-            self.ser.write(f"{command}\n".encode("utf-8"))
-            return True
-        except Exception:
-            return False
+
+        for attempt in range(2):
+            try:
+                self._reset_serial_buffers()
+                self.ser.write(f"{command}\r\n".encode("utf-8"))
+                return True
+            except Exception:
+                self.disconnect()
+                if attempt == 0 and self._ensure_connection():
+                    continue
+                return False
 
     # ------------------------------------------------------------------
     # Referenz- und Phasenbefehle

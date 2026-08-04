@@ -244,18 +244,33 @@ class ProgramRunner:
                     test_started()
                     send_all_commands(self.gui_to_device)
                     waiting_for_responses(config.INTERACTIVE_WAIT)
+                    received_any = False
                     for _ in range(config.INTERACTIVE_WAIT):
-                        drain_result_queue(self.device_to_gui)
+                        while not self.device_to_gui.empty():
+                            payload = self.device_to_gui.get_nowait()
+                            received_any = True
+                            print(
+                                f"[TEST] {payload.get('device')} | {payload.get('command')} -> {payload.get('decoded') or payload.get('raw')}"
+                            )
                         time.sleep(0.5)
+                    if not received_any:
+                        print("[INFO] Keine Nachrichten vom Laser oder Lock-In empfangen.")
                 elif command == "help":
                     show_help()
                 elif command == "connect":
                     if self.worker is None:
                         print("[INFO] Worker ist noch nicht initialisiert.")
                     else:
-                        self.worker.laser.connect()
-                        self.worker.lockin.connect()
-                        print("[INFO] Verbindung zu Laser und Lock-In geöffnet.")
+                        laser_ok = self.worker.laser.connect()
+                        lockin_ok = self.worker.lockin.connect()
+                        if laser_ok and lockin_ok:
+                            print("[INFO] Verbindung zu Laser und Lock-In erfolgreich geöffnet.")
+                        else:
+                            print("[WARNUNG] Verbindung zu mindestens einem Gerät war nicht erfolgreich.")
+                            if not laser_ok:
+                                print("[WARNUNG] Laser: Verbindung fehlgeschlagen.")
+                            if not lockin_ok:
+                                print("[WARNUNG] Lock-In: Verbindung fehlgeschlagen.")
                 elif command == "disconnect":
                     if self.worker is None:
                         print("[INFO] Worker ist noch nicht initialisiert.")
@@ -269,33 +284,69 @@ class ProgramRunner:
                     else:
                         device = payload.get("device")
                         action = payload.get("action")
+                        value = payload.get("value")
                         if device == "laser":
                             if action == "gs":
                                 res, lat = self.worker.laser.query("GS")
                                 decoded = OsTechStatusDecoder.decode(res)
                                 decoded_text = " | ".join(decoded["active_states"])
-                                print(f"[Laser] GS -> {decoded_text or res} ({lat:.1f}ms)")
+                                if res is None:
+                                    print(f"[WARNUNG] Laser: keine Antwort empfangen (GS).")
+                                else:
+                                    print(f"[Laser] GS -> {decoded_text or res} ({lat:.1f}ms)")
                             elif action == "gt":
                                 res, lat = self.worker.laser.query("GT")
-                                print(f"[Laser] GT -> {res} ({lat:.1f}ms)")
+                                if res is None:
+                                    print(f"[WARNUNG] Laser: keine Antwort empfangen (GT).")
+                                else:
+                                    print(f"[Laser] GT -> {res} ({lat:.1f}ms)")
                             elif action == "on":
                                 res, lat = self.worker.laser.query("GMS 0x4000")
-                                print(f"[Laser] GMS 0x4000 -> {res} ({lat:.1f}ms)")
+                                if res is None:
+                                    print(f"[WARNUNG] Laser: keine Antwort empfangen (GMS 0x4000).")
+                                else:
+                                    print(f"[Laser] GMS 0x4000 -> {res} ({lat:.1f}ms)")
                             elif action == "off":
                                 res, lat = self.worker.laser.query("GMS 0x0000")
-                                print(f"[Laser] GMS 0x0000 -> {res} ({lat:.1f}ms)")
+                                if res is None:
+                                    print(f"[WARNUNG] Laser: keine Antwort empfangen (GMS 0x0000).")
+                                else:
+                                    print(f"[Laser] GMS 0x0000 -> {res} ({lat:.1f}ms)")
+                            elif action == "gms":
+                                if value is None:
+                                    print("[INFO] Bitte einen Wert angeben, z. B. 0x0000 oder 0x4000.")
+                                else:
+                                    normalized_value = value.lower()
+                                    if normalized_value not in {"0x0000", "0x4000", "0", "1", "off", "on"}:
+                                        print("[WARNUNG] Ungültiger Laser-Wert. Erlaubt: 0x0000 (AUS), 0x4000 (EIN).")
+                                    else:
+                                        cmd = "GMS 0x4000" if normalized_value in {"0x4000", "1", "on"} else "GMS 0x0000"
+                                        res, lat = self.worker.laser.query(cmd)
+                                        if res is None:
+                                            print(f"[WARNUNG] Laser: keine Antwort empfangen ({cmd}).")
+                                        else:
+                                            print(f"[Laser] {cmd} -> {res} ({lat:.1f}ms)")
                             else:
                                 print(f"[INFO] Unbekannter Laser-Befehl: {action}")
                         elif device == "lockin":
                             if action == "phas":
                                 res, lat = self.worker.lockin.query("PHAS?")
-                                print(f"[LockIn] PHAS? -> {res} ({lat:.1f}ms)")
+                                if res is None:
+                                    print(f"[WARNUNG] Lock-In: keine Antwort empfangen (PHAS?).")
+                                else:
+                                    print(f"[LockIn] PHAS? -> {res} ({lat:.1f}ms)")
                             elif action == "freq":
                                 res, lat = self.worker.lockin.query("FREQ?")
-                                print(f"[LockIn] FREQ? -> {res} ({lat:.1f}ms)")
+                                if res is None:
+                                    print(f"[WARNUNG] Lock-In: keine Antwort empfangen (FREQ?).")
+                                else:
+                                    print(f"[LockIn] FREQ? -> {res} ({lat:.1f}ms)")
                             elif action == "snap":
                                 res, lat = self.worker.lockin.query("SNAP? 1,2")
-                                print(f"[LockIn] SNAP? 1,2 -> {res} ({lat:.1f}ms)")
+                                if res is None:
+                                    print(f"[WARNUNG] Lock-In: keine Antwort empfangen (SNAP? 1,2).")
+                                else:
+                                    print(f"[LockIn] SNAP? 1,2 -> {res} ({lat:.1f}ms)")
                             else:
                                 print(f"[INFO] Unbekannter LockIn-Befehl: {action}")
                         else:
