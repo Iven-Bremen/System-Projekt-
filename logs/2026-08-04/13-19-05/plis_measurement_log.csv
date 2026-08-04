@@ -1,0 +1,433 @@
+Timestamp;Device;Command;Raw_Response;Decoded_Info;Latency_ms
+
+
+
+
+
+
+
+
+
+
+2026-08-04 13:19:05;SESSION;START;HARDWARE;;0
+2026-08-04 13:19:05.518;CONFIG;PORT_LASER;None;;0.00
+2026-08-04 13:19:05.518;CONFIG;PORT_LOCKIN;None;;0.00
+2026-08-04 13:19:05.518;CONFIG;BAUDRATE_LASER;9600;;0.00
+2026-08-04 13:19:05.518;CONFIG;BAUDRATE_LOCKIN;19200;;0.00
+2026-08-04 13:19:05.518;CONFIG;INTERVAL_LASER;1.0;;0.00
+2026-08-04 13:19:05.518;CONFIG;INTERVAL_LOCKIN;0.1;;0.00
+2026-08-04 13:19:05.518;CONFIG;LOG_PREFIX;M;;0.00
+2026-08-04 13:19:05.518;CONFIG;SIMULATE;False;;0.00
+2026-08-04 13:19:05.518;CONFIG;CAPTURE_INPUT;True;;0.00
+2026-08-04 13:19:05.518;CONFIG;INSERT_SEPARATOR;True;;0.00
+2026-08-04 13:19:05.531;TERMINAL;OUTPUT;;;0
+2026-08-04 13:19:05.532;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-04 13:19:05.532;TERMINAL;OUTPUT;HARDWARE RS232 / USB KOMMUNIKATIONSSYSTEM - AKTIVER MODUS;;0
+2026-08-04 13:19:05.533;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-04 13:19:05.534;TERMINAL;OUTPUT;✓ pyserial ist verfügbar - Hardware-Modus aktiv;;0
+2026-08-04 13:19:05.535;TERMINAL;OUTPUT;;;0
+2026-08-04 13:19:05.536;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-04 13:19:05.537;TERMINAL;OUTPUT;SUCHE NACH VERFÜGBAREN SERIELLEN PORTS...;;0
+2026-08-04 13:19:05.537;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-04 13:19:05.553;TERMINAL;OUTPUT;Gefundene serielle Ports:;;0
+2026-08-04 13:19:05.554;TERMINAL;OUTPUT;  1. COM3 - Prolific PL2303GT USB Serial COM Port (COM3);;0
+2026-08-04 13:19:05.554;TERMINAL;OUTPUT;  2. COM4 - Prolific PL2303GT USB Serial COM Port (COM4);;0
+2026-08-04 13:19:19.305;TERMINAL;OUTPUT;;;0
+2026-08-04 13:19:19.305;TERMINAL;OUTPUT;Auto-Erkennungsergebnisse:;;0
+2026-08-04 13:19:19.305;TERMINAL;OUTPUT;  COM3 - Prolific PL2303GT USB Serial COM Port (COM3) -> unbekannt;;0
+2026-08-04 13:19:19.307;TERMINAL;OUTPUT;  COM4 - Prolific PL2303GT USB Serial COM Port (COM4) -> unbekannt;;0
+2026-08-04 13:19:19.307;TERMINAL;OUTPUT;;;0
+2026-08-04 13:19:19.309;TERMINAL;OUTPUT;[OsTech-Laser] Gib den Port ein (z.B. COM3 oder /dev/serial/by-id/usb-...): ;;0
+2026-08-04 13:19:24.455;TERMINAL;OUTPUT;"[INPUT] 
+[OsTech-Laser] Gib den Port ein (z.B. COM3 oder /dev/serial/by-id/usb-...): COM3";;0
+2026-08-04 13:19:24.455;TERMINAL;OUTPUT;;;0
+2026-08-04 13:19:24.457;TERMINAL;OUTPUT;[SR830-LockIn] Gib den Port ein (z.B. COM4 oder /dev/serial/by-id/usb-...): ;;0
+2026-08-04 13:19:27.075;TERMINAL;OUTPUT;"[INPUT] 
+[SR830-LockIn] Gib den Port ein (z.B. COM4 oder /dev/serial/by-id/usb-...): COM4";;0
+
+
+
+
+
+
+
+
+
+
+2026-08-04 13:19:27;SESSION;START;HARDWARE;;0
+2026-08-04 13:19:27.078;TERMINAL;OUTPUT;[Worker] CSV-Logging initialisiert: logs\2026-08-04\13-19-05\plis_measurement_log.csv;;0
+2026-08-04 13:19:27.078;TERMINAL;OUTPUT;;;0
+2026-08-04 13:19:27.078;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-04 13:19:27.078;TERMINAL;OUTPUT;STARTE AKTIVE RS232/USB-KOMMUNIKATION;;0
+2026-08-04 13:19:27.078;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-04 13:19:27.078;TERMINAL;OUTPUT;🔴 OsTech Laser-Treiber:        COM3;;0
+2026-08-04 13:19:27.082;TERMINAL;OUTPUT;   └─ Baudrate: 9600, Protokoll: 8N1;;0
+2026-08-04 13:19:27.082;TERMINAL;OUTPUT;   └─ Befehle: GT (Temp), GS (Status), GMS (Laser ON/OFF);;0
+2026-08-04 13:19:27.083;TERMINAL;OUTPUT;;;0
+2026-08-04 13:19:27.084;TERMINAL;OUTPUT;🔵 SR830 Lock-In-Verstärker:    COM4;;0
+2026-08-04 13:19:27.084;TERMINAL;OUTPUT;   └─ Baudrate: 19200, Protokoll: 8N1;;0
+2026-08-04 13:19:27.085;TERMINAL;OUTPUT;   └─ Befehle: SNAP? (X/Y-Daten), PHAS? (Phase), FREQ? (Frequenz);;0
+2026-08-04 13:19:27.086;TERMINAL;OUTPUT;;;0
+2026-08-04 13:19:27.086;TERMINAL;OUTPUT;"📊 Datenspeicherung: logs\2026-08-04\13-19-05\plis_measurement_log.csv (Spalten: Zeitstempel; Gerät; Befehl; Rohantwort; Dekodiert; Latenz)";;0
+2026-08-04 13:19:27.086;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-04 13:19:27.086;TERMINAL;OUTPUT;;;0
+2026-08-04 13:19:27.086;TERMINAL;OUTPUT;⌨️  Interaktive Befehle:;;0
+2026-08-04 13:19:27.089;TERMINAL;OUTPUT;   • 'scan' / 's'  - Verfügbare Ports neu scannen;;0
+2026-08-04 13:19:27.090;TERMINAL;OUTPUT;   • 'test' / 't'  - Alle bekannten Befehle an Geräte senden;;0
+2026-08-04 13:19:27.090;TERMINAL;OUTPUT;   • 'connect'     - Verbindung zu Laser und Lock-In öffnen;;0
+2026-08-04 13:19:27.091;TERMINAL;OUTPUT;   • 'disconnect'  - Verbindung sauber schließen;;0
+2026-08-04 13:19:27.092;TERMINAL;OUTPUT;   • 'laser gs'    - Laser-Status abfragen;;0
+2026-08-04 13:19:27.092;TERMINAL;OUTPUT;   • 'laser gt'    - Laser-Temperatur abfragen;;0
+2026-08-04 13:19:27.093;TERMINAL;OUTPUT;   • 'laser on'    - Laser einschalten;;0
+2026-08-04 13:19:27.094;TERMINAL;OUTPUT;   • 'laser off'   - Laser ausschalten;;0
+2026-08-04 13:19:27.094;TERMINAL;OUTPUT;   • 'lockin phas' - Lock-In-Phase abfragen;;0
+2026-08-04 13:19:27.096;TERMINAL;OUTPUT;   • 'lockin freq' - Lock-In-Frequenz abfragen;;0
+2026-08-04 13:19:27.097;TERMINAL;OUTPUT;   • 'lockin snap' - Lock-In-X/Y-Werte abfragen;;0
+2026-08-04 13:19:27.098;TERMINAL;OUTPUT;   • 'help' / '/help' / '?'  - Diese Hilfe anzeigen;;0
+2026-08-04 13:19:27.098;TERMINAL;OUTPUT;   • 'quit' / 'q'  - Programm beenden;;0
+2026-08-04 13:19:27.099;TERMINAL;OUTPUT;;;0
+2026-08-04 13:19:27.099;TERMINAL;OUTPUT;⏱️  Autom. Abfragen (jede 1.0s Laser, jede 0.1s LockIn);;0
+2026-08-04 13:19:27.100;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-04 13:19:27.199;TERMINAL;OUTPUT;[OsTech] HARDWARE: Erfolgreich verbunden mit COM3;;0
+2026-08-04 13:19:27.295;TERMINAL;OUTPUT;[SR830] HARDWARE: Erfolgreich verbunden mit COM4;;0
+2026-08-04 13:19:27.295;TERMINAL;OUTPUT;;;0
+2026-08-04 13:19:27.295;TERMINAL;OUTPUT;=== ASYNCHRONER DATEN-WORKER GESTARTET ===;;0
+2026-08-04 13:19:28.398;SR830;SNAP? 1,2;;;1001.34
+2026-08-04 13:19:28.399;TERMINAL;OUTPUT;[2026-08-04 13:19:28.398] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1001.3ms;;0
+2026-08-04 13:19:29.104;TERMINAL;OUTPUT;;;0
+2026-08-04 13:19:29.104;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-04 13:19:29.104;TERMINAL;OUTPUT;SENDE BEKANNTE BEFEHLE AN GERÄTE;;0
+2026-08-04 13:19:29.104;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-04 13:19:29.104;TERMINAL;OUTPUT;Gerät           | Befehl               | Beschreibung;;0
+2026-08-04 13:19:29.104;TERMINAL;OUTPUT;--------------------------------------------------------------------------------;;0
+2026-08-04 13:19:29.104;TERMINAL;OUTPUT;OsTech          | GS                   | Status abfragen;;0
+2026-08-04 13:19:29.310;TERMINAL;OUTPUT;OsTech          | GT                   | Temperatur abfragen;;0
+2026-08-04 13:19:29.402;SR830;SNAP? 1,2;;;1000.41
+2026-08-04 13:19:29.402;TERMINAL;OUTPUT;[2026-08-04 13:19:29.402] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1000.4ms;;0
+2026-08-04 13:19:29.511;TERMINAL;OUTPUT;OsTech          | GMS 0x4000           | Laser Current ON;;0
+2026-08-04 13:19:29.713;TERMINAL;OUTPUT;OsTech          | GMS 0x0000           | Laser Current OFF;;0
+2026-08-04 13:19:29.913;TERMINAL;OUTPUT;SR830           | PHAS?                | Phase abfragen;;0
+2026-08-04 13:19:30.115;TERMINAL;OUTPUT;SR830           | SNAP? 1,2            | Lock-In X/Y Daten;;0
+2026-08-04 13:19:30.316;TERMINAL;OUTPUT;SR830           | FREQ?                | Frequenz abfragen;;0
+2026-08-04 13:19:30.407;OsTech;GS;;;1002.98
+2026-08-04 13:19:30.407;TERMINAL;OUTPUT;[2026-08-04 13:19:30.407] OsTech               Befehl: GS              │ Antwort:                                          │ 1003.0ms;;0
+2026-08-04 13:19:30.518;TERMINAL;OUTPUT;SR830           | HARM?                | Harmonische abfragen;;0
+2026-08-04 13:19:30.719;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-04 13:19:30.720;TERMINAL;OUTPUT;;;0
+2026-08-04 13:19:30.721;TERMINAL;OUTPUT;⏳ Warte auf Antworten (30 Sekunden)...;;0
+2026-08-04 13:19:30.721;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:28.399 | SR830 | SNAP? 1,2 ->  (1001.3ms);;0
+2026-08-04 13:19:30.722;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:29.402 | SR830 | SNAP? 1,2 ->  (1000.4ms);;0
+2026-08-04 13:19:30.722;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:30.411 | OsTech | GS ->  (1003.0ms);;0
+2026-08-04 13:19:31.422;OsTech;GT;; °C;1011.33
+2026-08-04 13:19:31.424;TERMINAL;OUTPUT;[2026-08-04 13:19:31.424] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1011.3ms;;0
+2026-08-04 13:19:31.724;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:31.425 | OsTech | GT ->  °C (1011.3ms);;0
+2026-08-04 13:19:32.439;OsTech_Manual;GS;;;1012.99
+2026-08-04 13:19:32.440;TERMINAL;OUTPUT;[2026-08-04 13:19:32.440] OsTech_Manual        Befehl: GS              │ Antwort:                                          │ 1013.0ms;;0
+2026-08-04 13:19:32.726;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:32.442 | OsTech_Manual | GS ->  (1013.0ms);;0
+2026-08-04 13:19:33.458;SR830;SNAP? 1,2;;;1015.87
+2026-08-04 13:19:33.459;TERMINAL;OUTPUT;[2026-08-04 13:19:33.459] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1015.9ms;;0
+2026-08-04 13:19:33.736;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:33.459 | SR830 | SNAP? 1,2 ->  (1015.9ms);;0
+2026-08-04 13:19:34.474;OsTech;GS;;;1012.48
+2026-08-04 13:19:34.475;TERMINAL;OUTPUT;[2026-08-04 13:19:34.474] OsTech               Befehl: GS              │ Antwort:                                          │ 1012.5ms;;0
+2026-08-04 13:19:34.744;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:34.475 | OsTech | GS ->  (1012.5ms);;0
+2026-08-04 13:19:35.477;OsTech;GT;; °C;999.89
+2026-08-04 13:19:35.477;TERMINAL;OUTPUT;[2026-08-04 13:19:35.477] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 999.9ms;;0
+2026-08-04 13:19:35.751;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:35.477 | OsTech | GT ->  °C (999.9ms);;0
+2026-08-04 13:19:36.480;OsTech_Manual;GT;;;1001.16
+2026-08-04 13:19:36.481;TERMINAL;OUTPUT;[2026-08-04 13:19:36.481] OsTech_Manual        Befehl: GT              │ Antwort:                                          │ 1001.2ms;;0
+2026-08-04 13:19:36.759;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:36.482 | OsTech_Manual | GT ->  (1001.2ms);;0
+2026-08-04 13:19:37.494;SR830;SNAP? 1,2;;;1010.39
+2026-08-04 13:19:37.495;TERMINAL;OUTPUT;[2026-08-04 13:19:37.494] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1010.4ms;;0
+2026-08-04 13:19:37.763;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:37.495 | SR830 | SNAP? 1,2 ->  (1010.4ms);;0
+2026-08-04 13:19:38.509;OsTech;GS;;;1012.77
+2026-08-04 13:19:38.510;TERMINAL;OUTPUT;[2026-08-04 13:19:38.510] OsTech               Befehl: GS              │ Antwort:                                          │ 1012.8ms;;0
+2026-08-04 13:19:38.766;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:38.510 | OsTech | GS ->  (1012.8ms);;0
+2026-08-04 13:19:39.512;OsTech;GT;; °C;1000.16
+2026-08-04 13:19:39.512;TERMINAL;OUTPUT;[2026-08-04 13:19:39.512] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1000.2ms;;0
+2026-08-04 13:19:39.771;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:39.513 | OsTech | GT ->  °C (1000.2ms);;0
+2026-08-04 13:19:40.528;OsTech_Manual;GMS 0x4000;;;1012.43
+2026-08-04 13:19:40.529;TERMINAL;OUTPUT;[2026-08-04 13:19:40.528] OsTech_Manual        Befehl: GMS 0x4000      │ Antwort:                                          │ 1012.4ms;;0
+2026-08-04 13:19:40.773;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:40.529 | OsTech_Manual | GMS 0x4000 ->  (1012.4ms);;0
+2026-08-04 13:19:41.531;SR830;SNAP? 1,2;;;1000.36
+2026-08-04 13:19:41.532;TERMINAL;OUTPUT;[2026-08-04 13:19:41.531] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1000.4ms;;0
+2026-08-04 13:19:41.775;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:41.533 | SR830 | SNAP? 1,2 ->  (1000.4ms);;0
+2026-08-04 13:19:42.544;OsTech;GS;;;1009.60
+2026-08-04 13:19:42.545;TERMINAL;OUTPUT;[2026-08-04 13:19:42.545] OsTech               Befehl: GS              │ Antwort:                                          │ 1009.6ms;;0
+2026-08-04 13:19:42.780;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:42.546 | OsTech | GS ->  (1009.6ms);;0
+2026-08-04 13:19:43.563;OsTech;GT;; °C;1014.91
+2026-08-04 13:19:43.564;TERMINAL;OUTPUT;[2026-08-04 13:19:43.563] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1014.9ms;;0
+2026-08-04 13:19:43.783;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:43.565 | OsTech | GT ->  °C (1014.9ms);;0
+2026-08-04 13:19:44.579;OsTech_Manual;GMS 0x0000;;;1011.22
+2026-08-04 13:19:44.580;TERMINAL;OUTPUT;[2026-08-04 13:19:44.579] OsTech_Manual        Befehl: GMS 0x0000      │ Antwort:                                          │ 1011.2ms;;0
+2026-08-04 13:19:44.786;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:44.580 | OsTech_Manual | GMS 0x0000 ->  (1011.2ms);;0
+2026-08-04 13:19:45.582;SR830;SNAP? 1,2;;;1001.06
+2026-08-04 13:19:45.583;TERMINAL;OUTPUT;[2026-08-04 13:19:45.583] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1001.1ms;;0
+2026-08-04 13:19:45.787;TERMINAL;OUTPUT;;;0
+2026-08-04 13:19:45.787;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-04 13:19:45.787;TERMINAL;OUTPUT;INTERAKTIVER MODUS - EINGABE ERWARTET;;0
+2026-08-04 13:19:45.792;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-04 13:19:45.796;TERMINAL;OUTPUT;;;0
+2026-08-04 13:19:45.797;TERMINAL;OUTPUT;> Eingabe (scan/test/help/quit): ;;0
+2026-08-04 13:19:46.597;OsTech;GS;;;1011.82
+2026-08-04 13:19:46.600;TERMINAL;OUTPUT;[2026-08-04 13:19:46.597] OsTech               Befehl: GS              │ Antwort:                                          │ 1011.8ms;;0
+2026-08-04 13:19:47.613;OsTech;GT;; °C;1011.79
+2026-08-04 13:19:47.614;TERMINAL;OUTPUT;[2026-08-04 13:19:47.614] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1011.8ms;;0
+2026-08-04 13:19:48.659;SR830_Manual;PHAS?;;;1012.10
+2026-08-04 13:19:48.660;TERMINAL;OUTPUT;[2026-08-04 13:19:48.659] SR830_Manual         Befehl: PHAS?           │ Antwort:                                          │ 1012.1ms;;0
+2026-08-04 13:19:49.680;SR830;SNAP? 1,2;;;1003.38
+2026-08-04 13:19:49.680;TERMINAL;OUTPUT;[2026-08-04 13:19:49.680] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1003.4ms;;0
+2026-08-04 13:19:50.683;OsTech;GS;;;1000.06
+2026-08-04 13:19:50.683;TERMINAL;OUTPUT;[2026-08-04 13:19:50.683] OsTech               Befehl: GS              │ Antwort:                                          │ 1000.1ms;;0
+2026-08-04 13:19:51.699;OsTech;GT;; °C;1012.40
+2026-08-04 13:19:51.701;TERMINAL;OUTPUT;[2026-08-04 13:19:51.699] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1012.4ms;;0
+2026-08-04 13:19:52.732;SR830_Manual;SNAP? 1,2;;;1005.53
+2026-08-04 13:19:52.734;TERMINAL;OUTPUT;[2026-08-04 13:19:52.732] SR830_Manual         Befehl: SNAP? 1,2       │ Antwort:                                          │ 1005.5ms;;0
+2026-08-04 13:19:53.750;SR830;SNAP? 1,2;;;1013.79
+2026-08-04 13:19:53.750;TERMINAL;OUTPUT;[2026-08-04 13:19:53.750] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1013.8ms;;0
+2026-08-04 13:19:54.765;OsTech;GS;;;1013.41
+2026-08-04 13:19:54.766;TERMINAL;OUTPUT;[2026-08-04 13:19:54.766] OsTech               Befehl: GS              │ Antwort:                                          │ 1013.4ms;;0
+2026-08-04 13:19:55.779;OsTech;GT;; °C;1010.35
+2026-08-04 13:19:55.781;TERMINAL;OUTPUT;[2026-08-04 13:19:55.779] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1010.4ms;;0
+2026-08-04 13:19:56.797;SR830_Manual;FREQ?;;;1013.84
+2026-08-04 13:19:56.799;TERMINAL;OUTPUT;[2026-08-04 13:19:56.797] SR830_Manual         Befehl: FREQ?           │ Antwort:                                          │ 1013.8ms;;0
+2026-08-04 13:19:57.810;SR830;SNAP? 1,2;;;1011.30
+2026-08-04 13:19:57.813;TERMINAL;OUTPUT;[2026-08-04 13:19:57.810] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1011.3ms;;0
+2026-08-04 13:19:58.828;OsTech;GS;;;1012.27
+2026-08-04 13:19:58.828;TERMINAL;OUTPUT;[2026-08-04 13:19:58.828] OsTech               Befehl: GS              │ Antwort:                                          │ 1012.3ms;;0
+2026-08-04 13:19:59.832;OsTech;GT;; °C;1002.35
+2026-08-04 13:19:59.832;TERMINAL;OUTPUT;[2026-08-04 13:19:59.832] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1002.4ms;;0
+2026-08-04 13:20:00.836;SR830_Manual;HARM?;;;1000.33
+2026-08-04 13:20:00.837;TERMINAL;OUTPUT;[2026-08-04 13:20:00.837] SR830_Manual         Befehl: HARM?           │ Antwort:                                          │ 1000.3ms;;0
+2026-08-04 13:20:01.850;SR830;SNAP? 1,2;;;1012.37
+2026-08-04 13:20:01.850;TERMINAL;OUTPUT;[2026-08-04 13:20:01.850] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1012.4ms;;0
+2026-08-04 13:20:02.851;OsTech;GS;;;998.70
+2026-08-04 13:20:02.851;TERMINAL;OUTPUT;[2026-08-04 13:20:02.851] OsTech               Befehl: GS              │ Antwort:                                          │ 998.7ms;;0
+2026-08-04 13:20:03.855;OsTech;GT;; °C;998.07
+2026-08-04 13:20:03.856;TERMINAL;OUTPUT;[2026-08-04 13:20:03.855] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 998.1ms;;0
+2026-08-04 13:20:04.862;SR830;SNAP? 1,2;;;1004.44
+2026-08-04 13:20:04.862;TERMINAL;OUTPUT;[2026-08-04 13:20:04.862] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1004.4ms;;0
+2026-08-04 13:20:05.863;OsTech;GS;;;996.90
+2026-08-04 13:20:05.864;TERMINAL;OUTPUT;[2026-08-04 13:20:05.863] OsTech               Befehl: GS              │ Antwort:                                          │ 996.9ms;;0
+2026-08-04 13:20:06.879;OsTech;GT;; °C;1014.51
+2026-08-04 13:20:06.879;TERMINAL;OUTPUT;[2026-08-04 13:20:06.879] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1014.5ms;;0
+2026-08-04 13:20:07.895;SR830;SNAP? 1,2;;;1011.49
+2026-08-04 13:20:07.895;TERMINAL;OUTPUT;[2026-08-04 13:20:07.895] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1011.5ms;;0
+2026-08-04 13:20:08.897;OsTech;GS;;;999.56
+2026-08-04 13:20:08.897;TERMINAL;OUTPUT;[2026-08-04 13:20:08.897] OsTech               Befehl: GS              │ Antwort:                                          │ 999.6ms;;0
+2026-08-04 13:20:09.912;OsTech;GT;; °C;1013.08
+2026-08-04 13:20:09.912;TERMINAL;OUTPUT;[2026-08-04 13:20:09.912] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1013.1ms;;0
+2026-08-04 13:20:10.931;SR830;SNAP? 1,2;;;1013.30
+2026-08-04 13:20:10.931;TERMINAL;OUTPUT;[2026-08-04 13:20:10.931] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1013.3ms;;0
+2026-08-04 13:20:11.940;OsTech;GS;;;1004.04
+2026-08-04 13:20:11.941;TERMINAL;OUTPUT;[2026-08-04 13:20:11.940] OsTech               Befehl: GS              │ Antwort:                                          │ 1004.0ms;;0
+2026-08-04 13:20:12.949;OsTech;GT;; °C;1007.24
+2026-08-04 13:20:12.950;TERMINAL;OUTPUT;[2026-08-04 13:20:12.950] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1007.2ms;;0
+2026-08-04 13:20:13.959;SR830;SNAP? 1,2;;;1005.53
+2026-08-04 13:20:13.959;TERMINAL;OUTPUT;[2026-08-04 13:20:13.959] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1005.5ms;;0
+2026-08-04 13:20:14.974;OsTech;GS;;;1010.84
+2026-08-04 13:20:14.975;TERMINAL;OUTPUT;[2026-08-04 13:20:14.974] OsTech               Befehl: GS              │ Antwort:                                          │ 1010.8ms;;0
+2026-08-04 13:20:15.980;OsTech;GT;; °C;1004.40
+2026-08-04 13:20:15.980;TERMINAL;OUTPUT;[2026-08-04 13:20:15.980] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1004.4ms;;0
+2026-08-04 13:20:16.995;SR830;SNAP? 1,2;;;1011.86
+2026-08-04 13:20:16.995;TERMINAL;OUTPUT;[2026-08-04 13:20:16.995] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1011.9ms;;0
+2026-08-04 13:20:18.003;OsTech;GS;;;1006.15
+2026-08-04 13:20:18.003;TERMINAL;OUTPUT;[2026-08-04 13:20:18.003] OsTech               Befehl: GS              │ Antwort:                                          │ 1006.2ms;;0
+2026-08-04 13:20:19.010;OsTech;GT;; °C;1002.31
+2026-08-04 13:20:19.010;TERMINAL;OUTPUT;[2026-08-04 13:20:19.010] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1002.3ms;;0
+2026-08-04 13:20:20.014;SR830;SNAP? 1,2;;;1001.81
+2026-08-04 13:20:20.015;TERMINAL;OUTPUT;[2026-08-04 13:20:20.015] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1001.8ms;;0
+2026-08-04 13:20:21.069;OsTech;GS;;;1013.99
+2026-08-04 13:20:21.070;TERMINAL;OUTPUT;[2026-08-04 13:20:21.069] OsTech               Befehl: GS              │ Antwort:                                          │ 1014.0ms;;0
+2026-08-04 13:20:22.073;OsTech;GT;; °C;1002.80
+2026-08-04 13:20:22.073;TERMINAL;OUTPUT;[2026-08-04 13:20:22.073] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1002.8ms;;0
+2026-08-04 13:20:23.092;SR830;SNAP? 1,2;;;1014.41
+2026-08-04 13:20:23.093;TERMINAL;OUTPUT;[2026-08-04 13:20:23.093] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1014.4ms;;0
+2026-08-04 13:20:24.106;OsTech;GS;;;1011.96
+2026-08-04 13:20:24.106;TERMINAL;OUTPUT;[2026-08-04 13:20:24.106] OsTech               Befehl: GS              │ Antwort:                                          │ 1012.0ms;;0
+2026-08-04 13:20:25.116;OsTech;GT;; °C;1008.52
+2026-08-04 13:20:25.117;TERMINAL;OUTPUT;[2026-08-04 13:20:25.117] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1008.5ms;;0
+2026-08-04 13:20:26.127;SR830;SNAP? 1,2;;;1007.43
+2026-08-04 13:20:26.128;TERMINAL;OUTPUT;[2026-08-04 13:20:26.127] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1007.4ms;;0
+2026-08-04 13:20:27.133;OsTech;GS;;;1005.13
+2026-08-04 13:20:27.135;TERMINAL;OUTPUT;[2026-08-04 13:20:27.135] OsTech               Befehl: GS              │ Antwort:                                          │ 1005.1ms;;0
+2026-08-04 13:20:28.136;OsTech;GT;; °C;999.06
+2026-08-04 13:20:28.138;TERMINAL;OUTPUT;[2026-08-04 13:20:28.137] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 999.1ms;;0
+2026-08-04 13:20:29.140;SR830;SNAP? 1,2;;;1001.13
+2026-08-04 13:20:29.140;TERMINAL;OUTPUT;[2026-08-04 13:20:29.140] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1001.1ms;;0
+2026-08-04 13:20:30.147;OsTech;GS;;;1002.78
+2026-08-04 13:20:30.148;TERMINAL;OUTPUT;[2026-08-04 13:20:30.147] OsTech               Befehl: GS              │ Antwort:                                          │ 1002.8ms;;0
+2026-08-04 13:20:31.159;OsTech;GT;; °C;1010.73
+2026-08-04 13:20:31.159;TERMINAL;OUTPUT;[2026-08-04 13:20:31.159] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1010.7ms;;0
+2026-08-04 13:20:32.165;SR830;SNAP? 1,2;;;1001.16
+2026-08-04 13:20:32.167;TERMINAL;OUTPUT;[2026-08-04 13:20:32.166] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1001.2ms;;0
+2026-08-04 13:20:33.178;OsTech;GS;;;1010.40
+2026-08-04 13:20:33.178;TERMINAL;OUTPUT;[2026-08-04 13:20:33.178] OsTech               Befehl: GS              │ Antwort:                                          │ 1010.4ms;;0
+2026-08-04 13:20:34.181;OsTech;GT;; °C;999.12
+2026-08-04 13:20:34.181;TERMINAL;OUTPUT;[2026-08-04 13:20:34.181] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 999.1ms;;0
+2026-08-04 13:20:35.195;SR830;SNAP? 1,2;;;1009.07
+2026-08-04 13:20:35.195;TERMINAL;OUTPUT;[2026-08-04 13:20:35.195] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1009.1ms;;0
+2026-08-04 13:20:36.198;OsTech;GS;;;999.69
+2026-08-04 13:20:36.200;TERMINAL;OUTPUT;[2026-08-04 13:20:36.200] OsTech               Befehl: GS              │ Antwort:                                          │ 999.7ms;;0
+2026-08-04 13:20:37.214;OsTech;GT;; °C;1011.80
+2026-08-04 13:20:37.214;TERMINAL;OUTPUT;[2026-08-04 13:20:37.214] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1011.8ms;;0
+2026-08-04 13:20:38.230;SR830;SNAP? 1,2;;;1012.34
+2026-08-04 13:20:38.231;TERMINAL;OUTPUT;[2026-08-04 13:20:38.231] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1012.3ms;;0
+2026-08-04 13:20:39.243;OsTech;GS;;;1010.69
+2026-08-04 13:20:39.243;TERMINAL;OUTPUT;[2026-08-04 13:20:39.243] OsTech               Befehl: GS              │ Antwort:                                          │ 1010.7ms;;0
+2026-08-04 13:20:40.250;OsTech;GT;; °C;1005.17
+2026-08-04 13:20:40.251;TERMINAL;OUTPUT;[2026-08-04 13:20:40.251] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1005.2ms;;0
+2026-08-04 13:20:41.269;SR830;SNAP? 1,2;;;1014.19
+2026-08-04 13:20:41.269;TERMINAL;OUTPUT;[2026-08-04 13:20:41.269] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1014.2ms;;0
+2026-08-04 13:20:42.273;OsTech;GS;;;1001.96
+2026-08-04 13:20:42.273;TERMINAL;OUTPUT;[2026-08-04 13:20:42.273] OsTech               Befehl: GS              │ Antwort:                                          │ 1002.0ms;;0
+2026-08-04 13:20:43.276;OsTech;GT;; °C;1001.40
+2026-08-04 13:20:43.276;TERMINAL;OUTPUT;[2026-08-04 13:20:43.276] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1001.4ms;;0
+2026-08-04 13:20:44.289;SR830;SNAP? 1,2;;;1009.87
+2026-08-04 13:20:44.289;TERMINAL;OUTPUT;[2026-08-04 13:20:44.289] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1009.9ms;;0
+2026-08-04 13:20:45.301;OsTech;GS;;;1010.29
+2026-08-04 13:20:45.302;TERMINAL;OUTPUT;[2026-08-04 13:20:45.302] OsTech               Befehl: GS              │ Antwort:                                          │ 1010.3ms;;0
+2026-08-04 13:20:46.305;OsTech;GT;; °C;1001.46
+2026-08-04 13:20:46.307;TERMINAL;OUTPUT;[2026-08-04 13:20:46.305] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1001.5ms;;0
+2026-08-04 13:20:47.337;SR830;SNAP? 1,2;;;1009.60
+2026-08-04 13:20:47.338;TERMINAL;OUTPUT;[2026-08-04 13:20:47.338] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1009.6ms;;0
+2026-08-04 13:20:48.352;OsTech;GS;;;1013.74
+2026-08-04 13:20:48.354;TERMINAL;OUTPUT;[2026-08-04 13:20:48.353] OsTech               Befehl: GS              │ Antwort:                                          │ 1013.7ms;;0
+2026-08-04 13:20:49.360;OsTech;GT;; °C;1005.46
+2026-08-04 13:20:49.361;TERMINAL;OUTPUT;[2026-08-04 13:20:49.360] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1005.5ms;;0
+2026-08-04 13:20:50.367;SR830;SNAP? 1,2;;;1003.81
+2026-08-04 13:20:50.367;TERMINAL;OUTPUT;[2026-08-04 13:20:50.367] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1003.8ms;;0
+2026-08-04 13:20:51.367;OsTech;GS;;;995.68
+2026-08-04 13:20:51.367;TERMINAL;OUTPUT;[2026-08-04 13:20:51.367] OsTech               Befehl: GS              │ Antwort:                                          │ 995.7ms;;0
+2026-08-04 13:20:52.369;OsTech;GT;; °C;1000.29
+2026-08-04 13:20:52.371;TERMINAL;OUTPUT;[2026-08-04 13:20:52.371] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1000.3ms;;0
+2026-08-04 13:20:53.389;SR830;SNAP? 1,2;;;1013.43
+2026-08-04 13:20:53.390;TERMINAL;OUTPUT;[2026-08-04 13:20:53.390] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1013.4ms;;0
+2026-08-04 13:20:54.404;OsTech;GS;;;1011.59
+2026-08-04 13:20:54.407;TERMINAL;OUTPUT;[2026-08-04 13:20:54.404] OsTech               Befehl: GS              │ Antwort:                                          │ 1011.6ms;;0
+2026-08-04 13:20:55.423;OsTech;GT;; °C;1014.16
+2026-08-04 13:20:55.425;TERMINAL;OUTPUT;[2026-08-04 13:20:55.424] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1014.2ms;;0
+2026-08-04 13:20:56.438;SR830;SNAP? 1,2;;;1009.76
+2026-08-04 13:20:56.439;TERMINAL;OUTPUT;[2026-08-04 13:20:56.438] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1009.8ms;;0
+2026-08-04 13:20:57.442;OsTech;GS;;;1001.22
+2026-08-04 13:20:57.443;TERMINAL;OUTPUT;[2026-08-04 13:20:57.442] OsTech               Befehl: GS              │ Antwort:                                          │ 1001.2ms;;0
+2026-08-04 13:20:58.457;OsTech;GT;; °C;1011.77
+2026-08-04 13:20:58.458;TERMINAL;OUTPUT;[2026-08-04 13:20:58.457] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1011.8ms;;0
+2026-08-04 13:20:59.474;SR830;SNAP? 1,2;;;1013.37
+2026-08-04 13:20:59.476;TERMINAL;OUTPUT;[2026-08-04 13:20:59.475] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1013.4ms;;0
+2026-08-04 13:21:00.490;OsTech;GS;;;1013.15
+2026-08-04 13:21:00.491;TERMINAL;OUTPUT;[2026-08-04 13:21:00.490] OsTech               Befehl: GS              │ Antwort:                                          │ 1013.2ms;;0
+2026-08-04 13:21:01.492;OsTech;GT;; °C;1000.65
+2026-08-04 13:21:01.492;TERMINAL;OUTPUT;[2026-08-04 13:21:01.492] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1000.6ms;;0
+2026-08-04 13:21:02.508;SR830;SNAP? 1,2;;;1011.91
+2026-08-04 13:21:02.508;TERMINAL;OUTPUT;[2026-08-04 13:21:02.508] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1011.9ms;;0
+2026-08-04 13:21:03.508;OsTech;GS;;;997.06
+2026-08-04 13:21:03.510;TERMINAL;OUTPUT;[2026-08-04 13:21:03.509] OsTech               Befehl: GS              │ Antwort:                                          │ 997.1ms;;0
+2026-08-04 13:21:04.525;OsTech;GT;; °C;1013.73
+2026-08-04 13:21:04.525;TERMINAL;OUTPUT;[2026-08-04 13:21:04.525] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1013.7ms;;0
+2026-08-04 13:21:05.543;SR830;SNAP? 1,2;;;1014.76
+2026-08-04 13:21:05.544;TERMINAL;OUTPUT;[2026-08-04 13:21:05.543] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1014.8ms;;0
+2026-08-04 13:21:06.546;OsTech;GS;;;1001.72
+2026-08-04 13:21:06.546;TERMINAL;OUTPUT;[2026-08-04 13:21:06.546] OsTech               Befehl: GS              │ Antwort:                                          │ 1001.7ms;;0
+2026-08-04 13:21:07.554;OsTech;GT;; °C;1006.22
+2026-08-04 13:21:07.554;TERMINAL;OUTPUT;[2026-08-04 13:21:07.554] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1006.2ms;;0
+2026-08-04 13:21:08.569;SR830;SNAP? 1,2;;;1012.25
+2026-08-04 13:21:08.570;TERMINAL;OUTPUT;[2026-08-04 13:21:08.570] SR830                Befehl: SNAP? 1,2       │ Antwort:                                          │ 1012.2ms;;0
+2026-08-04 13:21:09.250;TERMINAL;OUTPUT;;;0
+2026-08-04 13:21:09.251;TERMINAL;OUTPUT;✓ Beende Programm (Strg+C)...;;0
+2026-08-04 13:21:09.252;OsTech;GS;;;680.61
+2026-08-04 13:21:09.252;TERMINAL;OUTPUT;[2026-08-04 13:21:09.252] OsTech               Befehl: GS              │ Antwort:                                          │ 680.6ms;;0
+2026-08-04 13:21:09.510;TERMINAL;OUTPUT;[OsTech] HARDWARE: Erfolgreich verbunden mit COM3;;0
+2026-08-04 13:21:10.511;OsTech;GT;; °C;1258.06
+2026-08-04 13:21:10.512;TERMINAL;OUTPUT;[2026-08-04 13:21:10.512] OsTech               Befehl: GT              │ Antwort:  °C                                      │ 1258.1ms;;0
+2026-08-04 13:21:10.514;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:45.584 | SR830 | SNAP? 1,2 ->  (1001.1ms);;0
+2026-08-04 13:21:10.515;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:46.600 | OsTech | GS ->  (1011.8ms);;0
+2026-08-04 13:21:10.516;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:47.645 | OsTech | GT ->  °C (1011.8ms);;0
+2026-08-04 13:21:10.517;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:48.676 | SR830_Manual | PHAS? ->  (1012.1ms);;0
+2026-08-04 13:21:10.518;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:49.680 | SR830 | SNAP? 1,2 ->  (1003.4ms);;0
+2026-08-04 13:21:10.519;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:50.683 | OsTech | GS ->  (1000.1ms);;0
+2026-08-04 13:21:10.520;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:51.723 | OsTech | GT ->  °C (1012.4ms);;0
+2026-08-04 13:21:10.521;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:52.734 | SR830_Manual | SNAP? 1,2 ->  (1005.5ms);;0
+2026-08-04 13:21:10.523;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:53.750 | SR830 | SNAP? 1,2 ->  (1013.8ms);;0
+2026-08-04 13:21:10.523;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:54.767 | OsTech | GS ->  (1013.4ms);;0
+2026-08-04 13:21:10.524;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:55.781 | OsTech | GT ->  °C (1010.4ms);;0
+2026-08-04 13:21:10.525;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:56.799 | SR830_Manual | FREQ? ->  (1013.8ms);;0
+2026-08-04 13:21:10.526;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:57.816 | SR830 | SNAP? 1,2 ->  (1011.3ms);;0
+2026-08-04 13:21:10.527;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:58.828 | OsTech | GS ->  (1012.3ms);;0
+2026-08-04 13:21:10.528;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:19:59.832 | OsTech | GT ->  °C (1002.4ms);;0
+2026-08-04 13:21:10.529;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:00.837 | SR830_Manual | HARM? ->  (1000.3ms);;0
+2026-08-04 13:21:10.531;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:01.850 | SR830 | SNAP? 1,2 ->  (1012.4ms);;0
+2026-08-04 13:21:10.531;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:02.851 | OsTech | GS ->  (998.7ms);;0
+2026-08-04 13:21:10.531;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:03.857 | OsTech | GT ->  °C (998.1ms);;0
+2026-08-04 13:21:10.532;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:04.862 | SR830 | SNAP? 1,2 ->  (1004.4ms);;0
+2026-08-04 13:21:10.534;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:05.864 | OsTech | GS ->  (996.9ms);;0
+2026-08-04 13:21:10.535;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:06.879 | OsTech | GT ->  °C (1014.5ms);;0
+2026-08-04 13:21:10.536;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:07.895 | SR830 | SNAP? 1,2 ->  (1011.5ms);;0
+2026-08-04 13:21:10.536;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:08.897 | OsTech | GS ->  (999.6ms);;0
+2026-08-04 13:21:10.537;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:09.912 | OsTech | GT ->  °C (1013.1ms);;0
+2026-08-04 13:21:10.538;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:10.931 | SR830 | SNAP? 1,2 ->  (1013.3ms);;0
+2026-08-04 13:21:10.538;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:11.942 | OsTech | GS ->  (1004.0ms);;0
+2026-08-04 13:21:10.539;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:12.950 | OsTech | GT ->  °C (1007.2ms);;0
+2026-08-04 13:21:10.541;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:13.959 | SR830 | SNAP? 1,2 ->  (1005.5ms);;0
+2026-08-04 13:21:10.541;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:14.975 | OsTech | GS ->  (1010.8ms);;0
+2026-08-04 13:21:10.542;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:15.980 | OsTech | GT ->  °C (1004.4ms);;0
+2026-08-04 13:21:10.542;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:16.995 | SR830 | SNAP? 1,2 ->  (1011.9ms);;0
+2026-08-04 13:21:10.543;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:18.003 | OsTech | GS ->  (1006.2ms);;0
+2026-08-04 13:21:10.544;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:19.010 | OsTech | GT ->  °C (1002.3ms);;0
+2026-08-04 13:21:10.545;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:20.054 | SR830 | SNAP? 1,2 ->  (1001.8ms);;0
+2026-08-04 13:21:10.545;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:21.070 | OsTech | GS ->  (1014.0ms);;0
+2026-08-04 13:21:10.547;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:22.073 | OsTech | GT ->  °C (1002.8ms);;0
+2026-08-04 13:21:10.548;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:23.094 | SR830 | SNAP? 1,2 ->  (1014.4ms);;0
+2026-08-04 13:21:10.549;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:24.106 | OsTech | GS ->  (1012.0ms);;0
+2026-08-04 13:21:10.550;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:25.118 | OsTech | GT ->  °C (1008.5ms);;0
+2026-08-04 13:21:10.551;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:26.128 | SR830 | SNAP? 1,2 ->  (1007.4ms);;0
+2026-08-04 13:21:10.551;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:27.135 | OsTech | GS ->  (1005.1ms);;0
+2026-08-04 13:21:10.552;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:28.138 | OsTech | GT ->  °C (999.1ms);;0
+2026-08-04 13:21:10.553;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:29.140 | SR830 | SNAP? 1,2 ->  (1001.1ms);;0
+2026-08-04 13:21:10.554;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:30.148 | OsTech | GS ->  (1002.8ms);;0
+2026-08-04 13:21:10.554;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:31.159 | OsTech | GT ->  °C (1010.7ms);;0
+2026-08-04 13:21:10.555;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:32.167 | SR830 | SNAP? 1,2 ->  (1001.2ms);;0
+2026-08-04 13:21:10.556;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:33.178 | OsTech | GS ->  (1010.4ms);;0
+2026-08-04 13:21:10.557;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:34.181 | OsTech | GT ->  °C (999.1ms);;0
+2026-08-04 13:21:10.558;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:35.195 | SR830 | SNAP? 1,2 ->  (1009.1ms);;0
+2026-08-04 13:21:10.559;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:36.200 | OsTech | GS ->  (999.7ms);;0
+2026-08-04 13:21:10.559;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:37.216 | OsTech | GT ->  °C (1011.8ms);;0
+2026-08-04 13:21:10.560;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:38.231 | SR830 | SNAP? 1,2 ->  (1012.3ms);;0
+2026-08-04 13:21:10.561;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:39.243 | OsTech | GS ->  (1010.7ms);;0
+2026-08-04 13:21:10.563;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:40.253 | OsTech | GT ->  °C (1005.2ms);;0
+2026-08-04 13:21:10.564;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:41.269 | SR830 | SNAP? 1,2 ->  (1014.2ms);;0
+2026-08-04 13:21:10.565;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:42.273 | OsTech | GS ->  (1002.0ms);;0
+2026-08-04 13:21:10.565;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:43.276 | OsTech | GT ->  °C (1001.4ms);;0
+2026-08-04 13:21:10.566;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:44.289 | SR830 | SNAP? 1,2 ->  (1009.9ms);;0
+2026-08-04 13:21:10.567;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:45.302 | OsTech | GS ->  (1010.3ms);;0
+2026-08-04 13:21:10.568;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:46.324 | OsTech | GT ->  °C (1001.5ms);;0
+2026-08-04 13:21:10.568;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:47.338 | SR830 | SNAP? 1,2 ->  (1009.6ms);;0
+2026-08-04 13:21:10.569;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:48.354 | OsTech | GS ->  (1013.7ms);;0
+2026-08-04 13:21:10.570;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:49.361 | OsTech | GT ->  °C (1005.5ms);;0
+2026-08-04 13:21:10.570;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:50.367 | SR830 | SNAP? 1,2 ->  (1003.8ms);;0
+2026-08-04 13:21:10.571;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:51.367 | OsTech | GS ->  (995.7ms);;0
+2026-08-04 13:21:10.572;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:52.373 | OsTech | GT ->  °C (1000.3ms);;0
+2026-08-04 13:21:10.573;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:53.390 | SR830 | SNAP? 1,2 ->  (1013.4ms);;0
+2026-08-04 13:21:10.574;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:54.407 | OsTech | GS ->  (1011.6ms);;0
+2026-08-04 13:21:10.574;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:55.425 | OsTech | GT ->  °C (1014.2ms);;0
+2026-08-04 13:21:10.575;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:56.439 | SR830 | SNAP? 1,2 ->  (1009.8ms);;0
+2026-08-04 13:21:10.577;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:57.444 | OsTech | GS ->  (1001.2ms);;0
+2026-08-04 13:21:10.577;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:58.458 | OsTech | GT ->  °C (1011.8ms);;0
+2026-08-04 13:21:10.578;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:20:59.476 | SR830 | SNAP? 1,2 ->  (1013.4ms);;0
+2026-08-04 13:21:10.579;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:21:00.491 | OsTech | GS ->  (1013.2ms);;0
+2026-08-04 13:21:10.580;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:21:01.492 | OsTech | GT ->  °C (1000.6ms);;0
+2026-08-04 13:21:10.581;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:21:02.508 | SR830 | SNAP? 1,2 ->  (1011.9ms);;0
+2026-08-04 13:21:10.582;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:21:03.510 | OsTech | GS ->  (997.1ms);;0
+2026-08-04 13:21:10.583;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:21:04.525 | OsTech | GT ->  °C (1013.7ms);;0
+2026-08-04 13:21:10.584;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:21:05.544 | SR830 | SNAP? 1,2 ->  (1014.8ms);;0
+2026-08-04 13:21:10.584;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:21:06.548 | OsTech | GS ->  (1001.7ms);;0
+2026-08-04 13:21:10.586;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:21:07.554 | OsTech | GT ->  °C (1006.2ms);;0
+2026-08-04 13:21:10.587;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:21:08.571 | SR830 | SNAP? 1,2 ->  (1012.2ms);;0
+2026-08-04 13:21:10.587;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:21:09.253 | OsTech | GS ->  (680.6ms);;0
+2026-08-04 13:21:10.588;TERMINAL;OUTPUT;[EINGANG] 2026-08-04 13:21:10.512 | OsTech | GT ->  °C (1258.1ms);;0
+2026-08-04 13:21:10.589;TERMINAL;OUTPUT;;;0
+2026-08-04 13:21:10.589;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-04 13:21:10.590;TERMINAL;OUTPUT;SHUTDOWN;;0
+2026-08-04 13:21:10.591;TERMINAL;OUTPUT;================================================================================;;0
+2026-08-04 13:21:10.592;TERMINAL;OUTPUT;✓ Worker beendet;;0
+2026-08-04 13:21:10.593;TERMINAL;OUTPUT;✓ Logdatei: logs\2026-08-04\13-19-05\plis_measurement_log.csv;;0
+2026-08-04 13:21:10.594;TERMINAL;OUTPUT;================================================================================;;0
