@@ -1,48 +1,186 @@
+import os
+import sys
+import platform
+import re
+import subprocess
 import tkinter as tk
 from tkinter import messagebox, ttk, filedialog
-# Wir nutzen deep-translator für die Live-Übersetzung
+
+# Übersetzungs-Bibliothek
 from deep_translator import GoogleTranslator
 
-import SWP_Calculation_PhaseVsFrequenz
-import SWP_Calculation_TimeVsNitrierschicht as TvN
-import SWP_Calculation_PhaseVsFrequenz as PvF
-import SWP_Calculations_Streuung
-import platform
-import subprocess
+# Datenverarbeitung & Mathematik
 import numpy as np
-import os
-import re
-import sys
 import matplotlib
-import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 from scipy.optimize import curve_fit
 from scipy.stats import norm
 
-def starte_regression(dateipfad):
-    # 1. Daten einlesen und aufbereiten
-    frequenzen, sweeps = SWP_Calculations_Streuung.lade_ptr_datei(dateipfad)
-    f, phase, sigma = SWP_Calculations_Streuung.bereite_daten_auf(frequenzen, sweeps)
+# Eigene SWP-Module
+import SWP_Calculation_PhaseVsFrequenz as PvF
+import SWP_Calculation_TimeVsNitrierschicht as TvN
+import SWP_Calculations_Streuung
 
-    # 2. Fit und Analyse
-    popt, perr = SWP_Calculations_Streuung.fitte_regression(f, phase, sigma)
-    fit, residuen = SWP_Calculations_Streuung.berechne_residuen(f, phase, popt)
-
-    # 3. Statistik und Plot
-    SWP_Calculations_Streuung.statistik(f, residuen)
-    SWP_Calculations_Streuung.plot_ergebnis(f, phase, sigma, fit, residuen, popt, sweeps)
+# VISA / Hardware-Ansteuerung
+import pyvisa
 
 # ==========================================
-# 1. ÜBERSETZUNGS-DATENBANK & GLOBALE VARIABLE
+# HARDWARE-KONFIGURATION (LOCK-IN SR830)
+# ==========================================
+GPIB_ADDRESS = "GPIB0::8::INSTR"  # Adresse ggf. anpassen
+lockin_device = None
+
+
+def connect_lockin():
+    """Stellt die VISA-Verbindung zum SR830 her, falls noch nicht geschehen."""
+    global lockin_device
+    if lockin_device is None:
+        try:
+            rm = pyvisa.ResourceManager()
+            lockin_device = rm.open_resource(GPIB_ADDRESS)
+            lockin_device.timeout = 2000  # Kurz gehalten, damit die GUI nicht blockiert
+            idn = lockin_device.query("*IDN?")
+            print(f"Verbunden mit: {idn.strip()}")
+        except Exception as e:
+            lockin_device = None
+            # Hinweis: Fehlermeldung nur im Terminal ausgeben, um die GUI-Schleife nicht dauerhaft zu stoppen
+            print(f"Hardware-Verbindung fehlgeschlagen: {e}")
+            return False
+    return True
+
+
+def lockin_start():
+    """Schaltet den Sine Out des SR830 an (1.0 V)."""
+    if connect_lockin():
+        try:
+            lockin_device.write("SLVL 1.0")
+            messagebox.showinfo("Lock-In Amplifier", "Sine Out wurde auf 1.0 V gesetzt (AN).")
+        except Exception as e:
+            messagebox.showerror("Fehler", f"Befehl konnte nicht gesendet werden:\n{e}")
+
+
+def lockin_stop():
+    """Schaltet den Sine Out des SR830 aus (0.0 V)."""
+    if connect_lockin():
+        try:
+            lockin_device.write("SLVL 0.0")
+            messagebox.showinfo("Lock-In Amplifier", "Sine Out wurde auf 0.0 V gesetzt (AUS).")
+        except Exception as e:
+            messagebox.showerror("Fehler", f"Befehl konnte nicht gesendet werden:\n{e}")
+
+
+def close_lockin_connection():
+    """Trennt die VISA-Verbindung sauber beim Beenden."""
+    global lockin_device
+    if lockin_device is not None:
+        try:
+            lockin_device.close()
+            print("Lock-In Verbindung geschlossen.")
+        except Exception:
+            pass
+
+
+# ==========================================
+# LIVE-ANZEIGE LOGIK (SR830 MONITOR)
+# ==========================================
+def update_lockin_display():
+    """Liest regelmäßig Messwerte vom SR830 aus und aktualisiert die Digitalanzeige."""
+    if lockin_device is not None:
+        try:
+            # OUTP? 3 = Amplitude R, OUTP? 4 = Phase
+            x_val = float(lockin_device.query("OUTP? 1"))
+            y_val = float(lockin_device.query("OUTP? 2"))
+            r_val = float(lockin_device.query("OUTP? 3"))
+            phase_val = float(lockin_device.query("OUTP? 4"))
+
+            # Formatierung im Digital-Stil
+            val_x_label.config(text=f"{x_val:^+10.6f} V", fg="#00ff00")
+            val_y_label.config(text=f"{y_val:^+10.6f} V", fg="#00ff00")
+            val_r_label.config(text=f"{r_val:^+10.6f} V", fg="#00ff00")
+            val_phase_label.config(text=f"{phase_val:^+8.2f} °", fg="#ff9900")
+        except Exception:
+            val_x_label.config(text="--.------ V", fg="#555555")
+            val_y_label.config(text="--.------ V", fg="#555555")
+            val_r_label.config(text="--.------ V", fg="#555555")
+            val_phase_label.config(text="---.-- °", fg="#555555")
+    else:
+        val_r_label.config(text="OFFLINE", fg="#ff3333")
+        val_phase_label.config(text="OFFLINE", fg="#ff3333")
+
+    # Aktualisierung alle 500 ms (0,5 Sekunden)
+    root.after(500, update_lockin_display)
+
+
+# ==========================================
+# ANWENDUNGS-LOGIK & DATEI-MANAGEMENT
+# ==========================================
+current_file_path = None
+
+
+def open_file_dialog():
+    global current_file_path
+    file_path = filedialog.askopenfilename(
+        title="Datei auswählen",
+        filetypes=[
+            ("All supported Files", "*.txt *.csv *.xlsx *.json"),
+            ("Text Files", "*.txt"),
+            ("CSV Files", "*.csv"),
+            ("XLSX Files", "*.xlsx"),
+            ("JSON Files", "*.json"),
+            ("All files", "*.*")
+        ]
+    )
+    if file_path:
+        current_file_path = file_path
+        print(f"Geladene Datei: {current_file_path}")
+        messagebox.showinfo("Import erfolgreich", f"Datei geladen:\n{os.path.basename(current_file_path)}")
+
+
+def remove_file_from_app():
+    global current_file_path
+    if current_file_path is None:
+        messagebox.showwarning("Hinweis", "Es ist derzeit keine Datei geladen!")
+        return
+
+    filename = os.path.basename(current_file_path)
+    current_file_path = None
+    print("Datei aus dem Speicher entfernt.")
+    messagebox.showinfo("Entfernt", f"Die Datei '{filename}' wurde aus dem Programm entladen.")
+
+
+def starte_regression(dateipfad):
+    try:
+        frequenzen, sweeps = SWP_Calculations_Streuung.lade_ptr_datei(dateipfad)
+        f, phase, sigma = SWP_Calculations_Streuung.bereite_daten_auf(frequenzen, sweeps)
+        popt, perr = SWP_Calculations_Streuung.fitte_regression(f, phase, sigma)
+        fit, residuen = SWP_Calculations_Streuung.berechne_residuen(f, phase, popt)
+
+        SWP_Calculations_Streuung.statistik(f, residuen)
+        SWP_Calculations_Streuung.plot_ergebnis(f, phase, sigma, fit, residuen, popt, sweeps)
+    except Exception as e:
+        messagebox.showerror("Berechnungsfehler", f"Fehler bei der Regression:\n{e}")
+
+
+# ==========================================
+# ÜBERSETZUNGS-DATENBANK & AUTOMATISIERUNG
 # ==========================================
 BASE_MENU_EN = {
-    "menu_data": "Data", "menu_data_new": "New", "menu_data_open": "Open",
-    "menu_data_save": "Save", "menu_data_saveas": "Save as",
-    "menu_data_import": "Import", "menu_data_export": "Export", "menu_data_removefile": "Remove file", "menu_data_quit": "Quit",
+    "menu_data": "Data", "menu_data_new": "New", "menu_data_open": "Open", "menu_data_save": "Save",
+    "menu_data_saveas": "Save as", "menu_data_import": "Import", "menu_data_export": "Export",
+    "menu_data_removefile": "Remove file", "menu_data_quit": "Quit",
     "menu_analysis": "Analysis", "menu_analysis_clean": "Data cleansing",
-    "menu_analysis_stats": "Calculating Statistics",
-    "menu_settings": "Settings", "menu_language": "Languages",
-    "menu_help": "Help", "menu_help_doc": "Documentation",
+    "menu_analysis_stats": "Calculating Statistics", "menu_analysis_chart": "Plot Chart Type",
+    "menu_analysis_outliers": "Detect Outliers",
+    "menu_view": "View", "menu_view_chart": "Change Chart Type", "menu_view_colour": "Colour Assignment",
+    "menu_view_fullscreen": "Full Screen", "menu_view_zoom": "Zoom",
+    "menu_settings": "Settings", "menu_settings_units": "Units", "menu_language": "Languages",
+    "menu_settings_schemes": "Colour Schemes", "menu_settings_thresholds": "Defining Thresholds",
+    "menu_help": "Help", "menu_help_doc": "Documentation", "menu_help_about": "About The Application",
+    "menu_help_version": "Version Number",
+    "menu_laser": "Laser", "menu_laser_start": "Start Laser", "menu_laser_stop": "Stop Laser",
+    "menu_lock_in_amplifier": "Lock-In Amplifier", "menu_lock_in_amplifier_start": "Start Lock-In Amplifier",
+    "menu_lock_in_amplifier_stop": "Stop Lock-In Amplifier",
     "msg_title": "Info", "msg_text": "Language changed successfully!"
 }
 
@@ -50,13 +188,7 @@ current_lang = "en"
 menu_registry = []
 translation_cache = {"en": BASE_MENU_EN.copy()}
 
-# Speicher für die ausgelesenen Daten
-imported_data = {}
 
-
-# ==========================================
-# 2. ÜBERSETZUNGS-LOGIK
-# ==========================================
 def get_translation(key, lang):
     if lang not in translation_cache:
         translation_cache[lang] = {}
@@ -64,13 +196,13 @@ def get_translation(key, lang):
         return translation_cache[lang][key]
     if lang == "en":
         return BASE_MENU_EN.get(key, key)
-
     try:
         english_text = BASE_MENU_EN.get(key, key)
         translated_text = GoogleTranslator(source='en', target=lang).translate(english_text)
         translation_cache[lang][key] = translated_text
         return translated_text
-    except Exception:
+    except Exception as e:
+        print(f"Übersetzungsfehler ({key}): {e}")
         return BASE_MENU_EN.get(key, key)
 
 
@@ -92,229 +224,176 @@ def update_all_menus():
 
 
 # ==========================================
-# 3. DIE DEINE IMPORT-METHODE (FUNKTION)
-# ==========================================
-def open_folder_and_read_files(parent_window):
-    """
-    Öffnet den Import-Ordner, zeigt Popups für Benutzerführung / Fehler
-    und liest nur gültige textbasierte Dateien als Inputwerte aus.
-    """
-    global imported_data
-
-    # 1. Import-Ordner definieren und erstellen
-    import_dir = os.path.abspath("import_data")
-    if not os.path.exists(import_dir):
-        os.makedirs(import_dir)
-
-    # 2. Ordner im Betriebssystem öffnen
-    try:
-        if platform.system() == "Windows":
-            os.startfile(import_dir)
-        elif platform.system() == "Darwin":  # macOS
-            subprocess.run(["open", import_dir])
-        else:  # Linux
-            subprocess.run(["xdg-open", import_dir])
-    except Exception as e:
-        messagebox.showerror("Fehler", f"Ordner konnte nicht geöffnet werden:\n{e}", parent=parent_window)
-        return
-
-    # 3. Popup: Instruktion für den Nutzer
-    messagebox.showinfo(
-        title="Dateien hinzufügen",
-        message=(
-            "Der Import-Ordner wurde geöfnet.\n\n"
-            "1. Bitte ziehe nun deine textbasierten Dateien (z. B. .txt, .csv, .json, .dat) in diesen Ordner.\n"
-            "2. Klicke hier auf 'OK', sobald du alle Dateien abgelegt hast.\n\n"
-            "Die Dateien werden danach automatisch eingelesen."
-        ),
-        parent=parent_window
-    )
-
-    # 4. Dateien einlesen und prüfen
-    valid_extensions = {".txt", ".csv", ".json", ".dat"}
-    read_data = {}
-    errors = []
-
-    for filename in os.listdir(import_dir):
-        file_path = os.path.join(import_dir, filename)
-
-        if os.path.isfile(file_path):
-            ext = os.path.splitext(filename)[1].lower()
-
-            # Prüfen auf erlaubte Endungen
-            if ext not in valid_extensions:
-                errors.append(f"'{filename}' (Keine unterstützte Textdatei / falsches Format)")
-                continue
-
-            # Auslesen der Datei
-            try:
-                with open(file_path, 'r', encoding='utf-8') as file:
-                    content = file.read()
-                    read_data[filename] = content
-            except UnicodeDecodeError:
-                errors.append(f"'{filename}' (Konnte nicht als Text decodiert werden - evtl. Binärdatei)")
-            except Exception as e:
-                errors.append(f"'{filename}' (Lesefehler: {e})")
-
-    # 5. Popup bei Fehlern oder unlesbaren Dateien
-    if errors:
-        error_msg = "Einige Dateien konnten nicht eingelesen werden oder sind keine unterstützten Textdateien:\n\n"
-        error_msg += "\n".join(errors)
-        messagebox.showwarning(title="Warnung beim Einlesen", message=error_msg, parent=parent_window)
-
-    # 6. Erfolgreich ausgelesene Daten global bereitstellen
-    if read_data:
-        imported_data = read_data
-        print(f"\n[Erfolg] {len(imported_data)} Datei(en) eingelesen:")
-        for name, inhalt in imported_data.items():
-            print(f" -> {name}: {len(inhalt)} Zeichen geladen.")
-
-        messagebox.showinfo(
-            title="Import erfolgreich",
-            message=f"{len(imported_data)} Datei(en) erfolgreich als Inputwerte geladen!",
-            parent=parent_window
-        )
-
-
-# ==========================================
-# 4. DIE REMOVE-METHODE (GESPIEGELT)
-# ==========================================
-def open_folder_and_remove_files(parent_window):
-    """
-    1. Öffnet den Import-Ordner im Dateimanager.
-    2. Zeigt ein Info-Popup zur Lösch-Instruktion.
-    3. Aktualisiert nach Bestätigung den Datenbestand in der App.
-    4. Gibt Feedback / Warnungen aus.
-    """
-    global imported_data
-
-    import_dir = os.path.abspath("import_data")
-    if not os.path.exists(import_dir):
-        os.makedirs(import_dir)
-
-    # 1. Ordner im Betriebssystem öffnen
-    try:
-        if platform.system() == "Windows":
-            os.startfile(import_dir)
-        elif platform.system() == "Darwin":  # macOS
-            subprocess.run(["open", import_dir])
-        else:  # Linux
-            subprocess.run(["xdg-open", import_dir])
-    except Exception as e:
-        messagebox.showerror("Fehler", f"Ordner konnte nicht geöffnet werden:\n{e}", parent=parent_window)
-        return
-
-    # 2. Popup: Instruktion für den Nutzer
-    messagebox.showinfo(
-        title="Dateien entfernen",
-        message=(
-            "Der Daten-Ordner wurde geöffnet.\n\n"
-            "1. Bitte lösche die Dateien, die du entfernen möchtest, oder ziehe sie aus dem Ordner heraus.\n"
-            "2. Klicke hier auf 'OK', sobald du fertig bist.\n\n"
-            "Der Datenbestand im Programm wird danach automatisch aktualisiert."
-        ),
-        parent=parent_window
-    )
-
-    # 3. Ordner-Inhalt neu scannen & vergleichen
-    valid_extensions = {".txt", ".csv", ".json", ".dat"}
-    new_imported_data = {}
-    errors = []
-
-    current_files = os.listdir(import_dir)
-
-    for filename in current_files:
-        file_path = os.path.join(import_dir, filename)
-
-        if os.path.isfile(file_path):
-            ext = os.path.splitext(filename)[1].lower()
-
-            if ext not in valid_extensions:
-                errors.append(f"'{filename}' (Keine unterstützte Textdatei)")
-                continue
-
-            try:
-                with open(file_path, 'r', encoding='utf-8') as file:
-                    new_imported_data[filename] = file.read()
-            except Exception as e:
-                errors.append(f"'{filename}' (Fehler beim Lesen: {e})")
-
-    # 4. Berechnen, wie viele Dateien entfernt wurden
-    removed_count = len(imported_data) - len(new_imported_data)
-    imported_data = new_imported_data  # Speicher in der App aktualisieren
-
-    # 5. Warnung bei verbleibenden fehlerhaften Dateien
-    if errors:
-        error_msg = "Folgende im Ordner verbliebene Dateien sind ungültig oder konnten nicht eingelesen werden:\n\n"
-        error_msg += "\n".join(errors)
-        messagebox.showwarning(title="Warnung beim Aktualisieren", message=error_msg, parent=parent_window)
-
-    # 6. Erfolgs-Feedback
-    if removed_count > 0:
-        messagebox.showinfo(
-            title="Aktualisierung erfolgreich",
-            message=f"{removed_count} Datei(en) wurden aus dem Programm entfernt.\nVerbleibend: {len(imported_data)} Datei(en).",
-            parent=parent_window
-        )
-    else:
-        messagebox.showinfo(
-            title="Keine Änderungen",
-            message=f"Es wurden keine geladenen Dateien entfernt. Aktuell geladen: {len(imported_data)} Datei(en).",
-            parent=parent_window
-        )
-
-
-# ==========================================
-# 5. MENÜ-STRUKTUR
+# MENÜ-STRUKTUR DEFINITION
 # ==========================================
 MENU_STRUCTURE = [
+    ("main", "menu_laser", "submenu_laser"),
+    ("main", "menu_lock_in_amplifier", "submenu_lock_in_amplifier"),
     ("main", "menu_data", "submenu_data"),
     ("main", "menu_analysis", "submenu_analysis"),
+    ("main", "menu_view", "submenu_view"),
     ("main", "menu_settings", "submenu_settings"),
     ("main", "menu_help", "submenu_help"),
 
-    ("submenu_data", "menu_data_new", lambda: print("New clicked")),
-    ("submenu_data", "sep", None),
-    ("submenu_data", "menu_data_open", lambda: print("Open clicked")),
-    ("submenu_data", "sep", None),
+    ("submenu_laser", "menu_laser_start", lambda: print("laser_start")),
+    ("submenu_laser", "sep", None),
+    ("submenu_laser", "menu_laser_stop", lambda: print("laser_stop")),
 
-    # HIER IST DER IMPORT-KNOPF, DER DIE NEUE METHODE AUFRUFT:
-    ("submenu_data", "menu_data_import", lambda: open_folder_and_read_files(root)),
+    ("submenu_lock_in_amplifier", "menu_lock_in_amplifier_start", lockin_start),
+    ("submenu_lock_in_amplifier", "sep", None),
+    ("submenu_lock_in_amplifier", "menu_lock_in_amplifier_stop", lockin_stop),
+
+    ("submenu_data", "menu_data_new", lambda: print("new")),
     ("submenu_data", "sep", None),
-    ("submenu_data", "menu_data_removefile", lambda: open_folder_and_remove_files(root)),
+    ("submenu_data", "menu_data_open", lambda: print("open")),
+    ("submenu_data", "sep", None),
+    ("submenu_data", "menu_data_save", lambda: print("save")),
+    ("submenu_data", "sep", None),
+    ("submenu_data", "menu_data_saveas", lambda: print("save_as")),
+    ("submenu_data", "sep", None),
+    ("submenu_data", "menu_data_import", open_file_dialog),
+    ("submenu_data", "sep", None),
+    ("submenu_data", "menu_data_export", lambda: print("export")),
+    ("submenu_data", "sep", None),
+    ("submenu_data", "menu_data_removefile", remove_file_from_app),
     ("submenu_data", "sep", None),
     ("submenu_data", "menu_data_quit", "DESTROY_APP"),
 
-    ("submenu_analysis", "menu_analysis_clean", lambda: print("Clean clicked")),
+    ("submenu_analysis", "menu_analysis_clean", lambda: print("clean")),
     ("submenu_analysis", "sep", None),
-    ("submenu_analysis", "menu_analysis_stats", lambda: starte_regression(dateipfad=r"C:\Users\aouch\PycharmProjects\PythonProject\20190701_181338_MP1_QC19C(1).txt")),
+    ("submenu_analysis", "menu_analysis_stats", lambda: starte_regression(
+        dateipfad=current_file_path or r"C:\Users\aouch\PycharmProjects\PythonProject\20190701_181338_MP1_QC19C(1).txt")),
     ("submenu_analysis", "sep", None),
-    ("submenu_analysis", "menu_analysis_stats", lambda: SWP_Calculation_PhaseVsFrequenz.main()),
+    ("submenu_analysis", "menu_analysis_stats", lambda: PvF.main()),
     ("submenu_analysis", "sep", None),
+    ("submenu_analysis", "menu_analysis_outliers", lambda: print("outliers")),
 
+    ("submenu_view", "menu_view_chart", lambda: print("chart")),
+    ("submenu_view", "sep", None),
+    ("submenu_view", "menu_view_colour", lambda: print("colour")),
+    ("submenu_view", "sep", None),
+    ("submenu_view", "menu_view_fullscreen", lambda: print("fullscreen")),
+    ("submenu_view", "sep", None),
+    ("submenu_view", "menu_view_zoom", lambda: print("zoom")),
+
+    ("submenu_settings", "menu_settings_units", lambda: print("units")),
+    ("submenu_settings", "sep", None),
     ("submenu_settings", "menu_language", "subsetting_languages"),
+    ("submenu_settings", "sep", None),
+    ("submenu_settings", "menu_settings_schemes", lambda: print("scheme")),
+    ("submenu_settings", "sep", None),
+    ("submenu_settings", "menu_settings_thresholds", lambda: print("threshold")),
 
-    ("submenu_help", "menu_help_doc", lambda: print("Doc clicked")),
+    ("submenu_help", "menu_help_doc", lambda: print("doc")),
+    ("submenu_help", "sep", None),
+    ("submenu_help", "menu_help_about", lambda: print("about")),
+    ("submenu_help", "sep", None),
+    ("submenu_help", "menu_help_version", lambda: print("version"))
 ]
 
 # ==========================================
-# 6. GUI INITIALISIERUNG
+# GUI AUFBAU
 # ==========================================
 root = tk.Tk()
-root.title('GUI mit automatischem Ordner-Import')
-root.geometry('400x300')
+root.title('GUI for processing nightriding')
+root.geometry('500x400')
+root.configure(bg="#2b2b2b")  # Dunkler Hintergrund für das Hauptfenster
 
-# Menü-Objekte
+# ------------------------------------------
+# HIER IST DIE DIGITALUHR-ANZEIGE IM FENSTER
+# ------------------------------------------
+display_frame = tk.LabelFrame(
+    root,
+    text=" SR830 LIVE MONITOR ",
+    font=("Consolas", 10, "bold"),
+    bg="#1e1e1e",
+    fg="#00ffcc",
+    padx=15,
+    pady=10
+)
+display_frame.pack(padx=15, pady=15, fill="both", expand=True)
+
+# Spannung X-Anteil: X=R*cos(theta) (X)
+lbl_x_title = tk.Label(display_frame, text="VOLTAGE (X=R*cos(θ)):", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#aaaaaa")
+lbl_x_title.pack(anchor="w")
+
+val_x_label = tk.Label(
+    display_frame,
+    text="OFFLINE",
+    font=("Consolas", 20, "bold"),
+    bg="#000000",
+    fg="#ff3333",
+    relief="sunken",
+    bd=3,
+    padx=10,
+    pady=2
+)
+val_x_label.pack(fill="x", pady=(2, 20))
+
+# Spannung Y-Anteil: R*sin(theta) (Y)
+lbl_y_title = tk.Label(display_frame, text="VOLTAGE (Y=R*sin(θ)):", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#aaaaaa")
+lbl_y_title.pack(anchor="w")
+val_y_label = tk.Label(
+    display_frame,
+    text="OFFLINE",
+    font=("Consolas", 20, "bold"),
+    bg="#000000",
+    fg="#ff3333",
+    relief="sunken",
+    bd=3,
+    padx=10,
+    pady=2
+)
+val_y_label.pack(fill="x", pady=(2, 30))
+
+# Amplitude (R)
+lbl_r_title = tk.Label(display_frame, text="AMPLITUDE (R):", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#aaaaaa")
+lbl_r_title.pack(anchor="w")
+val_r_label = tk.Label(
+    display_frame,
+    text="OFFLINE",
+    font=("Consolas", 20, "bold"),
+    bg="#000000",
+    fg="#ff3333",
+    relief="sunken",
+    bd=3,
+    padx=10,
+    pady=2
+)
+val_r_label.pack(fill="x", pady=(2, 10))
+
+# Phase (θ)
+lbl_phase_title = tk.Label(display_frame, text="PHASE (θ):", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#aaaaaa")
+lbl_phase_title.pack(anchor="w")
+
+val_phase_label = tk.Label(
+    display_frame,
+    text="OFFLINE",
+    font=("Consolas", 20, "bold"),
+    bg="#000000",
+    fg="#ff3333",
+    relief="sunken",
+    bd=3,
+    padx=10,
+    pady=2
+)
+val_phase_label.pack(fill="x", pady=(2, 0))
+
+# ------------------------------------------
+# MENÜS AUFBAUEN
+# ------------------------------------------
 menus = {
     "main": tk.Menu(root),
+    "submenu_laser": tk.Menu(root, tearoff=0),
+    "submenu_lock_in_amplifier": tk.Menu(root, tearoff=0),
     "submenu_data": tk.Menu(root, tearoff=0),
     "submenu_analysis": tk.Menu(root, tearoff=0),
+    "submenu_view": tk.Menu(root, tearoff=0),
     "submenu_settings": tk.Menu(root, tearoff=0),
     "submenu_help": tk.Menu(root, tearoff=0),
     "subsetting_languages": tk.Menu(root, tearoff=0)
 }
 
-# Sprachauswahl
 menus["subsetting_languages"].add_command(label='English', command=lambda: change_language("en"))
 menus["subsetting_languages"].add_separator()
 menus["subsetting_languages"].add_command(label='Deutsch', command=lambda: change_language("de"))
@@ -322,8 +401,9 @@ menus["subsetting_languages"].add_separator()
 menus["subsetting_languages"].add_command(label='Español', command=lambda: change_language("es"))
 menus["subsetting_languages"].add_separator()
 menus["subsetting_languages"].add_command(label='Français', command=lambda: change_language("fr"))
+menus["subsetting_languages"].add_separator()
+menus["subsetting_languages"].add_command(label='Italiano', command=lambda: change_language("it"))
 
-# Automatischer Menü-Aufbau
 for parent_name, item_key, action in MENU_STRUCTURE:
     parent_menu = menus[parent_name]
     if item_key == "sep":
@@ -345,8 +425,17 @@ for parent_name, item_key, action in MENU_STRUCTURE:
 
 root.config(menu=menus["main"])
 
-# Kleine Beschriftung im Fenster
-lbl = tk.Label(root, text="Klicke im Menü unter 'Data' -> 'Import',\num Dateien hinzuzufügen.", pady=20)
-lbl.pack()
 
+# Ereignis beim Schließen des Fensters
+def on_closing():
+    close_lockin_connection()
+    root.destroy()
+
+
+root.protocol("WM_DELETE_WINDOW", on_closing)
+
+# Startet die ständige Live-Aktualisierung der Messwerte
+update_lockin_display()
+
+# GUI-Schleife starten
 root.mainloop()
