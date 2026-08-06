@@ -1,441 +1,439 @@
 import os
 import sys
-import platform
-import re
-import subprocess
 import tkinter as tk
 from tkinter import messagebox, ttk, filedialog
-
-# Übersetzungs-Bibliothek
-from deep_translator import GoogleTranslator
 
 # Datenverarbeitung & Mathematik
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-from scipy.optimize import curve_fit
-from scipy.stats import norm
 
-# Eigene SWP-Module
-import SWP_Calculation_PhaseVsFrequenz as PvF
-import SWP_Calculation_TimeVsNitrierschicht as TvN
-import SWP_Calculations_Streuung
+# Eigene SWP-Module (falls vorhanden)
+try:
+    import SWP_Calculation_PhaseVsFrequenz as PvF
+    import SWP_Calculations_Streuung
+except ImportError:
+    PvF = None
+    SWP_Calculations_Streuung = None
 
 # VISA / Hardware-Ansteuerung
 import pyvisa
 
 # ==========================================
-# HARDWARE-KONFIGURATION (LOCK-IN SR830)
+# HARDWARE-KONFIGURATION & STEUERUNG (SR830)
 # ==========================================
-GPIB_ADDRESS = "GPIB0::8::INSTR"  # Adresse ggf. anpassen
+GPIB_ADDRESS = "GPIB0::8::INSTR"
 lockin_device = None
 
 
 def connect_lockin():
-    """Stellt die VISA-Verbindung zum SR830 her, falls noch nicht geschehen."""
     global lockin_device
     if lockin_device is None:
         try:
             rm = pyvisa.ResourceManager()
             lockin_device = rm.open_resource(GPIB_ADDRESS)
-            lockin_device.timeout = 2000  # Kurz gehalten, damit die GUI nicht blockiert
-            idn = lockin_device.query("*IDN?")
-            print(f"Verbunden mit: {idn.strip()}")
+            lockin_device.timeout = 2000
         except Exception as e:
             lockin_device = None
-            # Hinweis: Fehlermeldung nur im Terminal ausgeben, um die GUI-Schleife nicht dauerhaft zu stoppen
-            print(f"Hardware-Verbindung fehlgeschlagen: {e}")
+            print(f"Hardware nicht gefunden: {e}")
             return False
     return True
 
 
 def lockin_start():
-    """Schaltet den Sine Out des SR830 an (1.0 V)."""
     if connect_lockin():
         try:
             lockin_device.write("SLVL 1.0")
-            messagebox.showinfo("Lock-In Amplifier", "Sine Out wurde auf 1.0 V gesetzt (AN).")
+            messagebox.showinfo(tr("tab_lockin"), tr("msg_lockin_start"))
         except Exception as e:
-            messagebox.showerror("Fehler", f"Befehl konnte nicht gesendet werden:\n{e}")
+            messagebox.showerror("Fehler", f"{e}")
 
 
 def lockin_stop():
-    """Schaltet den Sine Out des SR830 aus (0.0 V)."""
     if connect_lockin():
         try:
             lockin_device.write("SLVL 0.0")
-            messagebox.showinfo("Lock-In Amplifier", "Sine Out wurde auf 0.0 V gesetzt (AUS).")
+            messagebox.showinfo(tr("tab_lockin"), tr("msg_lockin_stop"))
         except Exception as e:
-            messagebox.showerror("Fehler", f"Befehl konnte nicht gesendet werden:\n{e}")
+            messagebox.showerror("Fehler", f"{e}")
 
 
 def close_lockin_connection():
-    """Trennt die VISA-Verbindung sauber beim Beenden."""
     global lockin_device
     if lockin_device is not None:
         try:
             lockin_device.close()
-            print("Lock-In Verbindung geschlossen.")
         except Exception:
             pass
 
 
 # ==========================================
-# LIVE-ANZEIGE LOGIK (SR830 MONITOR)
+# MANUELLE, FACHLICH KORREKTE ÜBERSETZUNGS-DATENBANK
+# ==========================================
+TRANSLATIONS = {
+    "en": {
+        "tab_home": "Home",
+        "tab_lockin": "Lock-In Amplifier",
+        "tab_laser": "Laser",
+        "tab_analysis": "Analysis",
+        "tab_settings": "Settings",
+
+        "sub_analysis_cleansing": "Data Cleansing & Fit",
+        "sub_analysis_stats": "Statistics",
+        "sub_settings_lang": "Language",
+        "sub_settings_hw": "Hardware Config",
+
+        "home_welcome": "WELCOME TO LAB MEASUREMENT SYSTEM",
+        "home_info": "Select a tab above to control hardware or run data analysis.",
+        "mon_title": " SR830 LIVE MONITOR ",
+        "mon_amp": "AMPLITUDE (R):",
+        "mon_phase": "PHASE (θ):",
+        "btn_start_sine": "▶ Start Sine Out (1V)",
+        "btn_stop_sine": "⏹ Stop Sine Out (0V)",
+
+        "laser_title": "LASER CONTROL PANEL",
+        "laser_status_off": "Laser Status: Inactive",
+        "laser_status_on": "Laser Status: ACTIVE 🔥",
+        "btn_fire_laser": "Fire Laser",
+
+        "analysis_title": "DATA ANALYSIS & REGRESSION",
+        "btn_load_file": "📁 Import Data File",
+        "btn_run_regression": "📊 Run Regression",
+        "btn_pvf_analysis": "📈 Phase vs. Frequency Analysis",
+        "no_file_loaded": "No file loaded",
+
+        "settings_lang_select": "Select Application Language:",
+        "settings_gpib_addr": "GPIB Address:",
+
+        "msg_title": "Information",
+        "msg_lang_changed": "Language changed successfully!",
+        "msg_lockin_start": "Sine Out set to 1.0 V (ON).",
+        "msg_lockin_stop": "Sine Out set to 0.0 V (OFF)."
+    },
+    "de": {
+        "tab_home": "Startseite",
+        "tab_lockin": "Lock-In Verstärker",
+        "tab_laser": "Laser",
+        "tab_analysis": "Analyse",
+        "tab_settings": "Einstellungen",
+
+        "sub_analysis_cleansing": "Bereinigung & Regression",
+        "sub_analysis_stats": "Statistik",
+        "sub_settings_lang": "Sprache",
+        "sub_settings_hw": "Hardware-Konfig",
+
+        "home_welcome": "WILLKOMMEN IM MESSSYSTEM",
+        "home_info": "Wähle oben eine Karteikarte zur Hardwaresteuerung oder Datenauswertung.",
+        "mon_title": " SR830 LIVE MONITOR ",
+        "mon_amp": "AMPLITUDE (R):",
+        "mon_phase": "PHASE (θ):",
+        "btn_start_sine": "▶ Sine Out Starten (1V)",
+        "btn_stop_sine": "⏹ Sine Out Stoppen (0V)",
+
+        "laser_title": "LASER STEUERUNG",
+        "laser_status_off": "Laser-Status: Inaktiv",
+        "laser_status_on": "Laser-Status: AKTIV 🔥",
+        "btn_fire_laser": "Laser Zünden",
+
+        "analysis_title": "DATENANALYSE & REGRESSION",
+        "btn_load_file": "📁 Datei Laden",
+        "btn_run_regression": "📊 Regression Starten",
+        "btn_pvf_analysis": "📈 Phase vs. Frequenz Analyse",
+        "no_file_loaded": "Keine Datei geladen",
+
+        "settings_lang_select": "Sprache auswählen:",
+        "settings_gpib_addr": "GPIB Addresse:",
+
+        "msg_title": "Information",
+        "msg_lang_changed": "Sprache erfolgreich geändert!",
+        "msg_lockin_start": "Sine Out auf 1.0 V gesetzt (AN).",
+        "msg_lockin_stop": "Sine Out auf 0.0 V gesetzt (AUS)."
+    },
+    "es": {
+        "tab_home": "Inicio",
+        "tab_lockin": "Amplificador Lock-In",
+        "tab_laser": "Láser",
+        "tab_analysis": "Análisis",
+        "tab_settings": "Ajustes",
+
+        "sub_analysis_cleansing": "Depuración y Ajuste",
+        "sub_analysis_stats": "Estadística",
+        "sub_settings_lang": "Idioma",
+        "sub_settings_hw": "Config. Hardware",
+
+        "home_welcome": "BIENVENIDO AL SISTEMA DE MEDICIÓN",
+        "home_info": "Seleccione una pestaña superior para operar hardware o analizar datos.",
+        "mon_title": " MONITOR EN VIVO SR830 ",
+        "mon_amp": "AMPLITUD (R):",
+        "mon_phase": "FASE (θ):",
+        "btn_start_sine": "▶ Iniciar Sine Out (1V)",
+        "btn_stop_sine": "⏹ Detener Sine Out (0V)",
+
+        "laser_title": "CONTROL DEL LÁSER",
+        "laser_status_off": "Estado del Láser: Inactivo",
+        "laser_status_on": "Estado del Láser: ACTIVO 🔥",
+        "btn_fire_laser": "Disparar Láser",
+
+        "analysis_title": "ANÁLISIS DE DATOS Y REGRESIÓN",
+        "btn_load_file": "📁 Cargar Archivo",
+        "btn_run_regression": "📊 Ejecutar Regresión",
+        "btn_pvf_analysis": "📈 Análisis Fase vs. Frecuencia",
+        "no_file_loaded": "Ningún archivo cargado",
+
+        "settings_lang_select": "Seleccionar Idioma:",
+        "settings_gpib_addr": "Dirección GPIB:",
+
+        "msg_title": "Información",
+        "msg_lang_changed": "¡Idioma cambiado con éxito!",
+        "msg_lockin_start": "Sine Out establecido a 1.0 V (ON).",
+        "msg_lockin_stop": "Sine Out establecido a 0.0 V (OFF)."
+    }
+}
+
+current_lang = "de"
+registered_widgets = []
+current_file_path = None
+
+
+def tr(key):
+    """Liest den Begriff aus der lokalen Sprachentabelle."""
+    lang_dict = TRANSLATIONS.get(current_lang, TRANSLATIONS["en"])
+    return lang_dict.get(key, TRANSLATIONS["en"].get(key, key))
+
+
+def reg_ui(widget, key, prop="text"):
+    registered_widgets.append((widget, prop, key))
+    update_single_widget(widget, prop, key)
+
+
+def update_single_widget(widget, prop, key):
+    translated_val = tr(key)
+    try:
+        if prop == "text":
+            widget.config(text=translated_val)
+        elif prop == "tab_text":
+            nb, tab = widget
+            nb.tab(tab, text=f" {translated_val} ")
+    except Exception:
+        pass
+
+
+def change_language(lang_code):
+    global current_lang
+    current_lang = lang_code
+    for widget, prop, key in registered_widgets:
+        update_single_widget(widget, prop, key)
+    messagebox.showinfo(tr("msg_title"), tr("msg_lang_changed"))
+
+
+def open_file_dialog():
+    global current_file_path
+    file_path = filedialog.askopenfilename(
+        title=tr("btn_load_file"),
+        filetypes=[("Text Files", "*.txt *.csv"), ("All files", "*.*")]
+    )
+    if file_path:
+        current_file_path = file_path
+        lbl_file_status.config(text=os.path.basename(current_file_path))
+
+
+# ==========================================
+# GUI ANWENDUNG
+# ==========================================
+root = tk.Tk()
+root.title('Labor-Steuerung & Analyse')
+root.geometry('580x480')
+root.configure(bg="#2b2b2b")
+
+style = ttk.Style()
+style.theme_use('default')
+style.configure("TNotebook", background="#2b2b2b", borderwidth=0)
+style.configure("TNotebook.Tab", background="#3c3f41", foreground="#ffffff", padding=[10, 6],
+                font=('Consolas', 10, 'bold'))
+style.map("TNotebook.Tab", background=[("selected", "#007acc")], foreground=[("selected", "#ffffff")])
+
+# HAUPT-NOTEBOOK (Reiterzeile)
+main_notebook = ttk.Notebook(root)
+main_notebook.pack(fill="both", expand=True, padx=10, pady=10)
+
+# ------------------------------------------
+# 1. TAB: HOME
+# ------------------------------------------
+tab_home = tk.Frame(main_notebook, bg="#1e1e1e")
+main_notebook.add(tab_home, text="")
+reg_ui((main_notebook, tab_home), "tab_home", "tab_text")
+
+lbl_welcome = tk.Label(tab_home, font=("Consolas", 12, "bold"), bg="#1e1e1e", fg="#00ffcc")
+lbl_welcome.pack(pady=(40, 10))
+reg_ui(lbl_welcome, "home_welcome")
+
+lbl_info = tk.Label(tab_home, font=("Segoe UI", 10), bg="#1e1e1e", fg="#aaaaaa", justify="center")
+lbl_info.pack(pady=10)
+reg_ui(lbl_info, "home_info")
+
+# ------------------------------------------
+# 2. TAB: LOCK-IN AMPLIFIER
+# ------------------------------------------
+tab_lockin = tk.Frame(main_notebook, bg="#1e1e1e")
+main_notebook.add(tab_lockin, text="")
+reg_ui((main_notebook, tab_lockin), "tab_lockin", "tab_text")
+
+display_frame = tk.LabelFrame(tab_lockin, font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#00ffcc", padx=10, pady=5)
+display_frame.pack(padx=15, pady=15, fill="x")
+reg_ui(display_frame, "mon_title")
+
+lbl_amp = tk.Label(display_frame, font=("Consolas", 8, "bold"), bg="#1e1e1e", fg="#aaaaaa")
+lbl_amp.pack(anchor="w")
+reg_ui(lbl_amp, "mon_amp")
+
+val_r_label = tk.Label(display_frame, text="OFFLINE", font=("Consolas", 16, "bold"), bg="#000000", fg="#ff3333",
+                       relief="sunken", bd=2)
+val_r_label.pack(fill="x", pady=(2, 6))
+
+lbl_phase = tk.Label(display_frame, font=("Consolas", 8, "bold"), bg="#1e1e1e", fg="#aaaaaa")
+lbl_phase.pack(anchor="w")
+reg_ui(lbl_phase, "mon_phase")
+
+val_phase_label = tk.Label(display_frame, text="OFFLINE", font=("Consolas", 16, "bold"), bg="#000000", fg="#ff3333",
+                           relief="sunken", bd=2)
+val_phase_label.pack(fill="x", pady=(2, 5))
+
+btn_frame = tk.Frame(tab_lockin, bg="#1e1e1e")
+btn_frame.pack(pady=10)
+
+btn_start_lockin = tk.Button(btn_frame, font=("Consolas", 9, "bold"), bg="#2e7d32", fg="white", padx=10, pady=5,
+                             command=lockin_start)
+btn_start_lockin.pack(side="left", padx=5)
+reg_ui(btn_start_lockin, "btn_start_sine")
+
+btn_stop_lockin = tk.Button(btn_frame, font=("Consolas", 9, "bold"), bg="#c62828", fg="white", padx=10, pady=5,
+                            command=lockin_stop)
+btn_stop_lockin.pack(side="left", padx=5)
+reg_ui(btn_stop_lockin, "btn_stop_sine")
+
+# ------------------------------------------
+# 3. TAB: LASER
+# ------------------------------------------
+tab_laser = tk.Frame(main_notebook, bg="#1e1e1e")
+main_notebook.add(tab_laser, text="")
+reg_ui((main_notebook, tab_laser), "tab_laser", "tab_text")
+
+lbl_laser_title = tk.Label(tab_laser, font=("Consolas", 12, "bold"), bg="#1e1e1e", fg="#ff5555")
+lbl_laser_title.pack(pady=15)
+reg_ui(lbl_laser_title, "laser_title")
+
+laser_status_lbl = tk.Label(tab_laser, font=("Consolas", 10), bg="#000000", fg="#ffaa00", width=30, height=2,
+                            relief="sunken")
+laser_status_lbl.pack(pady=10)
+reg_ui(laser_status_lbl, "laser_status_off")
+
+btn_fire = tk.Button(tab_laser, bg="#d32f2f", fg="white", font=("Consolas", 10, "bold"),
+                     command=lambda: reg_ui(laser_status_lbl, "laser_status_on"))
+btn_fire.pack(pady=5)
+reg_ui(btn_fire, "btn_fire_laser")
+
+# ------------------------------------------
+# 4. TAB: ANALYSIS (NEU MIT UNTER-NOTEBOOK)
+# ------------------------------------------
+tab_analysis = tk.Frame(main_notebook, bg="#1e1e1e")
+main_notebook.add(tab_analysis, text="")
+reg_ui((main_notebook, tab_analysis), "tab_analysis", "tab_text")
+
+analysis_notebook = ttk.Notebook(tab_analysis)
+analysis_notebook.pack(fill="both", expand=True, padx=10, pady=10)
+
+# Sub-Tab 1: Regression & Daten
+sub_tab_clean = tk.Frame(analysis_notebook, bg="#252526")
+analysis_notebook.add(sub_tab_clean, text="")
+reg_ui((analysis_notebook, sub_tab_clean), "sub_analysis_cleansing", "tab_text")
+
+btn_load = tk.Button(sub_tab_clean, font=("Consolas", 9, "bold"), bg="#007acc", fg="white", padx=10, pady=5,
+                     command=open_file_dialog)
+btn_load.pack(pady=15)
+reg_ui(btn_load, "btn_load_file")
+
+lbl_file_status = tk.Label(sub_tab_clean, font=("Consolas", 9), bg="#252526", fg="#aaaaaa")
+lbl_file_status.pack(pady=5)
+reg_ui(lbl_file_status, "no_file_loaded")
+
+btn_reg = tk.Button(sub_tab_clean, font=("Consolas", 9, "bold"), bg="#388e3c", fg="white", padx=10, pady=5,
+                    command=lambda: messagebox.showinfo("Regression", "Regression wird gestartet..."))
+btn_reg.pack(pady=10)
+reg_ui(btn_reg, "btn_run_regression")
+
+# Sub-Tab 2: Statistik
+sub_tab_stats = tk.Frame(analysis_notebook, bg="#252526")
+analysis_notebook.add(sub_tab_stats, text="")
+reg_ui((analysis_notebook, sub_tab_stats), "sub_analysis_stats", "tab_text")
+
+btn_pvf = tk.Button(sub_tab_stats, font=("Consolas", 9, "bold"), bg="#f57c00", fg="white", padx=10, pady=5,
+                    command=lambda: PvF.main() if PvF else print("PvF nicht verfügbar"))
+btn_pvf.pack(pady=20)
+reg_ui(btn_pvf, "btn_pvf_analysis")
+
+# ------------------------------------------
+# 5. TAB: SETTINGS (SUB-NOTEBOOK)
+# ------------------------------------------
+tab_settings = tk.Frame(main_notebook, bg="#1e1e1e")
+main_notebook.add(tab_settings, text="")
+reg_ui((main_notebook, tab_settings), "tab_settings", "tab_text")
+
+settings_notebook = ttk.Notebook(tab_settings)
+settings_notebook.pack(fill="both", expand=True, padx=10, pady=10)
+
+# Sub-Tab 1: Sprache
+sub_tab_lang = tk.Frame(settings_notebook, bg="#252526")
+settings_notebook.add(sub_tab_lang, text="")
+reg_ui((settings_notebook, sub_tab_lang), "sub_settings_lang", "tab_text")
+
+lbl_lang_sel = tk.Label(sub_tab_lang, font=("Consolas", 10, "bold"), bg="#252526", fg="#ffffff")
+lbl_lang_sel.pack(pady=15)
+reg_ui(lbl_lang_sel, "settings_lang_select")
+
+lang_frame = tk.Frame(sub_tab_lang, bg="#252526")
+lang_frame.pack()
+
+languages = [("Deutsch", "de"), ("English", "en"), ("Español", "es")]
+for name, code in languages:
+    b = tk.Button(lang_frame, text=name, width=12, bg="#3c3f41", fg="white", command=lambda c=code: change_language(c))
+    b.pack(pady=3)
+
+# Sub-Tab 2: Hardware Config
+sub_tab_hw = tk.Frame(settings_notebook, bg="#252526")
+settings_notebook.add(sub_tab_hw, text="")
+reg_ui((settings_notebook, sub_tab_hw), "sub_settings_hw", "tab_text")
+
+lbl_gpib = tk.Label(sub_tab_hw, font=("Consolas", 9), bg="#252526", fg="#ffffff")
+lbl_gpib.pack(pady=(20, 5))
+reg_ui(lbl_gpib, "settings_gpib_addr")
+
+entry_gpib = tk.Entry(sub_tab_hw, font=("Consolas", 10), justify="center")
+entry_gpib.insert(0, GPIB_ADDRESS)
+entry_gpib.pack()
+
+
+# ==========================================
+# SCHLEIFEN & CLEANUP
 # ==========================================
 def update_lockin_display():
-    """Liest regelmäßig Messwerte vom SR830 aus und aktualisiert die Digitalanzeige."""
     if lockin_device is not None:
         try:
-            # OUTP? 3 = Amplitude R, OUTP? 4 = Phase
-            x_val = float(lockin_device.query("OUTP? 1"))
-            y_val = float(lockin_device.query("OUTP? 2"))
             r_val = float(lockin_device.query("OUTP? 3"))
             phase_val = float(lockin_device.query("OUTP? 4"))
-
-            # Formatierung im Digital-Stil
-            val_x_label.config(text=f"{x_val:^+10.6f} V", fg="#00ff00")
-            val_y_label.config(text=f"{y_val:^+10.6f} V", fg="#00ff00")
             val_r_label.config(text=f"{r_val:^+10.6f} V", fg="#00ff00")
             val_phase_label.config(text=f"{phase_val:^+8.2f} °", fg="#ff9900")
         except Exception:
-            val_x_label.config(text="--.------ V", fg="#555555")
-            val_y_label.config(text="--.------ V", fg="#555555")
             val_r_label.config(text="--.------ V", fg="#555555")
             val_phase_label.config(text="---.-- °", fg="#555555")
     else:
         val_r_label.config(text="OFFLINE", fg="#ff3333")
         val_phase_label.config(text="OFFLINE", fg="#ff3333")
 
-    # Aktualisierung alle 500 ms (0,5 Sekunden)
     root.after(500, update_lockin_display)
 
 
-# ==========================================
-# ANWENDUNGS-LOGIK & DATEI-MANAGEMENT
-# ==========================================
-current_file_path = None
+root.protocol("WM_DELETE_WINDOW", lambda: (close_lockin_connection(), root.destroy()))
 
-
-def open_file_dialog():
-    global current_file_path
-    file_path = filedialog.askopenfilename(
-        title="Datei auswählen",
-        filetypes=[
-            ("All supported Files", "*.txt *.csv *.xlsx *.json"),
-            ("Text Files", "*.txt"),
-            ("CSV Files", "*.csv"),
-            ("XLSX Files", "*.xlsx"),
-            ("JSON Files", "*.json"),
-            ("All files", "*.*")
-        ]
-    )
-    if file_path:
-        current_file_path = file_path
-        print(f"Geladene Datei: {current_file_path}")
-        messagebox.showinfo("Import erfolgreich", f"Datei geladen:\n{os.path.basename(current_file_path)}")
-
-
-def remove_file_from_app():
-    global current_file_path
-    if current_file_path is None:
-        messagebox.showwarning("Hinweis", "Es ist derzeit keine Datei geladen!")
-        return
-
-    filename = os.path.basename(current_file_path)
-    current_file_path = None
-    print("Datei aus dem Speicher entfernt.")
-    messagebox.showinfo("Entfernt", f"Die Datei '{filename}' wurde aus dem Programm entladen.")
-
-
-def starte_regression(dateipfad):
-    try:
-        frequenzen, sweeps = SWP_Calculations_Streuung.lade_ptr_datei(dateipfad)
-        f, phase, sigma = SWP_Calculations_Streuung.bereite_daten_auf(frequenzen, sweeps)
-        popt, perr = SWP_Calculations_Streuung.fitte_regression(f, phase, sigma)
-        fit, residuen = SWP_Calculations_Streuung.berechne_residuen(f, phase, popt)
-
-        SWP_Calculations_Streuung.statistik(f, residuen)
-        SWP_Calculations_Streuung.plot_ergebnis(f, phase, sigma, fit, residuen, popt, sweeps)
-    except Exception as e:
-        messagebox.showerror("Berechnungsfehler", f"Fehler bei der Regression:\n{e}")
-
-
-# ==========================================
-# ÜBERSETZUNGS-DATENBANK & AUTOMATISIERUNG
-# ==========================================
-BASE_MENU_EN = {
-    "menu_data": "Data", "menu_data_new": "New", "menu_data_open": "Open", "menu_data_save": "Save",
-    "menu_data_saveas": "Save as", "menu_data_import": "Import", "menu_data_export": "Export",
-    "menu_data_removefile": "Remove file", "menu_data_quit": "Quit",
-    "menu_analysis": "Analysis", "menu_analysis_clean": "Data cleansing",
-    "menu_analysis_stats": "Calculating Statistics", "menu_analysis_chart": "Plot Chart Type",
-    "menu_analysis_outliers": "Detect Outliers",
-    "menu_view": "View", "menu_view_chart": "Change Chart Type", "menu_view_colour": "Colour Assignment",
-    "menu_view_fullscreen": "Full Screen", "menu_view_zoom": "Zoom",
-    "menu_settings": "Settings", "menu_settings_units": "Units", "menu_language": "Languages",
-    "menu_settings_schemes": "Colour Schemes", "menu_settings_thresholds": "Defining Thresholds",
-    "menu_help": "Help", "menu_help_doc": "Documentation", "menu_help_about": "About The Application",
-    "menu_help_version": "Version Number",
-    "menu_laser": "Laser", "menu_laser_start": "Start Laser", "menu_laser_stop": "Stop Laser",
-    "menu_lock_in_amplifier": "Lock-In Amplifier", "menu_lock_in_amplifier_start": "Start Lock-In Amplifier",
-    "menu_lock_in_amplifier_stop": "Stop Lock-In Amplifier",
-    "msg_title": "Info", "msg_text": "Language changed successfully!"
-}
-
-current_lang = "en"
-menu_registry = []
-translation_cache = {"en": BASE_MENU_EN.copy()}
-
-
-def get_translation(key, lang):
-    if lang not in translation_cache:
-        translation_cache[lang] = {}
-    if key in translation_cache[lang]:
-        return translation_cache[lang][key]
-    if lang == "en":
-        return BASE_MENU_EN.get(key, key)
-    try:
-        english_text = BASE_MENU_EN.get(key, key)
-        translated_text = GoogleTranslator(source='en', target=lang).translate(english_text)
-        translation_cache[lang][key] = translated_text
-        return translated_text
-    except Exception as e:
-        print(f"Übersetzungsfehler ({key}): {e}")
-        return BASE_MENU_EN.get(key, key)
-
-
-def change_language(lang_code):
-    global current_lang
-    current_lang = lang_code
-    update_all_menus()
-    messagebox.showinfo(get_translation("msg_title", current_lang), get_translation("msg_text", current_lang))
-
-
-def update_all_menus():
-    for i, (menu_obj, current_label, json_key) in enumerate(menu_registry):
-        new_label = get_translation(json_key, current_lang)
-        try:
-            menu_obj.entryconfigure(current_label, label=new_label)
-            menu_registry[i] = (menu_obj, new_label, json_key)
-        except tk.TclError:
-            pass
-
-
-# ==========================================
-# MENÜ-STRUKTUR DEFINITION
-# ==========================================
-MENU_STRUCTURE = [
-    ("main", "menu_laser", "submenu_laser"),
-    ("main", "menu_lock_in_amplifier", "submenu_lock_in_amplifier"),
-    ("main", "menu_data", "submenu_data"),
-    ("main", "menu_analysis", "submenu_analysis"),
-    ("main", "menu_view", "submenu_view"),
-    ("main", "menu_settings", "submenu_settings"),
-    ("main", "menu_help", "submenu_help"),
-
-    ("submenu_laser", "menu_laser_start", lambda: print("laser_start")),
-    ("submenu_laser", "sep", None),
-    ("submenu_laser", "menu_laser_stop", lambda: print("laser_stop")),
-
-    ("submenu_lock_in_amplifier", "menu_lock_in_amplifier_start", lockin_start),
-    ("submenu_lock_in_amplifier", "sep", None),
-    ("submenu_lock_in_amplifier", "menu_lock_in_amplifier_stop", lockin_stop),
-
-    ("submenu_data", "menu_data_new", lambda: print("new")),
-    ("submenu_data", "sep", None),
-    ("submenu_data", "menu_data_open", lambda: print("open")),
-    ("submenu_data", "sep", None),
-    ("submenu_data", "menu_data_save", lambda: print("save")),
-    ("submenu_data", "sep", None),
-    ("submenu_data", "menu_data_saveas", lambda: print("save_as")),
-    ("submenu_data", "sep", None),
-    ("submenu_data", "menu_data_import", open_file_dialog),
-    ("submenu_data", "sep", None),
-    ("submenu_data", "menu_data_export", lambda: print("export")),
-    ("submenu_data", "sep", None),
-    ("submenu_data", "menu_data_removefile", remove_file_from_app),
-    ("submenu_data", "sep", None),
-    ("submenu_data", "menu_data_quit", "DESTROY_APP"),
-
-    ("submenu_analysis", "menu_analysis_clean", lambda: print("clean")),
-    ("submenu_analysis", "sep", None),
-    ("submenu_analysis", "menu_analysis_stats", lambda: starte_regression(
-        dateipfad=current_file_path or r"C:\Users\aouch\PycharmProjects\PythonProject\20190701_181338_MP1_QC19C(1).txt")),
-    ("submenu_analysis", "sep", None),
-    ("submenu_analysis", "menu_analysis_stats", lambda: PvF.main()),
-    ("submenu_analysis", "sep", None),
-    ("submenu_analysis", "menu_analysis_outliers", lambda: print("outliers")),
-
-    ("submenu_view", "menu_view_chart", lambda: print("chart")),
-    ("submenu_view", "sep", None),
-    ("submenu_view", "menu_view_colour", lambda: print("colour")),
-    ("submenu_view", "sep", None),
-    ("submenu_view", "menu_view_fullscreen", lambda: print("fullscreen")),
-    ("submenu_view", "sep", None),
-    ("submenu_view", "menu_view_zoom", lambda: print("zoom")),
-
-    ("submenu_settings", "menu_settings_units", lambda: print("units")),
-    ("submenu_settings", "sep", None),
-    ("submenu_settings", "menu_language", "subsetting_languages"),
-    ("submenu_settings", "sep", None),
-    ("submenu_settings", "menu_settings_schemes", lambda: print("scheme")),
-    ("submenu_settings", "sep", None),
-    ("submenu_settings", "menu_settings_thresholds", lambda: print("threshold")),
-
-    ("submenu_help", "menu_help_doc", lambda: print("doc")),
-    ("submenu_help", "sep", None),
-    ("submenu_help", "menu_help_about", lambda: print("about")),
-    ("submenu_help", "sep", None),
-    ("submenu_help", "menu_help_version", lambda: print("version"))
-]
-
-# ==========================================
-# GUI AUFBAU
-# ==========================================
-root = tk.Tk()
-root.title('GUI for processing nightriding')
-root.geometry('500x400')
-root.configure(bg="#2b2b2b")  # Dunkler Hintergrund für das Hauptfenster
-
-# ------------------------------------------
-# HIER IST DIE DIGITALUHR-ANZEIGE IM FENSTER
-# ------------------------------------------
-display_frame = tk.LabelFrame(
-    root,
-    text=" SR830 LIVE MONITOR ",
-    font=("Consolas", 10, "bold"),
-    bg="#1e1e1e",
-    fg="#00ffcc",
-    padx=15,
-    pady=10
-)
-display_frame.pack(padx=15, pady=15, fill="both", expand=True)
-
-# Spannung X-Anteil: X=R*cos(theta) (X)
-lbl_x_title = tk.Label(display_frame, text="VOLTAGE (X=R*cos(θ)):", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#aaaaaa")
-lbl_x_title.pack(anchor="w")
-
-val_x_label = tk.Label(
-    display_frame,
-    text="OFFLINE",
-    font=("Consolas", 20, "bold"),
-    bg="#000000",
-    fg="#ff3333",
-    relief="sunken",
-    bd=3,
-    padx=10,
-    pady=2
-)
-val_x_label.pack(fill="x", pady=(2, 20))
-
-# Spannung Y-Anteil: R*sin(theta) (Y)
-lbl_y_title = tk.Label(display_frame, text="VOLTAGE (Y=R*sin(θ)):", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#aaaaaa")
-lbl_y_title.pack(anchor="w")
-val_y_label = tk.Label(
-    display_frame,
-    text="OFFLINE",
-    font=("Consolas", 20, "bold"),
-    bg="#000000",
-    fg="#ff3333",
-    relief="sunken",
-    bd=3,
-    padx=10,
-    pady=2
-)
-val_y_label.pack(fill="x", pady=(2, 30))
-
-# Amplitude (R)
-lbl_r_title = tk.Label(display_frame, text="AMPLITUDE (R):", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#aaaaaa")
-lbl_r_title.pack(anchor="w")
-val_r_label = tk.Label(
-    display_frame,
-    text="OFFLINE",
-    font=("Consolas", 20, "bold"),
-    bg="#000000",
-    fg="#ff3333",
-    relief="sunken",
-    bd=3,
-    padx=10,
-    pady=2
-)
-val_r_label.pack(fill="x", pady=(2, 10))
-
-# Phase (θ)
-lbl_phase_title = tk.Label(display_frame, text="PHASE (θ):", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#aaaaaa")
-lbl_phase_title.pack(anchor="w")
-
-val_phase_label = tk.Label(
-    display_frame,
-    text="OFFLINE",
-    font=("Consolas", 20, "bold"),
-    bg="#000000",
-    fg="#ff3333",
-    relief="sunken",
-    bd=3,
-    padx=10,
-    pady=2
-)
-val_phase_label.pack(fill="x", pady=(2, 0))
-
-# ------------------------------------------
-# MENÜS AUFBAUEN
-# ------------------------------------------
-menus = {
-    "main": tk.Menu(root),
-    "submenu_laser": tk.Menu(root, tearoff=0),
-    "submenu_lock_in_amplifier": tk.Menu(root, tearoff=0),
-    "submenu_data": tk.Menu(root, tearoff=0),
-    "submenu_analysis": tk.Menu(root, tearoff=0),
-    "submenu_view": tk.Menu(root, tearoff=0),
-    "submenu_settings": tk.Menu(root, tearoff=0),
-    "submenu_help": tk.Menu(root, tearoff=0),
-    "subsetting_languages": tk.Menu(root, tearoff=0)
-}
-
-menus["subsetting_languages"].add_command(label='English', command=lambda: change_language("en"))
-menus["subsetting_languages"].add_separator()
-menus["subsetting_languages"].add_command(label='Deutsch', command=lambda: change_language("de"))
-menus["subsetting_languages"].add_separator()
-menus["subsetting_languages"].add_command(label='Español', command=lambda: change_language("es"))
-menus["subsetting_languages"].add_separator()
-menus["subsetting_languages"].add_command(label='Français', command=lambda: change_language("fr"))
-menus["subsetting_languages"].add_separator()
-menus["subsetting_languages"].add_command(label='Italiano', command=lambda: change_language("it"))
-
-for parent_name, item_key, action in MENU_STRUCTURE:
-    parent_menu = menus[parent_name]
-    if item_key == "sep":
-        parent_menu.add_separator()
-        continue
-
-    start_text = get_translation(item_key, current_lang)
-
-    if isinstance(action, str):
-        target_sub = root.destroy if action == "DESTROY_APP" else menus[action]
-        if action == "DESTROY_APP":
-            parent_menu.add_command(label=start_text, command=target_sub)
-        else:
-            parent_menu.add_cascade(label=start_text, menu=target_sub)
-    else:
-        parent_menu.add_command(label=start_text, command=action)
-
-    menu_registry.append((parent_menu, start_text, item_key))
-
-root.config(menu=menus["main"])
-
-
-# Ereignis beim Schließen des Fensters
-def on_closing():
-    close_lockin_connection()
-    root.destroy()
-
-
-root.protocol("WM_DELETE_WINDOW", on_closing)
-
-# Startet die ständige Live-Aktualisierung der Messwerte
+# Start-Updates
 update_lockin_display()
-
-# GUI-Schleife starten
 root.mainloop()
