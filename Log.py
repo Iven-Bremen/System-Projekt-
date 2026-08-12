@@ -10,6 +10,16 @@ from datetime import datetime
 
 CSV_COLUMNS = ["Timestamp", "Device", "Command", "Raw_Response", "Decoded_Info", "Latency_ms"]
 
+def GetValue(COM, Command):
+
+    #Anfrage üver RS232 
+
+    updateGUI(Value)
+
+def SetValue(COM, Command, Value):
+    # Sende Wert über RS232
+
+    Indicate to GUI that value has been set
 
 def make_log_path(prefix="M", base_name=None):
     """Erzeuge pro Programmstart einen eigenen Ordner mit Datum und Startzeit."""
