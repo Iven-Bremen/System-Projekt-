@@ -1,8 +1,7 @@
 import serial
 import time
 
-def getValue(Init,COM,Command,i,j,k,m,l,n):
-
+def getValue(Init,COM,Command,i,j,k):
 
     match Command:
     # ==================================================================================    
