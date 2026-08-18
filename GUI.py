@@ -17,17 +17,6 @@ import SWP_Calculation_PhaseVsFrequenz as PvF
 import SWP_Calculation_TimeVsNitrierschicht as TvN
 import SWP_Calculations_Streuung
 
-#def GetValue(COM, Command):
-
-    #Anfrage üver RS232
-
-    #updateGUI(Value)
-
-#def SetValue(COM, Command, Value):
-    #Sende Wert über RS232
-
-    #Indicate to GUI that value has been set
-
 def starte_regression(dateipfad):
     try:
         frequenzen, sweeps = SWP_Calculations_Streuung.lade_ptr_datei(dateipfad)
@@ -460,6 +449,8 @@ def update_laser_display_mode(event=None):
     mode_str = combo_layout.get()
     for k in lcd_vars:
         lcd_vars[k].grid_remove()
+    
+    # Wenn ich hier was einstetez wie hast du es dir denn gedacht das ich dir werte gebe 
 
     if "(a)" in mode_str:
         lbl_lcd_main.config(text="0 mA") #HIER METHODE EINSETZTEN @IVEN
