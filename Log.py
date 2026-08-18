@@ -7,6 +7,7 @@ import csv
 import os
 import sys
 from datetime import datetime
+import Commands
 
 CSV_COLUMNS = ["Timestamp", "Device", "Command", "Raw_Response", "Decoded_Info", "Latency_ms"]
 
