@@ -2,10 +2,7 @@ import serial
 import time
 import Log
 
-def Setup ():
-    Log = serial.Serial("COM4", 9600, timeout = 2.0)
-    time.sleep (0.5)
-                 
+
 def getValue(Init,Command,i,j,k):
 
 
