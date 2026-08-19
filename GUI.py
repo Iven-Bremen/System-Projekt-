@@ -370,7 +370,7 @@ reg_ui((main_notebook, tab_laser), "Laser / TEC Controller", "tab_text")
 ostech_notebook = ttk.Notebook(tab_laser)
 ostech_notebook.pack(fill="both", expand=True, padx=5, pady=5)
 
-# --- 3.1 OSTECH MAIN DISPLAY (FIG 3.1) ---
+# --- 3.1 OSTECH MAIN DISPLAY ---
 tab_ostech_main = tk.Frame(ostech_notebook, bg="#1e1e1e")
 ostech_notebook.add(tab_ostech_main, text=" Main Display ")
 
@@ -444,6 +444,41 @@ def update_laser_display_mode(event=None):
 combo_layout.bind("<<ComboboxSelected>>", update_laser_display_mode)
 update_laser_display_mode()
 
+# ==========================================
+# LASER SAFETY CHECKLIST (INTEGRIERT)
+# ==========================================
+var_goggles = tk.BooleanVar(value=False)
+var_interlock = tk.BooleanVar(value=False)
+var_beampath = tk.BooleanVar(value=False)
+var_warning = tk.BooleanVar(value=False)
+
+def check_laser_safety():
+    if var_goggles.get() and var_interlock.get() and var_beampath.get() and var_warning.get():
+        ostech_notebook.tab(tab_ostech_laser, state="normal")
+        lbl_safety_status.config(text="STATUS: GESICHERT (Laser-Menü Freigeschaltet)", fg="#00ff00")
+        messagebox.showinfo(auto_tr("Laser Security"), auto_tr("Alle Sicherheitsmaßnahmen erfüllt. Das Laser-Menü wurde freigeschaltet."))
+    else:
+        ostech_notebook.tab(tab_ostech_laser, state=DISABLED)
+        lbl_safety_status.config(text="STATUS: SPERRE (Checkliste unvollständig)", fg="#ff3333")
+
+frame_safety = tk.LabelFrame(tab_ostech_main, text=" Laser Security Checklist ", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#ffaa00", padx=10, pady=8)
+frame_safety.pack(fill="x", padx=10, pady=10)
+
+chk_goggles = tk.Checkbutton(frame_safety, text=" Laser-Schutzbrille aufgesetzt", variable=var_goggles, command=check_laser_safety, bg="#1e1e1e", fg="#ffffff", selectcolor="#2b2b2b", activebackground="#1e1e1e")
+chk_goggles.pack(anchor="w", pady=2)
+
+chk_interlock = tk.Checkbutton(frame_safety, text=" Tür-Interlock / Hardware-Interlock geschlossen", variable=var_interlock, command=check_laser_safety, bg="#1e1e1e", fg="#ffffff", selectcolor="#2b2b2b", activebackground="#1e1e1e")
+chk_interlock.pack(anchor="w", pady=2)
+
+chk_beampath = tk.Checkbutton(frame_safety, text=" Strahlgang gesichert & Strahlfalle positioniert", variable=var_beampath, command=check_laser_safety, bg="#1e1e1e", fg="#ffffff", selectcolor="#2b2b2b", activebackground="#1e1e1e")
+chk_beampath.pack(anchor="w", pady=2)
+
+chk_warning = tk.Checkbutton(frame_safety, text=" Laser-Warnleuchte aktiv & Not-Aus frei erreichbar", variable=var_warning, command=check_laser_safety, bg="#1e1e1e", fg="#ffffff", selectcolor="#2b2b2b", activebackground="#1e1e1e")
+chk_warning.pack(anchor="w", pady=2)
+
+lbl_safety_status = tk.Label(frame_safety, text="STATUS: SPERRE (Checkliste unvollständig)", font=("Consolas", 10, "bold"), bg="#1e1e1e", fg="#ff3333")
+lbl_safety_status.pack(anchor="e", pady=(5, 0))
+
 # --- 3.2 OSTECH LASER MENU ---
 tab_ostech_laser = tk.Frame(ostech_notebook, bg="#1e1e1e")
 ostech_notebook.add(tab_ostech_laser, text=" Laser Menu ", state=DISABLED)
@@ -465,10 +500,15 @@ entry_lclm = tk.Entry(frame_lmenu, font=("Consolas", 9)); entry_lclm.insert(0, "
 tk.Label(frame_lmenu, text="LTM (Max Temp Limit - °C):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(row=6, column=0, sticky="w", pady=2)
 entry_ltm = tk.Entry(frame_lmenu, font=("Consolas", 9)); entry_ltm.insert(0, "33.0"); entry_ltm.grid(row=7, column=0, sticky="ew", padx=5)
 
-# Spalte 2: Modulation Mode Selection
+# Spalte 2: Modulation Mode Selection (ERWEITERT UM EXTERNE MODULATION)
 tk.Label(frame_lmenu, text="Modulation Mode:", bg="#1e1e1e", fg="#00ffcc", font=("Consolas", 9, "bold")).grid(row=0, column=1, sticky="w", pady=2)
-combo_mod_mode = ttk.Combobox(frame_lmenu, values=["CW Mode (No Mod)", "LMAX (Ext Analog)", "LMDX (Ext Digital)", "LMDI (Int Digital)"], state="readonly")
-combo_mod_mode.current(0)
+combo_mod_mode = ttk.Combobox(frame_lmenu, values=[
+    "CW Mode (No Mod)",
+    "External Modulation (Analog - LMAX)",
+    "External Modulation (Digital - LMDX)",
+    "Internal Digital Modulation (LMDI)"
+], state="readonly")
+combo_mod_mode.current(1)  # Standardmäßig auf Externe Modulation gesetzt
 combo_mod_mode.grid(row=1, column=1, sticky="ew", padx=5)
 
 tk.Label(frame_lmenu, text="LMW (Modulation Width - ms):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(row=2, column=1, sticky="w", pady=2)
@@ -603,10 +643,6 @@ reg_ui((main_notebook, tab_help), "Help", "tab_text")
 help_notebook = ttk.Notebook(tab_help)
 help_notebook.pack(fill="both", expand=True, padx=10, pady=10)
 
-#sub_tab_lang = tk.Frame(help_notebook, bg="#252526")
-#help_notebook.add(sub_tab_lang, text="")
-#reg_ui((help_notebook, sub_tab_lang), "Language", "tab_text")
-
 sub_tab_about_the_application = tk.Frame(help_notebook, bg="#252526")
 help_notebook.add(sub_tab_about_the_application, text="")
 reg_ui((help_notebook, sub_tab_about_the_application), "About the application", "tab_text")
@@ -616,7 +652,7 @@ lbl_help.pack(pady=(40, 10))
 reg_ui(lbl_help, "This application is the result of the software project of summer semester 2026. \n in case of problems please contact:")
 lbl_help2 = tk.Label(sub_tab_about_the_application, font=("Consolas", 18, "italic"), bg="#252526", fg="#ff4d00")
 lbl_help2.pack(pady=(45, 10))
-reg_ui(lbl_help2, "rayane@uni-bremen.de \n ihagge@uni-bremen.de \n vtam@uni-bremen.de")
+reg_ui(lbl_help2, "xxx")
 
 # ------------------------------------------
 # 6. TAB: SETTINGS
