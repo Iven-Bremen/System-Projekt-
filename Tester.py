@@ -15,23 +15,22 @@ print("Decoded: ", reply.decode("ascii", errors="replace").strip())
 time.sleep (1)
 
 
-Commands.getValue(SR830,IDN,0,0,0)
+Commands.getValue(SR830,"IDN",0,0,0)
 
 
 
-Commands.getValue(SR830,OUTP1,0,0,0)
+Commands.getValue(SR830,"OUTP1",0,0,0)
 
 
 
-Commands.getValue(SR830,OUTP2,0,0,0)
+Commands.getValue(SR830,"OUTP2",0,0,0)
 
 
 
-Commands.getValue(SR830,OUTP3,0,0,0)
+Commands.getValue(SR830,"OUTP3",0,0,0)
 
 
 
-Commands.getValue(SR830,OUTP4,0,0,0)
+Commands.getValue(SR830,"OUTP4",0,0,0)
 
 
-ser.close()

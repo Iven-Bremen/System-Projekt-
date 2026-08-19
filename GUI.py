@@ -1,20 +1,65 @@
 import os
 import sys
 import json
+import subprocess
+
+import serial
+import time
+
+
+def install_and_import(package, import_name=None):
+    if import_name is None:
+        import_name = package
+    try:
+        __import__(import_name)
+    except ImportError:
+        print(f"Paket '{package}' fehlt. Wird automatisch installiert...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+# Fehlende Pakete automatisch installieren
+install_and_import("deep-translator", "deep_translator")
+install_and_import("pyvisa")
+
+from deep_translator import GoogleTranslator       
+import pyvisa                                       
+
 import tkinter as tk
 from tkinter import messagebox, ttk, filedialog
 from tkinter.constants import DISABLED
-
-# Übersetzungs-Bibliothek
-from deep_translator import GoogleTranslator
-
-# VISA / Hardware-Ansteuerung
-import pyvisa
 
 # Eigene SWP-Module
 import SWP_Calculation_PhaseVsFrequenz as PvF
 import SWP_Calculation_TimeVsNitrierschicht as TvN
 import SWP_Calculations_Streuung
+import Commands
+import Log
+
+
+# --- SR830 Ansteuerung ---
+Log.LogMassage("Check Ports vor SR830", "Info", "Test", "Check", "SR830")
+try:
+    SR830 = serial.Serial("COM4", 9600, timeout=2.0)
+    time.sleep(0.5)
+    Log.LogMassage("COM4", "Info", "Test", "OpenPort", "9600")
+except serial.SerialException:
+    SR830 = None
+    Log.LogMassage("COM4", "Warning", "Port konnte nicht geöffnet werden (Hardware fehlt)", "Fail", "COM4")
+
+
+# --- OSTech Laser Ansteuerung ---
+Log.LogMassage("Check Ports vor OSTech", "Info", "Test", "Check", "OSTech")
+try:
+    OSTech = serial.Serial("COM5", 9600, timeout=2.0)
+    time.sleep(0.5)
+    Log.LogMassage("COM5", "Info", "Test", "OpenPort", "9600")
+except serial.SerialException:
+    OSTech = None
+    Log.LogMassage("COM5", "Warning", "Port konnte nicht geöffnet werden (Hardware fehlt)", "Fail", "COM5")
+
+
+# Aufruf ohne IndentationError (keine führenden Leerzeichen)
+Commands.getValue(SR830,"IND")
+Commands.setValue(SR830,"PHAS", x=45)
 
 
 def starte_regression(dateipfad):
@@ -264,7 +309,7 @@ combo_ch1_src = ttk.Combobox(frame_ch1, values=["X", "R", "X Noise", "Aux In 1"]
 combo_ch1_src.current(0)
 combo_ch1_src.pack(fill="x", pady=2)
 
-val_ch1_label = tk.Label(frame_ch1, text="+1.3658 V", font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00", relief="sunken", bd=3)
+val_ch1_label = tk.Label(frame_ch1, text=str(Commands.getValue(SR830,"OUTP1") + " V"), font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00", relief="sunken", bd=3)
 val_ch1_label.pack(fill="x", pady=(10, 2))
 
 lbl_bar1 = tk.Label(frame_ch1, text="LEVEL BAR GRAPH", font=("Consolas", 7), bg="#1e1e1e", fg="#888888")
@@ -300,7 +345,7 @@ combo_ch2_src = ttk.Combobox(frame_ch2, values=["Y", "Phase (θ)", "Y Noise", "A
 combo_ch2_src.current(1)
 combo_ch2_src.pack(fill="x", pady=2)
 
-val_ch2_label = tk.Label(frame_ch2, text="- 3.821 °", font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00", relief="sunken", bd=3)
+val_ch2_label = tk.Label(frame_ch2, text=str(Commands.getValue(SR830,"OUTP2") + " °"), font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00", relief="sunken", bd=3)
 val_ch2_label.pack(fill="x", pady=(10, 2))
 
 lbl_bar2 = tk.Label(frame_ch2, text="LEVEL BAR GRAPH", font=("Consolas", 7), bg="#1e1e1e", fg="#888888")
@@ -363,6 +408,7 @@ reg_ui(btn_stop_lockin, "⏹ Stop Sine Out")
 # ------------------------------------------
 # 3. TAB: OSTECH LASER / TEC CONTROLLER (VOLLSTÄNDIGES MENÜSYSTEM)
 # ------------------------------------------
+
 tab_laser = tk.Frame(main_notebook, bg="#1e1e1e")
 main_notebook.add(tab_laser, text="")
 reg_ui((main_notebook, tab_laser), "Laser / TEC Controller", "tab_text")
