@@ -1,32 +1,66 @@
 import os
 import sys
+import json
+import subprocess
+
 import serial
 import time
-import json
+
+
+def install_and_import(package, import_name=None):
+    if import_name is None:
+        import_name = package
+    try:
+        __import__(import_name)
+    except ImportError:
+        print(f"Paket '{package}' fehlt. Wird automatisch installiert...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+# Fehlende Pakete automatisch installieren
+install_and_import("deep-translator", "deep_translator")
+install_and_import("pyvisa")
+
+from deep_translator import GoogleTranslator       
+import pyvisa                                       
+
 import tkinter as tk
 from tkinter import messagebox, ttk, filedialog
-
-# Übersetzungs-Bibliothek
-from deep_translator import GoogleTranslator
-
-# VISA / Hardware-Ansteuerung
-import pyvisa
+from tkinter.constants import DISABLED
 
 # Eigene SWP-Module
 import SWP_Calculation_PhaseVsFrequenz as PvF
 import SWP_Calculation_TimeVsNitrierschicht as TvN
 import SWP_Calculations_Streuung
+import Commands
+import Log
 
-#def GetValue(COM, Command):
 
-    #Anfrage üver RS232
+# --- SR830 Ansteuerung ---
+Log.LogMassage("Check Ports vor SR830", "Info", "Test", "Check", "SR830")
+try:
+    SR830 = serial.Serial("COM4", 9600, timeout=2.0)
+    time.sleep(0.5)
+    Log.LogMassage("COM4", "Info", "Test", "OpenPort", "9600")
+except serial.SerialException:
+    SR830 = None
+    Log.LogMassage("COM4", "Warning", "Port konnte nicht geöffnet werden (Hardware fehlt)", "Fail", "COM4")
 
-    #updateGUI(Value)
 
-#def SetValue(COM, Command, Value):
-    #Sende Wert über RS232
+# --- OSTech Laser Ansteuerung ---
+Log.LogMassage("Check Ports vor OSTech", "Info", "Test", "Check", "OSTech")
+try:
+    OSTech = serial.Serial("COM5", 9600, timeout=2.0)
+    time.sleep(0.5)
+    Log.LogMassage("COM5", "Info", "Test", "OpenPort", "9600")
+except serial.SerialException:
+    OSTech = None
+    Log.LogMassage("COM5", "Warning", "Port konnte nicht geöffnet werden (Hardware fehlt)", "Fail", "COM5")
 
-    #Indicate to GUI that value has been set
+
+# Aufruf ohne IndentationError (keine führenden Leerzeichen)
+Commands.getValue(SR830,"IND")
+Commands.setValue(SR830,"PHAS", x=45)
+
 
 def starte_regression(dateipfad):
     try:
@@ -165,8 +199,8 @@ def open_file_dialog():
 # GUI ANWENDUNG
 # ==========================================
 root = tk.Tk()
-root.title('Labor-Steuerung & Analyse (SR830 & Laser Controller)')
-root.geometry('1340x780')
+root.title('Labor-Steuerung & Analyse (SR830 & OSTech Laser Controller)')
+root.geometry('1340x820')
 root.configure(bg="#2b2b2b")
 
 style = ttk.Style()
@@ -203,7 +237,7 @@ reg_ui((main_notebook, tab_lockin), "Lock-In Amplifier", "tab_text")
 tab_lockin.columnconfigure((0, 1, 2, 3), weight=1, pad=5)
 tab_lockin.rowconfigure(0, weight=1)
 
-# --- SPALTE 1: SIGNAL INPUTS, FILTERS & GAIN ---
+# Spalte 1: Inputs & Gain
 frame_input = tk.LabelFrame(tab_lockin, font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#00ffcc", padx=8, pady=5)
 frame_input.grid(row=0, column=0, sticky="nsew", padx=4, pady=5)
 reg_ui(frame_input, " Signal Inputs & Filters ")
@@ -264,8 +298,7 @@ combo_slope = ttk.Combobox(frame_input, values=["6 dB/oct", "12 dB/oct", "18 dB/
 combo_slope.current(3)
 combo_slope.pack(fill="x", pady=2)
 
-
-# --- SPALTE 2: CH1 DISPLAY BLOCK (7-SEGMENT + BAR GRAPH + OFFSET) ---
+# Spalte 2: CH1 Display
 frame_ch1 = tk.LabelFrame(tab_lockin, font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#00ffcc", padx=8, pady=5)
 frame_ch1.grid(row=0, column=1, sticky="nsew", padx=4, pady=5)
 reg_ui(frame_ch1, " CH1 Display ")
@@ -276,11 +309,9 @@ combo_ch1_src = ttk.Combobox(frame_ch1, values=["X", "R", "X Noise", "Aux In 1"]
 combo_ch1_src.current(0)
 combo_ch1_src.pack(fill="x", pady=2)
 
-# Digital Readout
-val_ch1_label = tk.Label(frame_ch1, text="+1.3658 V", font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00", relief="sunken", bd=3) #HIER METHODE EINSETZTEN @IVEN
+val_ch1_label = tk.Label(frame_ch1, text=str(Commands.getValue(SR830,"OUTP1") + " V"), font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00", relief="sunken", bd=3)
 val_ch1_label.pack(fill="x", pady=(10, 2))
 
-# Simulated SR830 Bar Graph LED Scale
 lbl_bar1 = tk.Label(frame_ch1, text="LEVEL BAR GRAPH", font=("Consolas", 7), bg="#1e1e1e", fg="#888888")
 lbl_bar1.pack(anchor="w", pady=(5, 0))
 canvas_bar1 = tk.Canvas(frame_ch1, height=18, bg="#000000", highlightthickness=1, highlightbackground="#444444")
@@ -292,28 +323,18 @@ def draw_bargraph(canvas, percent):
     if width <= 1:
         width = 200
     fill_width = int(width * (percent / 100.0))
-    # Render segments like physical LEDs
     for x in range(0, fill_width, 6):
         color = "#00ff00" if x < width * 0.8 else "#ff3333"
         canvas.create_rectangle(x, 2, x + 4, 16, fill=color, outline="")
 
 canvas_bar1.bind("<Configure>", lambda e: draw_bargraph(canvas_bar1, 68))
 
-# Offset & Expand Sub-Panel
 frame_off1 = tk.LabelFrame(frame_ch1, text=" Offset & Expand ", font=("Consolas", 8), bg="#1e1e1e", fg="#aaaaaa")
 frame_off1.pack(fill="x", pady=(15, 2))
-
 btn_auto_off1 = tk.Button(frame_off1, text="Auto Offset", font=("Consolas", 8), bg="#3c3f41", fg="white")
 btn_auto_off1.pack(fill="x", pady=2)
 
-lbl_exp1 = tk.Label(frame_off1, text="Expand:", font=("Consolas", 8), bg="#1e1e1e", fg="#aaaaaa")
-lbl_exp1.pack(anchor="w")
-combo_exp1 = ttk.Combobox(frame_off1, values=["1 (Off)", "10", "100"], state="readonly")
-combo_exp1.current(0)
-combo_exp1.pack(fill="x", pady=2)
-
-
-# --- SPALTE 3: CH2 DISPLAY BLOCK (7-SEGMENT + BAR GRAPH + OFFSET) ---
+# Spalte 3: CH2 Display
 frame_ch2 = tk.LabelFrame(tab_lockin, font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#00ffcc", padx=8, pady=5)
 frame_ch2.grid(row=0, column=2, sticky="nsew", padx=4, pady=5)
 reg_ui(frame_ch2, " CH2 Display ")
@@ -324,58 +345,37 @@ combo_ch2_src = ttk.Combobox(frame_ch2, values=["Y", "Phase (θ)", "Y Noise", "A
 combo_ch2_src.current(1)
 combo_ch2_src.pack(fill="x", pady=2)
 
-# Digital Readout
-val_ch2_label = tk.Label(frame_ch2, text="- 3.821 °", font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00", relief="sunken", bd=3) #HIER METHODE EINSETZTEN @IVEN
+val_ch2_label = tk.Label(frame_ch2, text=str(Commands.getValue(SR830,"OUTP2") + " °"), font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00", relief="sunken", bd=3)
 val_ch2_label.pack(fill="x", pady=(10, 2))
 
-# Simulated SR830 Bar Graph LED Scale
 lbl_bar2 = tk.Label(frame_ch2, text="LEVEL BAR GRAPH", font=("Consolas", 7), bg="#1e1e1e", fg="#888888")
 lbl_bar2.pack(anchor="w", pady=(5, 0))
 canvas_bar2 = tk.Canvas(frame_ch2, height=18, bg="#000000", highlightthickness=1, highlightbackground="#444444")
 canvas_bar2.pack(fill="x", pady=2)
 canvas_bar2.bind("<Configure>", lambda e: draw_bargraph(canvas_bar2, 42))
 
-# Offset & Expand Sub-Panel
 frame_off2 = tk.LabelFrame(frame_ch2, text=" Offset & Expand ", font=("Consolas", 8), bg="#1e1e1e", fg="#aaaaaa")
 frame_off2.pack(fill="x", pady=(15, 2))
-
 btn_auto_off2 = tk.Button(frame_off2, text="Auto Offset", font=("Consolas", 8), bg="#3c3f41", fg="white")
 btn_auto_off2.pack(fill="x", pady=2)
 
-lbl_exp2 = tk.Label(frame_off2, text="Expand:", font=("Consolas", 8), bg="#1e1e1e", fg="#aaaaaa")
-lbl_exp2.pack(anchor="w")
-combo_exp2 = ttk.Combobox(frame_off2, values=["1 (Off)", "10", "100"], state="readonly")
-combo_exp2.current(0)
-combo_exp2.pack(fill="x", pady=2)
-
-
-# --- SPALTE 4: REF DISPLAY, AUTO FUNCTIONS & SINE OUT ---
+# Spalte 4: Ref Display & Auto
 frame_ref = tk.LabelFrame(tab_lockin, font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#00ffcc", padx=8, pady=5)
 frame_ref.grid(row=0, column=3, sticky="nsew", padx=4, pady=5)
 reg_ui(frame_ref, " Ref Display & Controls ")
 
-# Green Reference Digital Display
-val_ref_display = tk.Label(frame_ref, text="1000.00 Hz", font=("Consolas", 20, "bold"), bg="#000000", fg="#00ff00", relief="sunken", bd=3) #HIER METHODE EINSETZTEN @IVEN
+val_ref_display = tk.Label(frame_ref, text="1000.00 Hz", font=("Consolas", 20, "bold"), bg="#000000", fg="#00ff00", relief="sunken", bd=3)
 val_ref_display.pack(fill="x", pady=(2, 6))
 
-# SR830 Dedicated Auto Functions Matrix
 frame_auto = tk.LabelFrame(frame_ref, text=" Auto Functions ", font=("Consolas", 8, "bold"), bg="#1e1e1e", fg="#ffaa00", padx=5, pady=5)
 frame_auto.pack(fill="x", pady=5)
 frame_auto.columnconfigure((0, 1), weight=1)
 
-btn_ap = tk.Button(frame_auto, text="Auto Phase", font=("Consolas", 8, "bold"), bg="#3c3f41", fg="white")
-btn_ap.grid(row=0, column=0, padx=2, pady=2, sticky="ew")
+tk.Button(frame_auto, text="Auto Phase", font=("Consolas", 8, "bold"), bg="#3c3f41", fg="white").grid(row=0, column=0, padx=2, pady=2, sticky="ew")
+tk.Button(frame_auto, text="Auto Gain", font=("Consolas", 8, "bold"), bg="#3c3f41", fg="white").grid(row=0, column=1, padx=2, pady=2, sticky="ew")
+tk.Button(frame_auto, text="Auto Reserve", font=("Consolas", 8, "bold"), bg="#3c3f41", fg="white").grid(row=1, column=0, padx=2, pady=2, sticky="ew")
+tk.Button(frame_auto, text="Auto Offset", font=("Consolas", 8, "bold"), bg="#3c3f41", fg="white").grid(row=1, column=1, padx=2, pady=2, sticky="ew")
 
-btn_ag = tk.Button(frame_auto, text="Auto Gain", font=("Consolas", 8, "bold"), bg="#3c3f41", fg="white")
-btn_ag.grid(row=0, column=1, padx=2, pady=2, sticky="ew")
-
-btn_ar = tk.Button(frame_auto, text="Auto Reserve", font=("Consolas", 8, "bold"), bg="#3c3f41", fg="white")
-btn_ar.grid(row=1, column=0, padx=2, pady=2, sticky="ew")
-
-btn_ao = tk.Button(frame_auto, text="Auto Offset", font=("Consolas", 8, "bold"), bg="#3c3f41", fg="white")
-btn_ao.grid(row=1, column=1, padx=2, pady=2, sticky="ew")
-
-# Ref & Sine Settings
 lbl_freq = tk.Label(frame_ref, font=("Consolas", 8), bg="#1e1e1e", fg="#aaaaaa")
 lbl_freq.pack(anchor="w", pady=(4, 0))
 reg_ui(lbl_freq, "Ref Frequency (Hz):")
@@ -405,17 +405,23 @@ btn_stop_lockin = tk.Button(frame_ref, font=("Consolas", 8, "bold"), bg="#c62828
 btn_stop_lockin.pack(fill="x", pady=2)
 reg_ui(btn_stop_lockin, "⏹ Stop Sine Out")
 
+# ------------------------------------------
+# 3. TAB: OSTECH LASER / TEC CONTROLLER (VOLLSTÄNDIGES MENÜSYSTEM)
+# ------------------------------------------
 
-# ------------------------------------------
-# 3. TAB: LASER / TEC CONTROLLER
-# ------------------------------------------
 tab_laser = tk.Frame(main_notebook, bg="#1e1e1e")
 main_notebook.add(tab_laser, text="")
 reg_ui((main_notebook, tab_laser), "Laser / TEC Controller", "tab_text")
 
-tab_laser.columnconfigure(0, weight=1)
+# Sub-Notebook für OSTech Menü-Ebenen
+ostech_notebook = ttk.Notebook(tab_laser)
+ostech_notebook.pack(fill="both", expand=True, padx=5, pady=5)
 
-frame_layout_sel = tk.Frame(tab_laser, bg="#1e1e1e")
+# --- 3.1 OSTECH MAIN DISPLAY ---
+tab_ostech_main = tk.Frame(ostech_notebook, bg="#1e1e1e")
+ostech_notebook.add(tab_ostech_main, text=" Main Display ")
+
+frame_layout_sel = tk.Frame(tab_ostech_main, bg="#1e1e1e")
 frame_layout_sel.pack(fill="x", padx=10, pady=5)
 
 lbl_layout_cfg = tk.Label(frame_layout_sel, font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#00ffcc")
@@ -432,10 +438,10 @@ combo_layout = ttk.Combobox(frame_layout_sel, values=[
 combo_layout.current(2)
 combo_layout.pack(side="left", padx=5)
 
-frame_lcd = tk.Frame(tab_laser, bg="#000000", bd=3, relief="sunken")
+frame_lcd = tk.Frame(tab_ostech_main, bg="#000000", bd=3, relief="sunken")
 frame_lcd.pack(fill="x", padx=10, pady=5)
 
-lbl_lcd_main = tk.Label(frame_lcd, text="0 mA", font=("Consolas", 28, "bold"), bg="#000000", fg="#00ff00")
+lbl_lcd_main = tk.Label(frame_lcd, text="0 mA", font=("Consolas", 26, "bold"), bg="#000000", fg="#00ff00")
 lbl_lcd_main.pack(pady=(5, 0))
 
 frame_lcd_grid = tk.Frame(frame_lcd, bg="#000000")
@@ -462,19 +468,19 @@ def update_laser_display_mode(event=None):
         lcd_vars[k].grid_remove()
 
     if "(a)" in mode_str:
-        lbl_lcd_main.config(text="0 mA") #HIER METHODE EINSETZTEN @IVEN
+        lbl_lcd_main.config(text="0 mA")
         active = ["Laser Status", "Mode", "LCT", "LCB", "LVA", "TA", "Error#", "Interlock"]
     elif "(b)" in mode_str:
-        lbl_lcd_main.config(text="0 mA") #HIER METHODE EINSETZTEN @IVEN
+        lbl_lcd_main.config(text="0 mA")
         active = ["Laser Status", "TEC1 Status", "LCT", "TA", "LVA", "TT", "Mode", "TCA", "Error#", "Interlock"]
     elif "(c)" in mode_str:
-        lbl_lcd_main.config(text="0 mA") #HIER METHODE EINSETZTEN @IVEN
+        lbl_lcd_main.config(text="0 mA")
         active = ["Laser Status", "TEC1 Status", "TEC2 Status", "LCT", "LTA", "LVA", "CTA", "Mode", "Error#", "Interlock"]
     elif "(d)" in mode_str:
-        lbl_lcd_main.config(text="26.92 °C") #HIER METHODE EINSETZTEN @IVEN
+        lbl_lcd_main.config(text="26.92 °C")
         active = ["TEC1 Status", "TT", "TVA", "TCA", "TCL", "Error#", "Interlock"]
     elif "(e)" in mode_str:
-        lbl_lcd_main.config(text="26.91°C   26.93°C") #HIER METHODE EINSETZTEN @IVEN
+        lbl_lcd_main.config(text="26.91°C   26.93°C")
         active = ["TEC1 Status", "TEC2 Status", "LTT", "CTT", "LTCA", "CTCA", "Error#", "Interlock"]
 
     for idx, p in enumerate(active):
@@ -483,60 +489,162 @@ def update_laser_display_mode(event=None):
         lcd_vars[p].grid(row=r, column=c, sticky="ew", padx=5, pady=2)
 
 combo_layout.bind("<<ComboboxSelected>>", update_laser_display_mode)
-
-frame_laser_controls = tk.LabelFrame(tab_laser, font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#00ffcc", padx=8, pady=5)
-frame_laser_controls.pack(fill="both", expand=True, padx=10, pady=5)
-frame_laser_controls.columnconfigure((0, 1, 2), weight=1)
-
-f_ld = tk.Frame(frame_laser_controls, bg="#1e1e1e")
-f_ld.grid(row=0, column=0, sticky="nsew", padx=5)
-
-lbl_lcb_in = tk.Label(f_ld, text="LCB (Current Bias - mA):", font=("Consolas", 8), bg="#1e1e1e", fg="#aaaaaa")
-lbl_lcb_in.pack(anchor="w")
-entry_lcb = tk.Entry(f_ld, font=("Consolas", 9), justify="center")
-entry_lcb.insert(0, "0.00")
-entry_lcb.pack(fill="x", pady=2)
-
-lbl_lct_in = tk.Label(f_ld, text="LCT (Current Threshold - mA):", font=("Consolas", 8), bg="#1e1e1e", fg="#aaaaaa")
-lbl_lct_in.pack(anchor="w", pady=(5, 0))
-entry_lct = tk.Entry(f_ld, font=("Consolas", 9), justify="center")
-entry_lct.insert(0, "100.0")
-entry_lct.pack(fill="x", pady=2)
-
-btn_laser_toggle = tk.Button(f_ld, text="Laser ON / OFF", font=("Consolas", 9, "bold"), bg="#d32f2f", fg="white")
-btn_laser_toggle.pack(fill="x", pady=10)
-
-f_tec1 = tk.Frame(frame_laser_controls, bg="#1e1e1e")
-f_tec1.grid(row=0, column=1, sticky="nsew", padx=5)
-
-lbl_tt_in = tk.Label(f_tec1, text="TT / LTT (Target Temp - °C):", font=("Consolas", 8), bg="#1e1e1e", fg="#aaaaaa")
-lbl_tt_in.pack(anchor="w")
-entry_tt = tk.Entry(f_tec1, font=("Consolas", 9), justify="center")
-entry_tt.insert(0, "20.00")
-entry_tt.pack(fill="x", pady=2)
-
-lbl_tcl_in = tk.Label(f_tec1, text="TCL (Current Limit - A):", font=("Consolas", 8), bg="#1e1e1e", fg="#aaaaaa")
-lbl_tcl_in.pack(anchor="w", pady=(5, 0))
-entry_tcl = tk.Entry(f_tec1, font=("Consolas", 9), justify="center")
-entry_tcl.insert(0, "6.000")
-entry_tcl.pack(fill="x", pady=2)
-
-btn_tec1_toggle = tk.Button(f_tec1, text="TEC 1 ON / OFF", font=("Consolas", 9, "bold"), bg="#0288d1", fg="white")
-btn_tec1_toggle.pack(fill="x", pady=10)
-
-f_tec2 = tk.Frame(frame_laser_controls, bg="#1e1e1e")
-f_tec2.grid(row=0, column=2, sticky="nsew", padx=5)
-
-lbl_ctt_in = tk.Label(f_tec2, text="CTT (TEC2 Target Temp - °C):", font=("Consolas", 8), bg="#1e1e1e", fg="#aaaaaa")
-lbl_ctt_in.pack(anchor="w")
-entry_ctt = tk.Entry(f_tec2, font=("Consolas", 9), justify="center")
-entry_ctt.insert(0, "20.00")
-entry_ctt.pack(fill="x", pady=2)
-
-btn_tec2_toggle = tk.Button(f_tec2, text="TEC 2 ON / OFF", font=("Consolas", 9, "bold"), bg="#0288d1", fg="white")
-btn_tec2_toggle.pack(fill="x", pady=(33, 10))
-
 update_laser_display_mode()
+
+# ==========================================
+# LASER SAFETY CHECKLIST (INTEGRIERT)
+# ==========================================
+var_goggles = tk.BooleanVar(value=False)
+var_interlock = tk.BooleanVar(value=False)
+var_beampath = tk.BooleanVar(value=False)
+var_warning = tk.BooleanVar(value=False)
+
+def check_laser_safety():
+    if var_goggles.get() and var_interlock.get() and var_beampath.get() and var_warning.get():
+        ostech_notebook.tab(tab_ostech_laser, state="normal")
+        lbl_safety_status.config(text="STATUS: GESICHERT (Laser-Menü Freigeschaltet)", fg="#00ff00")
+        messagebox.showinfo(auto_tr("Laser Security"), auto_tr("Alle Sicherheitsmaßnahmen erfüllt. Das Laser-Menü wurde freigeschaltet."))
+    else:
+        ostech_notebook.tab(tab_ostech_laser, state=DISABLED)
+        lbl_safety_status.config(text="STATUS: SPERRE (Checkliste unvollständig)", fg="#ff3333")
+
+frame_safety = tk.LabelFrame(tab_ostech_main, text=" Laser Security Checklist ", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#ffaa00", padx=10, pady=8)
+frame_safety.pack(fill="x", padx=10, pady=10)
+
+chk_goggles = tk.Checkbutton(frame_safety, text=" Laser-Schutzbrille aufgesetzt", variable=var_goggles, command=check_laser_safety, bg="#1e1e1e", fg="#ffffff", selectcolor="#2b2b2b", activebackground="#1e1e1e")
+chk_goggles.pack(anchor="w", pady=2)
+
+chk_interlock = tk.Checkbutton(frame_safety, text=" Tür-Interlock / Hardware-Interlock geschlossen", variable=var_interlock, command=check_laser_safety, bg="#1e1e1e", fg="#ffffff", selectcolor="#2b2b2b", activebackground="#1e1e1e")
+chk_interlock.pack(anchor="w", pady=2)
+
+chk_beampath = tk.Checkbutton(frame_safety, text=" Strahlgang gesichert & Strahlfalle positioniert", variable=var_beampath, command=check_laser_safety, bg="#1e1e1e", fg="#ffffff", selectcolor="#2b2b2b", activebackground="#1e1e1e")
+chk_beampath.pack(anchor="w", pady=2)
+
+chk_warning = tk.Checkbutton(frame_safety, text=" Laser-Warnleuchte aktiv & Not-Aus frei erreichbar", variable=var_warning, command=check_laser_safety, bg="#1e1e1e", fg="#ffffff", selectcolor="#2b2b2b", activebackground="#1e1e1e")
+chk_warning.pack(anchor="w", pady=2)
+
+lbl_safety_status = tk.Label(frame_safety, text="STATUS: SPERRE (Checkliste unvollständig)", font=("Consolas", 10, "bold"), bg="#1e1e1e", fg="#ff3333")
+lbl_safety_status.pack(anchor="e", pady=(5, 0))
+
+# --- 3.2 OSTECH LASER MENU ---
+tab_ostech_laser = tk.Frame(ostech_notebook, bg="#1e1e1e")
+ostech_notebook.add(tab_ostech_laser, text=" Laser Menu ", state=DISABLED)
+
+frame_lmenu = tk.LabelFrame(tab_ostech_laser, text=" Laser Menu Parameters ", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#00ffcc", padx=10, pady=10)
+frame_lmenu.pack(fill="both", expand=True, padx=10, pady=10)
+frame_lmenu.columnconfigure((0, 1, 2), weight=1)
+
+# Spalte 1: Limits & Voltages
+tk.Label(frame_lmenu, text="LCL (Laser Current Limit - A):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(row=0, column=0, sticky="w", pady=2)
+entry_lcl = tk.Entry(frame_lmenu, font=("Consolas", 9)); entry_lcl.insert(0, "6.300"); entry_lcl.grid(row=1, column=0, sticky="ew", padx=5)
+
+tk.Label(frame_lmenu, text="LVC (Compliance Voltage - V):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(row=2, column=0, sticky="w", pady=2)
+entry_lvc = tk.Entry(frame_lmenu, font=("Consolas", 9)); entry_lvc.insert(0, "3.00"); entry_lvc.grid(row=3, column=0, sticky="ew", padx=5)
+
+tk.Label(frame_lmenu, text="LCLM (Avg Current Limit - A):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(row=4, column=0, sticky="w", pady=2)
+entry_lclm = tk.Entry(frame_lmenu, font=("Consolas", 9)); entry_lclm.insert(0, "6.300"); entry_lclm.grid(row=5, column=0, sticky="ew", padx=5)
+
+tk.Label(frame_lmenu, text="LTM (Max Temp Limit - °C):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(row=6, column=0, sticky="w", pady=2)
+entry_ltm = tk.Entry(frame_lmenu, font=("Consolas", 9)); entry_ltm.insert(0, "33.0"); entry_ltm.grid(row=7, column=0, sticky="ew", padx=5)
+
+# Spalte 2: Modulation Mode Selection (ERWEITERT UM EXTERNE MODULATION)
+tk.Label(frame_lmenu, text="Modulation Mode:", bg="#1e1e1e", fg="#00ffcc", font=("Consolas", 9, "bold")).grid(row=0, column=1, sticky="w", pady=2)
+combo_mod_mode = ttk.Combobox(frame_lmenu, values=[
+    "CW Mode (No Mod)",
+    "External Modulation (Analog - LMAX)",
+    "External Modulation (Digital - LMDX)",
+    "Internal Digital Modulation (LMDI)"
+], state="readonly")
+combo_mod_mode.current(1)  # Standardmäßig auf Externe Modulation gesetzt
+combo_mod_mode.grid(row=1, column=1, sticky="ew", padx=5)
+
+tk.Label(frame_lmenu, text="LMW (Modulation Width - ms):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(row=2, column=1, sticky="w", pady=2)
+entry_lmw = tk.Entry(frame_lmenu, font=("Consolas", 9)); entry_lmw.insert(0, "1.000"); entry_lmw.grid(row=3, column=1, sticky="ew", padx=5)
+
+tk.Label(frame_lmenu, text="LMP (Modulation Period - ms):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(row=4, column=1, sticky="w", pady=2)
+entry_lmp = tk.Entry(frame_lmenu, font=("Consolas", 9)); entry_lmp.insert(0, "2.000"); entry_lmp.grid(row=5, column=1, sticky="ew", padx=5)
+
+# Spalte 3: Pulse Count & Gate
+tk.Label(frame_lmenu, text="PC (Pulse Count Mode):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(row=0, column=2, sticky="w", pady=2)
+combo_pc = ttk.Combobox(frame_lmenu, values=["PC = 0 (Continuous)", "PC = 1 (Single Pulse)", "PC = 2 (Burst of 2)"], state="readonly")
+combo_pc.current(0)
+combo_pc.grid(row=1, column=2, sticky="ew", padx=5)
+
+chk_lg = tk.Checkbutton(frame_lmenu, text="LG (Gate Option Enabled)", bg="#1e1e1e", fg="#ffffff", selectcolor="#2b2b2b", activebackground="#1e1e1e", activeforeground="#ffffff")
+chk_lg.grid(row=3, column=2, sticky="w", padx=5)
+
+# --- 3.3 OSTECH TEC MENU & DIALOGS (FIG 3.3) ---
+tab_ostech_tec = tk.Frame(ostech_notebook, bg="#1e1e1e")
+ostech_notebook.add(tab_ostech_tec, text=" TEC Menu & PID ")
+
+frame_tmenu = tk.LabelFrame(tab_ostech_tec, text=" TEC Settings, PID & Sensor Setup ", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#00ffcc", padx=10, pady=10)
+frame_tmenu.pack(fill="both", expand=True, padx=10, pady=10)
+frame_tmenu.columnconfigure((0, 1, 2), weight=1)
+
+# General TEC Parameters
+tk.Label(frame_tmenu, text="TLU (Upper Temp Limit - °C):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(row=0, column=0, sticky="w")
+entry_tlu = tk.Entry(frame_tmenu, font=("Consolas", 9)); entry_tlu.insert(0, "40.00"); entry_tlu.grid(row=1, column=0, sticky="ew", padx=5)
+
+tk.Label(frame_tmenu, text="TLL (Lower Temp Limit - °C):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(row=2, column=0, sticky="w")
+entry_tll = tk.Entry(frame_tmenu, font=("Consolas", 9)); entry_tll.insert(0, "5.00"); entry_tll.grid(row=3, column=0, sticky="ew", padx=5)
+
+chk_tc_auto = tk.Checkbutton(frame_tmenu, text="TC Auto On (Activate within limits)", bg="#1e1e1e", fg="#ffffff", selectcolor="#2b2b2b")
+chk_tc_auto.grid(row=4, column=0, sticky="w", pady=5)
+
+# PID Parameters (Fig 3.3b)
+frame_pid = tk.LabelFrame(frame_tmenu, text=" PID Parameters ", font=("Consolas", 8, "bold"), bg="#1e1e1e", fg="#ffaa00", padx=5, pady=5)
+frame_pid.grid(row=0, column=1, rowspan=5, sticky="nsew", padx=5)
+
+tk.Label(frame_pid, text="Tk (Proportional):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).pack(anchor="w")
+entry_tk = tk.Entry(frame_pid, font=("Consolas", 9)); entry_tk.insert(0, "2.000"); entry_tk.pack(fill="x", pady=2)
+
+tk.Label(frame_pid, text="Tn (Integral - s):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).pack(anchor="w")
+entry_tn = tk.Entry(frame_pid, font=("Consolas", 9)); entry_tn.insert(0, "50.000"); entry_tn.pack(fill="x", pady=2)
+
+tk.Label(frame_pid, text="Tv (Derivative - s):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).pack(anchor="w")
+entry_tv = tk.Entry(frame_pid, font=("Consolas", 9)); entry_tv.insert(0, "1.000"); entry_tv.pack(fill="x", pady=2)
+
+# Sensor Selection & Parameters (Fig 3.3c & d)
+frame_sens = tk.LabelFrame(frame_tmenu, text=" Sensor Selection ", font=("Consolas", 8, "bold"), bg="#1e1e1e", fg="#ffaa00", padx=5, pady=5)
+frame_sens.grid(row=0, column=2, rowspan=5, sticky="nsew", padx=5)
+
+tk.Label(frame_sens, text="Select Sensor:", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).pack(anchor="w")
+combo_sensor = ttk.Combobox(frame_sens, values=["NTC 10k", "Pt100", "Pt1000", "Custom"], state="readonly")
+combo_sensor.current(0)
+combo_sensor.pack(fill="x", pady=2)
+
+tk.Label(frame_sens, text="Model Type:", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).pack(anchor="w", pady=(5, 0))
+combo_sens_model = ttk.Combobox(frame_sens, values=["Steinhart-Hart", "Polynomial"], state="readonly")
+combo_sens_model.current(0)
+combo_sens_model.pack(fill="x", pady=2)
+
+# --- 3.4 OSTECH DEVICE MENU (FIG 3.4) ---
+tab_ostech_dev = tk.Frame(ostech_notebook, bg="#1e1e1e")
+ostech_notebook.add(tab_ostech_dev, text=" Device Menu ")
+
+frame_dmenu = tk.LabelFrame(tab_ostech_dev, text=" Device System Menu ", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#00ffcc", padx=10, pady=10)
+frame_dmenu.pack(fill="both", expand=True, padx=10, pady=10)
+
+chk_ext_start = tk.Checkbutton(frame_dmenu, text="External Control on Start", bg="#1e1e1e", fg="#ffffff", selectcolor="#2b2b2b")
+chk_ext_start.pack(anchor="w", pady=3)
+
+chk_pilot = tk.Checkbutton(frame_dmenu, text="Pilot Laser Active", bg="#1e1e1e", fg="#ffffff", selectcolor="#2b2b2b")
+chk_pilot.pack(anchor="w", pady=3)
+
+frame_pilot_int = tk.Frame(frame_dmenu, bg="#1e1e1e")
+frame_pilot_int.pack(fill="x", pady=5)
+tk.Label(frame_pilot_int, text="Pilot Laser Intensity (0...16):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).pack(side="left")
+spin_pilot = tk.Spinbox(frame_pilot_int, from_=0, to=16, width=5, font=("Consolas", 9))
+spin_pilot.pack(side="left", padx=10)
+
+frame_gfd = tk.Frame(frame_dmenu, bg="#1e1e1e")
+frame_gfd.pack(fill="x", pady=5)
+tk.Label(frame_gfd, text="GFD (Default Fan Voltage - V):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).pack(side="left")
+entry_gfd = tk.Entry(frame_gfd, font=("Consolas", 9), width=8); entry_gfd.insert(0, "12.0 V")
+entry_gfd.pack(side="left", padx=10)
+
+btn_reset_def = tk.Button(frame_dmenu, text="Restore Default Settings", font=("Consolas", 8, "bold"), bg="#c62828", fg="white")
+btn_reset_def.pack(anchor="w", pady=10)
 
 # ------------------------------------------
 # 4. TAB: ANALYSIS
@@ -582,10 +690,6 @@ reg_ui((main_notebook, tab_help), "Help", "tab_text")
 help_notebook = ttk.Notebook(tab_help)
 help_notebook.pack(fill="both", expand=True, padx=10, pady=10)
 
-#sub_tab_lang = tk.Frame(help_notebook, bg="#252526")
-#help_notebook.add(sub_tab_lang, text="")
-#reg_ui((help_notebook, sub_tab_lang), "Language", "tab_text")
-
 sub_tab_about_the_application = tk.Frame(help_notebook, bg="#252526")
 help_notebook.add(sub_tab_about_the_application, text="")
 reg_ui((help_notebook, sub_tab_about_the_application), "About the application", "tab_text")
@@ -595,11 +699,10 @@ lbl_help.pack(pady=(40, 10))
 reg_ui(lbl_help, "This application is the result of the software project of summer semester 2026. \n in case of problems please contact:")
 lbl_help2 = tk.Label(sub_tab_about_the_application, font=("Consolas", 18, "italic"), bg="#252526", fg="#ff4d00")
 lbl_help2.pack(pady=(45, 10))
-reg_ui(lbl_help2, "rayane@uni-bremen.de \n ihagge@uni-bremen.de \n vtam@uni-bremen.de")
-
+reg_ui(lbl_help2, "xxx")
 
 # ------------------------------------------
-# 5. TAB: SETTINGS
+# 6. TAB: SETTINGS
 # ------------------------------------------
 tab_settings = tk.Frame(main_notebook, bg="#1e1e1e")
 main_notebook.add(tab_settings, text="")
@@ -626,39 +729,3 @@ for name, code in languages:
 
 # Monitor Loop & Launch
 root.mainloop()
-
-ser = serial.Serial("COM4", 9600, timeout = 2.0)
-time.sleep (0.5)
-ser.write(b"*IDN?\r")
-reply = ser.read_until(b"\r")
-print("Raw: " ,repr(reply))
-print("Decoded: ", reply.decode("ascii", errors="replace").strip())
-time.sleep (1)
-
-while True:
-    ser.write(b"OUTP? 1\r")
-    OUTP1 = ser.read_until(b"\r")
-    print("RawP1: " ,repr(OUTP1))
-    print("DecodedP1: ", OUTP1.decode("ascii", errors="replace").strip())
-    time.sleep (0.1)
-
-    ser.write(b"OUTP? 2\r")
-    OUTP2 = ser.read_until(b"\r")
-    print("RawP2: " ,repr(OUTP2))
-    print("DecodedP2: ", OUTP2.decode("ascii", errors="replace").strip())
-    time.sleep (0.1)
-
-    ser.write(b"OUTP? 3\r")
-    OUTP3 = ser.read_until(b"\r")
-    print("RawP3: " ,repr(OUTP3))
-    print("DecodedP3: ", OUTP3.decode("ascii", errors="replace").strip())
-    time.sleep (0.1)
-
-    ser.write(b"OUTP? 4\r")
-    OUTP4 = ser.read_until(b"\r")
-    print("RawP4: " ,repr(OUTP4))
-    print("DecodedP4: ", OUTP4.decode("ascii", errors="replace").strip())
-    time.sleep (0.1)
-    #root.mainloop()
-
-ser.close()

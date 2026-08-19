@@ -2,9 +2,47 @@ import serial
 import time
 import Log
 
+from typing import Optional
 
+def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: Optional[int] = 0)-> str:
+    """
+    Liest Werte von verbundenen Hardware-Geräten (SR830 / OSTech) aus.
 
-def getValue(Init,Command,i,j,k):
+    ---
+    ### Verfügbare Commands (Verwendungsübersicht):
+
+    **SR830 Lock-In-Verstärker:**
+    * `OAUX1` - `OAUX4`: Query Aux Input i (1-4)
+    * `OUTP1` - `OUTP4`: Query X (1), Y (2), R (3) or theta (4)
+    * `OUTR1`, `OUTR2`: Query Display i (1,2)
+    * `SNAP`: Query 2-6 parameters at once (uses i, j)
+    * `SPTS`: Query number of points in Display buffer
+    * `TRCA1`, `TRCA2`: Read points (ASCII) from buffer (uses j=start, k=count)
+    * `TRCB1`, `TRCB2`: Read points (IEEE binary float) from buffer (uses j, k)
+    * `TRCL1`, `TRCL2`: Read points (non-norm binary float) from buffer (uses j, k)
+    * `IDN`: Read device identification string
+
+    **OSTech Laser / TEC Controller:**
+    * `LCA`: Laser Actual Current
+    * `LVA`: Laser Actual Voltage
+    * `LPCA`: Laser photo Actual Current
+    * `LPA`: Laser photo Actual Power
+    * `LPF`: Laser fix procedure power
+    * `LZR`: Laser sequencer run
+    * `xTCA`: TEC actual current
+    * `xTVA`: TEC actual Value
+    * `GD`: Set Defaults / Get Defaults
+    * `GT`: Device Temperature
+    * `GVS`: Software Version
+    * `GVN`: Serial Number
+    * `GS`: Get Status
+    * `GM`: Get Mode
+    """
+
+    # Abfangen, falls keine Hardware verbunden ist
+    if Init is None:
+        Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"), "Communication", "GetValue", f"Keine Hardware für {Command} verbunden!", str(Init))
+        return "N/A"  # Dummy-Wert für die GUI
 
     match Command:
     # ==================================================================================    
@@ -12,25 +50,25 @@ def getValue(Init,Command,i,j,k):
     # ==================================================================================
         case "OAUX1":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OAUX ? 1","SR830")
-            Init.write(b"OAUX ? 1\r")
+            Init.write(b"OAUX? 1\r")
             ValueOAUX1 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOAUX1","SR830")
             return ValueOAUX1
         case "OAUX2":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OAUX ? 2","SR830")
-            Init.write(b"OAUX ? 2\r")
+            Init.write(b"OAUX? 2\r")
             ValueOAUX2 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOAUX2","SR830")
             return ValueOAUX2
         case "OAUX3":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OAUX ? 3","SR830")
-            Init.write(b"OAUX ? 3\r")
+            Init.write(b"OAUX? 3\r")
             ValueOAUX3 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOAUX3","SR830")
             return ValueOAUX3
         case "OAUX4":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OAUX ? 4","SR830")
-            Init.write(b"OAUX ? 4\r")
+            Init.write(b"OAUX? 4\r")
             ValueOAUX4 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()  
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOAUX4","SR830")
             return ValueOAUX4 
@@ -169,7 +207,7 @@ def getValue(Init,Command,i,j,k):
     # ==================================================================================
     #     Read the SR830 device identification string
     # ==================================================================================                     
-        case "IDN?":
+        case "IDN":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","IDN?","SR830")
             Init.write(b"IDN?\r")
             ValueIDN = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
@@ -322,7 +360,23 @@ def getValue(Init,Command,i,j,k):
 
                  
 
-def setValue(Init,Command,i,j,k,l,m,f,x,y,z,s):
+def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optional[int] = 0,l: Optional[int] = 0,m: Optional[int] = 0,f: Optional[int] = 0,x: Optional[int] = 0,y: Optional[int] = 0,z: Optional[int] = 0,s: Optional[int] = 0)-> str:
+    """
+    Setzt Werte auf verbundenen Hardware-Geräten (SR830 / OSTech).
+
+    ---
+    ### Verfügbare Commands (Verwendungsübersicht):
+
+    **SR830 Lock-In-Verstärker:**
+    * `PHAS` - `PHAS`: 
+    * `FMOD` - `FMOD`: 
+    """
+
+        # Abfangen, falls keine Hardware verbunden ist
+    if Init is None:
+        Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"), "Communication", "GetValue", f"Keine Hardware für {Command} verbunden!", str(Init))
+        return "N/A"  # Dummy-Wert für die GUI
+
 
     match Command:
 
