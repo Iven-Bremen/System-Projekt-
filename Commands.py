@@ -12,25 +12,25 @@ def getValue(Init,Command,i,j,k):
     # ==================================================================================
         case "OAUX1":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OAUX ? 1","SR830")
-            Init.write(b"OAUX ? 1\r")
+            Init.write(b"OAUX? 1\r")
             ValueOAUX1 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOAUX1","SR830")
             return ValueOAUX1
         case "OAUX2":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OAUX ? 2","SR830")
-            Init.write(b"OAUX ? 2\r")
+            Init.write(b"OAUX? 2\r")
             ValueOAUX2 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOAUX2","SR830")
             return ValueOAUX2
         case "OAUX3":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OAUX ? 3","SR830")
-            Init.write(b"OAUX ? 3\r")
+            Init.write(b"OAUX? 3\r")
             ValueOAUX3 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOAUX3","SR830")
             return ValueOAUX3
         case "OAUX4":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OAUX ? 4","SR830")
-            Init.write(b"OAUX ? 4\r")
+            Init.write(b"OAUX? 4\r")
             ValueOAUX4 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()  
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOAUX4","SR830")
             return ValueOAUX4 
@@ -169,7 +169,7 @@ def getValue(Init,Command,i,j,k):
     # ==================================================================================
     #     Read the SR830 device identification string
     # ==================================================================================                     
-        case "IDN?":
+        case "IDN":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","IDN?","SR830")
             Init.write(b"IDN?\r")
             ValueIDN = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
