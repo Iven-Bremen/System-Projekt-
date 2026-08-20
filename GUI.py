@@ -38,23 +38,23 @@ import Log
 # --- SR830 Ansteuerung ---
 Log.LogMassage("Check Ports vor SR830", "Info", "Test", "Check", "SR830")
 try:
-    SR830 = serial.Serial("COM4", 9600, timeout=2.0)
+    SR830 = serial.Serial("COM3", 9600, timeout=2.0)
     time.sleep(0.5)
-    Log.LogMassage("COM4", "Info", "Test", "OpenPort", "9600")
+    Log.LogMassage("COM3", "Info", "Test", "OpenPort", "9600")
 except serial.SerialException:
     SR830 = None
-    Log.LogMassage("COM4", "Warning", "Port konnte nicht geöffnet werden (Hardware fehlt)", "Fail", "COM4")
+    Log.LogMassage("COM3", "Warning", "Port konnte nicht geöffnet werden (Hardware fehlt)", "Fail", "COM4")
 
 
 # --- OSTech Laser Ansteuerung ---
-Log.LogMassage("Check Ports vor OSTech", "Info", "Test", "Check", "OSTech")
-try:
-    OSTech = serial.Serial("COM5", 9600, timeout=2.0)
-    time.sleep(0.5)
-    Log.LogMassage("COM5", "Info", "Test", "OpenPort", "9600")
-except serial.SerialException:
-    OSTech = None
-    Log.LogMassage("COM5", "Warning", "Port konnte nicht geöffnet werden (Hardware fehlt)", "Fail", "COM5")
+#Log.LogMassage("Check Ports vor OSTech", "Info", "Test", "Check", "OSTech")
+#try:
+#    OSTech = serial.Serial("COM5", 9600, timeout=2.0)
+#    time.sleep(0.5)
+#    Log.LogMassage("COM5", "Info", "Test", "OpenPort", "9600")
+#except serial.SerialException:
+#    OSTech = None
+#    Log.LogMassage("COM5", "Warning", "Port konnte nicht geöffnet werden (Hardware fehlt)", "Fail", "COM5")
 
 
 def starte_regression(dateipfad):
@@ -305,7 +305,7 @@ combo_ch1_src = ttk.Combobox(frame_ch1, values=["X", "R", "X Noise", "Aux In 1"]
 combo_ch1_src.current(0)
 combo_ch1_src.pack(fill="x", pady=2)
 
-val_ch1_label = tk.Label(frame_ch1, text="0.00 V", font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00", relief="sunken", bd=3)
+val_ch1_label = tk.Label(frame_ch1, text=str(Commands.getValue(SR830,"OUTP1")), font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00", relief="sunken", bd=3)
 val_ch1_label.pack(fill="x", pady=(10, 2))
 
 # Dynamische Aktualisierung der Anzeige für CH1 über Commands
@@ -318,7 +318,8 @@ def update_ch1_display(event=None):
         "Aux In 1": ("OAUX1", "V")
     }
     cmd, unit = cmd_map.get(selection, ("OUTP1", "V"))
-    val = Commands.getValue(SR830, cmd)
+    val =0
+# #Commands.getValue(SR830, cmd)
     val_ch1_label.config(text=f"{val} {unit}")
 
 combo_ch1_src.bind("<<ComboboxSelected>>", update_ch1_display)
@@ -369,7 +370,8 @@ def update_ch2_display(event=None):
         "Aux In 2": ("OAUX2", "V")
     }
     cmd, unit = cmd_map.get(selection, ("OUTP4", "°"))
-    val = Commands.getValue(SR830, cmd)
+    val = 0
+       # Commands.getValue(SR830, cmd))
     val_ch2_label.config(text=f"{val} {unit}")
 
 combo_ch2_src.bind("<<ComboboxSelected>>", update_ch2_display)
@@ -494,8 +496,10 @@ def update_laser_display_mode(event=None):
     for k in lcd_vars:
         lcd_vars[k].grid_remove()
 
-    lca = Commands.getValue(OSTech, "LCA")
-    gt = Commands.getValue(OSTech, "GT")
+    lca  = 0
+    # Commands.getValue(OSTech, "LCA")
+    gt = 0
+# Commands.getValue(OSTech, "GT")
 
     if "(a)" in mode_str:
         lbl_lcd_main.config(text=f"{lca} mA")

@@ -1,7 +1,7 @@
 import serial
 import time
 import Log
-
+import GUI
 from typing import Optional
 
 def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: Optional[int] = 0)-> str:
@@ -50,8 +50,9 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================
         case "OAUX1":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OAUX ? 1","SR830")
-            Init.write(b"OAUX? 1\r")
-            ValueOAUX1 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()
+            GUI.SR830.write(b"OAUX? 1\r")
+            ValueOAUX1 = GUI.SR830.readuntil(b"\r")
+            ValueOAUX1= ValueOAUX1.decode("ascii", errors="replace").strip()
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOAUX1","SR830")
             return ValueOAUX1
         case "OAUX2":
@@ -78,8 +79,10 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
         case "OUTP1":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OUTP? 1","SR830")
             Init.write(b"OUTP? 1\r")
-            ValueOUTP1 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()   
-            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOUTP1","SR830")
+            GUI.SR830.write(b"OUTP? 1\r")
+            ValueOUTP1 = GUI.SR830.read_until(b"\r")
+            ValueOUTP1 = ValueOUTP1.decode("ascii", errors="replace").strip()
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue",str(ValueOUTP1),"SR830")
             return ValueOUTP1
         case "OUTP2":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OUTP? 2","SR830")
@@ -209,9 +212,10 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "IDN":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","IDN?","SR830")
-            Init.write(b"IDN?\r")
-            ValueIDN = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
-            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueIDN","SR830")
+            Tester.SR830.write(b"*IDN?\r")
+            ValueIDN = Tester.SR830.read_until(b"\r")
+            ValueIDN = ValueIDN.decode("ascii", errors="replace").strip()
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"), "Communication", "GetValue", str(ValueIDN), "SR830")
             return ValueIDN       
     # ==================================================================================
     #    Laser Actual Current   
