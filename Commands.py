@@ -379,16 +379,327 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
 
 
     match Command:
-
+        # ==================================================================================
+        #   Set (Query) the Phase Shift to x degrees
+        # ==================================================================================                    
         case "PHAS":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","PHAS " + str(x),"SR830")
             Init.write(b"PHAS " + str(x).encode() + b"\r")
             ValuePHAS = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
-            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","ValuePHAS","SR830")
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValuePHAS),"SR830")
             return ValuePHAS
+        # ==================================================================================
+        #    Set (Query) the Reference Source to External (0) or Internal (1).
+        # ==================================================================================            
         case "FMOD":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","FMOD " + str(i),"SR830")
             Init.write(b"FMOD " + str(i).encode() + b"\r")
             ValueFMOD = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
-            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","ValueFMOD","SR830")
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueFMOD),"SR830")
             return ValueFMOD
+        # ==================================================================================
+        #    Set (Query) the Reference Frequency to f Hz.Set only in Internal reference mode
+        # ==================================================================================    
+        case "FREQ":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","FREQ " + str(i),"SR830")
+            Init.write(b"FREQ " + str(i).encode() + b"\r")
+            ValueFREQ = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueFREQ),"SR830")
+            return ValueFREQ
+        # ==================================================================================
+        #   Set (Query) the External Reference Slope to Sine(0), TTL Rising (1), or TTL Falling (2).
+        # ==================================================================================                
+        case "RSLP":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","RSLP " + str(i),"SR830")
+            Init.write(b"RSLP " + str(i).encode() + b"\r")
+            ValueRSLP = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueRSLP),"SR830")
+            return ValueRSLP     
+        # ==================================================================================
+        #    Set (Query) the Detection Harmonic to 1 ≤ i ≤ 19999 and i•f ≤ 102 kHz.
+        # ==================================================================================                
+        case "HARM":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","HARM " + str(i),"SR830")
+            Init.write(b"HARM " + str(i).encode() + b"\r")
+            ValueHARM = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueHARM),"SR830")
+            return ValueHARM
+        # ==================================================================================
+        #     Set (Query) the Sine Output Amplitude to x Vrms. 0.004 ≤ x ≤5.000.
+        # ==================================================================================                
+        case "SLVL":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","SLVL " + str(x),"SR830")
+            Init.write(b"SLVL " + str(x).encode() + b"\r")
+            ValueSLVL = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueSLVL),"SR830")
+            return ValueSLVL                               
+        # ==================================================================================
+        #    Set (Query) the Input Configuration to A (0), A-B (1) , I (1 MΩ) (2) or I (100 MΩ) (3).
+        # ==================================================================================                
+        case "ISRC":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","ISRC " + str(i),"SR830")
+            Init.write(b"ISRC " + str(i).encode() + b"\r")
+            ValueISRC = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueISRC),"SR830")
+            return ValueISRC            
+        # ==================================================================================
+        #     Set (Query) the Input Shield Grounding to Float (0) or Ground (1).
+        # ==================================================================================                
+        case "IGND":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","IGND " + str(i),"SR830")
+            Init.write(b"IGND " + str(i).encode() + b"\r")
+            ValueIGND = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueIGND),"SR830")
+            return ValueIGND       
+        # ==================================================================================
+        #    Set (Query) the Input Coupling to AC (0) or DC (1).
+        # ==================================================================================                
+        case "LCPL":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","LCPL " + str(i),"SR830")
+            Init.write(b"LCPL " + str(i).encode() + b"\r")
+            ValueLCPL = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueLCPL),"SR830")
+            return ValueLCPL
+        # ==================================================================================
+        #     Set (Query) the Line Notch Filters to Out (0), Line In (1) , 2xLine In (2), or Both In (3)
+        # ==================================================================================                
+        case "ILN":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","ILN " + str(i),"SR830")
+            Init.write(b"ILN " + str(i).encode() + b"\r")
+            ValueILN = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueILN),"SR830")
+            return ValueILN
+        # ==================================================================================
+        #     Set (Query) the Sensitivity to 2 nV (0) through 1 V (26) rms full scale.
+        # ==================================================================================                
+        case "SENS":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","SENS " + str(i),"SR830")
+            Init.write(b"SENS " + str(i).encode() + b"\r")
+            ValueSENS = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueSENS),"SR830")
+            return ValueSENS
+        # ==================================================================================
+        #    Set (Query) the Dynamic Reserve Mode to HighReserve (0), Normal (1), or Low Noise (2)
+        # ==================================================================================                
+        case "RMOD":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","RMOD " + str(i),"SR830")
+            Init.write(b"RMOD " + str(i).encode() + b"\r")
+            ValueRMOD = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueRMOD),"SR830")
+            return ValueRMOD
+        # ==================================================================================
+        #    Set (Query) the Time Constant to 10 µs (0) through 30 ks (19)
+        # ==================================================================================                
+        case "OFLT":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","OFLT " + str(i),"SR830")
+            Init.write(b"OFLT " + str(i).encode() + b"\r")
+            ValueOFLT = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueOFLT),"SR830")
+            return ValueOFLT
+        # ==================================================================================
+        #    Set (Query) the Low Pass Filter Slope to 6 (0), 12 (1), 18 (2) or 24 (3) dB/oct.
+        # ==================================================================================                
+        case "OFSL":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","OFSL " + str(i),"SR830")
+            Init.write(b"OFSL " + str(i).encode() + b"\r")
+            ValueOFSL = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueOFSL),"SR830")
+            return ValueOFSL
+        # ==================================================================================
+        #    Set (Query) the Synchronous Filter to Off (0) or On below 200 Hz (1).
+        # ==================================================================================                
+        case "SYNC":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","SYNC " + str(i),"SR830")
+            Init.write(b"SYNC " + str(i).encode() + b"\r")
+            ValueSYNC = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueSYNC),"SR830")
+            return ValueSYNC
+        # ==================================================================================
+        #     Set (Query) the CH1 or CH2 (i=1,2) display to XY, Rθ, XnYn, Aux 1,3 or Aux 2,4 (j=0..4) and ratio the display to None, Aux1,3 or Aux 2,4 (k=0,1,2).
+        # ==================================================================================                
+        case "DDEF":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","DDEF " + str(i) + str(j) + str(k),"SR830")
+            Init.write(b"DDEF " + str(i).encode() + str(j).encode() + str(k).encode() + b"\r")
+            ValueDDEF = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueDDEF),"SR830")
+            return ValueDDEF
+        # ==================================================================================
+        #    Set (Query) the CH1 (i=1) or CH2 (i=2) Output Source to X or Y (j=1) or Display (j=0)
+        # ==================================================================================                
+        case "FPOP":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","FPOP " + str(i) + str(j),"SR830")
+            Init.write(b"FPOP " + str(i).encode() + str(j).encode() + b"\r")
+            ValueFPOP = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueFPOP),"SR830")
+            return ValueFPOP
+        # ==================================================================================
+        #    Set (Query) the X, Y, R (i=1,2,3) Offset to x percent ( -105.00 ≤ x ≤ 105.00) and Expand to 1, 10 or 100 (j=0,1,2).
+        # ==================================================================================                
+        case "OEXP":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","OEXP " + str(i) + str(x)+ str(j),"SR830")
+            Init.write(b"OEXP " + str(i).encode() + str(x).encode() + str(j).encode() + b"\r")
+            ValueOEXP = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueOEXP),"SR830")
+            return ValueOEXP
+        # ==================================================================================
+        #    Auto Offset X, Y, R (i=1,2,3).
+        # ==================================================================================                
+        case "AOFF":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","AOFF " + str(i),"SR830")
+            Init.write(b"AOFF " + str(i).encode() + b"\r")
+            ValueAOFF = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueAOFF),"SR830")
+            return ValueAOFF
+        # ==================================================================================
+        #    Set (Query) voltage of Aux Output i (1,2,3,4) to x Volts. -10.500 ≤ x ≤ 10.500. 
+        # ==================================================================================                
+        case "AUXV":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","AUXV " + str(i) + " " + str(x),"SR830")
+            Init.write(b"AUXV " + str(i).encode() +  str(x).encode() + b"\r")
+            ValueAUXV = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueAUXV),"SR830")
+            return ValueAUXV
+        # ==================================================================================
+        #     Set (Query) the Output Interface to RS232 (0) or GPIB (1)
+        # ==================================================================================                
+        case "OUTX":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","OUTX " + str(i),"SR830")
+            Init.write(b"OUTX " + str(i).encode() + b"\r")
+            ValueOUTX = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueOUTX),"SR830")
+            return ValueOUTX
+        # ==================================================================================
+        #     Set (Query) the GPIB Overide Remote state to Off (0) or On (1)
+        # ==================================================================================                
+        case "OVRM":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","OVRM " + str(i),"SR830")
+            Init.write(b"OVRM " + str(i).encode() + b"\r")
+            ValueOVRM = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueOVRM),"SR830")
+            return ValueOVRM
+        # ==================================================================================
+        #     Set (Query) the Key Click to Off (0) or On (1).
+        # ==================================================================================                
+        case "AOFF":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","AOFF " + str(i),"SR830")
+            Init.write(b"AOFF " + str(i).encode() + b"\r")
+            ValueAOFF = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueAOFF),"SR830")
+            return ValueAOFF
+        # ==================================================================================
+        #     Set (Query) voltage of Aux Output i (1,2,3,4) to x Volts. -10.500 ≤ x ≤ 10.500. 
+        # ==================================================================================                
+        case "AOXV":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","AOXV " + str(i) + " " + str(x),"SR830")
+            Init.write(b"AOXV " + str(i).encode() + str(x).encode() + b"\r")
+            ValueAOXV = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueAOXV),"SR830")
+            return ValueAOXV
+        # ==================================================================================
+        #    Set (Query) the Output Interface to RS232 (0) or GPIB (1)
+        # ==================================================================================                
+        case "OUTX":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","OUTX " + str(i),"SR830")
+            Init.write(b"OUTX " + str(i).encode() + b"\r")
+            ValueOUTX = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueOUTX),"SR830")
+            return ValueOUTX
+        # ==================================================================================
+        #    Set (Query) the GPIB Overide Remote state to Off (0) or On (1)
+        # ==================================================================================                
+        case "OVRM":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","OVRM " + str(i),"SR830")
+            Init.write(b"OVRM " + str(i).encode() + b"\r")
+            ValueOVRM = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueOVRM),"SR830")
+            return ValueOVRM
+        # ==================================================================================
+        #    Set (Query) the Key Click to Off (0) or On (1)
+        # ==================================================================================                
+        case "KCLK":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","KCLK " + str(i),"SR830")
+            Init.write(b"KCLK " + str(i).encode() + b"\r")
+            ValueKCLK = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueKCLK),"SR830")
+            return ValueKCLK
+        # ==================================================================================
+        #    Set (Query) the Alarms to Off (0) or On (1).
+        # ==================================================================================                
+        case "ALRM":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","ALRM " + str(i),"SR830")
+            Init.write(b"ALRM " + str(i).encode() + b"\r")
+            ValueALRM = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueALRM),"SR830")
+            return ValueALRM
+        # ==================================================================================
+        #    Save current setup to setting buffer i (1≤i≤9).
+        # ==================================================================================                
+        case "SSET":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","SSET " + str(i),"SR830")
+            Init.write(b"SSET " + str(i).encode() + b"\r")
+            ValueSSET = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueSSET),"SR830")
+            return ValueSSET
+        # ==================================================================================
+        #    Recall current setup from setting buffer i (1≤i≤9).
+        # ==================================================================================                
+        case "RSET":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","RSET " + str(i),"SR830")
+            Init.write(b"RSET " + str(i).encode() + b"\r")
+            ValueRSET = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueRSET),"SR830")
+            return ValueRSET
+        # ==================================================================================
+        #    Auto Gain function. Same as pressing the [AUTO GAIN] key
+        # ==================================================================================                
+        case "AGAN":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","AGAN ","SR830")
+            Init.write(b"AGAN " + b"\r")
+            ValueAGAN = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueAGAN),"SR830")
+            return ValueAGAN
+        # ==================================================================================
+        #    Auto Reserve function. Same as pressing the [AUTO RESERVE] key
+        # ==================================================================================                
+        case "ARSV":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","ARSV ","SR830")
+            Init.write(b"ARSV " + b"\r")
+            ValueARSV = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueARSV),"SR830")
+            return ValueARSV
+        # ==================================================================================
+        #    
+        # ==================================================================================                
+        case "AOFF":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","AOFF " + str(i),"SR830")
+            Init.write(b"AOFF " + str(i).encode() + b"\r")
+            ValueAOFF = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","ValueAOFF","SR830")
+            return ValueAOFF
+        # ==================================================================================
+        #     Auto Phase function. Same as pressing the [AUTO PHASE] key.
+        # ==================================================================================                
+        case "APHS":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","APHS ","SR830")
+            Init.write(b"APHS " + b"\r")
+            ValueAPHS = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueAPHS),"SR830")
+            return ValueAPHS
+        # ==================================================================================
+        #     Auto Offset X,Y or R (i=1,2,3)
+        # ==================================================================================                
+        case "AOFF":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","AOFF " + str(i),"SR830")
+            Init.write(b"AOFF " + str(i).encode() + b"\r")
+            ValueAOFF = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","ValueAOFF","SR830")
+            return ValueAOFF
+        # ==================================================================================
+        #    
+        # ==================================================================================                
+        case "AOFF":
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","AOFF " + str(i),"SR830")
+            Init.write(b"AOFF " + str(i).encode() + b"\r")
+            ValueAOFF = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","ValueAOFF","SR830")
+            return ValueAOFF
