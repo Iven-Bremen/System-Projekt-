@@ -295,6 +295,9 @@ combo_slope.current(3)
 combo_slope.pack(fill="x", pady=2)
 
 # Spalte 2: CH1 Display
+
+ch1_out = "N/A"
+
 frame_ch1 = tk.LabelFrame(tab_lockin, font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#00ffcc", padx=8, pady=5)
 frame_ch1.grid(row=0, column=1, sticky="nsew", padx=4, pady=5)
 reg_ui(frame_ch1, " CH1 Display ")
@@ -305,7 +308,7 @@ combo_ch1_src = ttk.Combobox(frame_ch1, values=["X", "R", "X Noise", "Aux In 1"]
 combo_ch1_src.current(0)
 combo_ch1_src.pack(fill="x", pady=2)
 
-val_ch1_label = tk.Label(frame_ch1, text=str(Commands.getValue(SR830,"OUTP1")), font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00", relief="sunken", bd=3)
+val_ch1_label = tk.Label(frame_ch1, text=ch1_out, font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00", relief="sunken", bd=3)
 val_ch1_label.pack(fill="x", pady=(10, 2))
 
 # Dynamische Aktualisierung der Anzeige für CH1 über Commands
@@ -347,6 +350,9 @@ btn_auto_off1 = tk.Button(frame_off1, text="Auto Offset", font=("Consolas", 8), 
 btn_auto_off1.pack(fill="x", pady=2)
 
 # Spalte 3: CH2 Display
+
+ch2_out = "N/A"
+
 frame_ch2 = tk.LabelFrame(tab_lockin, font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#00ffcc", padx=8, pady=5)
 frame_ch2.grid(row=0, column=2, sticky="nsew", padx=4, pady=5)
 reg_ui(frame_ch2, " CH2 Display ")
@@ -357,7 +363,7 @@ combo_ch2_src = ttk.Combobox(frame_ch2, values=["Y", "Phase (θ)", "Y Noise", "A
 combo_ch2_src.current(1)
 combo_ch2_src.pack(fill="x", pady=2)
 
-val_ch2_label = tk.Label(frame_ch2, text="0.00 °", font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00", relief="sunken", bd=3)
+val_ch2_label = tk.Label(frame_ch2, text=ch2_out, font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00", relief="sunken", bd=3)
 val_ch2_label.pack(fill="x", pady=(10, 2))
 
 # Dynamische Aktualisierung der Anzeige für CH2 über Commands
@@ -388,11 +394,14 @@ btn_auto_off2 = tk.Button(frame_off2, text="Auto Offset", font=("Consolas", 8), 
 btn_auto_off2.pack(fill="x", pady=2)
 
 # Spalte 4: Ref Display & Auto
+
+ref_out = "1000.00 Hz"
+
 frame_ref = tk.LabelFrame(tab_lockin, font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#00ffcc", padx=8, pady=5)
 frame_ref.grid(row=0, column=3, sticky="nsew", padx=4, pady=5)
 reg_ui(frame_ref, " Ref Display & Controls ")
 
-val_ref_display = tk.Label(frame_ref, text="1000.00 Hz", font=("Consolas", 20, "bold"), bg="#000000", fg="#00ff00", relief="sunken", bd=3)
+val_ref_display = tk.Label(frame_ref, text=ref_out, font=("Consolas", 20, "bold"), bg="#000000", fg="#00ff00", relief="sunken", bd=3)
 val_ref_display.pack(fill="x", pady=(2, 6))
 
 frame_auto = tk.LabelFrame(frame_ref, text=" Auto Functions ", font=("Consolas", 8, "bold"), bg="#1e1e1e", fg="#ffaa00", padx=5, pady=5)
@@ -449,6 +458,8 @@ ostech_notebook.pack(fill="both", expand=True, padx=5, pady=5)
 tab_ostech_main = tk.Frame(ostech_notebook, bg="#1e1e1e")
 ostech_notebook.add(tab_ostech_main, text=" Main Display ")
 
+laser_out = "0.0 mA"
+
 frame_layout_sel = tk.Frame(tab_ostech_main, bg="#1e1e1e")
 frame_layout_sel.pack(fill="x", padx=10, pady=5)
 
@@ -469,7 +480,7 @@ combo_layout.pack(side="left", padx=5)
 frame_lcd = tk.Frame(tab_ostech_main, bg="#000000", bd=3, relief="sunken")
 frame_lcd.pack(fill="x", padx=10, pady=5)
 
-lbl_lcd_main = tk.Label(frame_lcd, text="0 mA", font=("Consolas", 26, "bold"), bg="#000000", fg="#00ff00")
+lbl_lcd_main = tk.Label(frame_lcd, text=laser_out, font=("Consolas", 26, "bold"), bg="#000000", fg="#00ff00")
 lbl_lcd_main.pack(pady=(5, 0))
 
 frame_lcd_grid = tk.Frame(frame_lcd, bg="#000000")
