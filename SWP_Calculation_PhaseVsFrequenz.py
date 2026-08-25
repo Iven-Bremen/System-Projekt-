@@ -15,11 +15,11 @@ die auch in realen Messkurven auftreten.
     d: Nitrierschichtdicke [µm]
     α_1: thermische Diffusivität der Nitrierschicht [µm²/s] (also wie schnell ein
          Material sich auf eine definierte Temperatur aufwärmen oder abkühlen lässt)
-    Kc : Effusivitätskontrast Kc = e₂/e₁ (Substrat / Nitrierschicht)
+    Kc : Effusivitätskontrast Kc = b_2 / b_1 (Substrat / Nitrierschicht)
          (Veränderung der Materialeigenschaften an der Grenze zwischen zwei werkstoffen:
          Dichte, Wärmeleitfähigkeit, u.Ä.)
 
-Benutzereingabe: Phase φ [°]  → Berechnung der Schichtdicke d [µm]
+Benutzereingabe: Phase φ [°] → Berechnung der Schichtdicke d [µm]
 """
 
 import sys
