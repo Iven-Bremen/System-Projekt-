@@ -3,9 +3,6 @@ import sys
 import json
 import subprocess
 
-import serial
-import time
-
 
 def install_and_import(package, import_name=None):
     if import_name is None:
@@ -33,28 +30,6 @@ import SWP_Calculation_TimeVsNitrierschicht as TvN
 import SWP_Calculations_Streuung
 import Commands
 import Log
-
-
-# --- SR830 Ansteuerung ---
-Log.LogMassage("Check Ports vor SR830", "Info", "Test", "Check", "SR830")
-try:
-    SR830 = serial.Serial("COM3", 9600, timeout=2.0)
-    time.sleep(0.5)
-    Log.LogMassage("COM3", "Info", "Test", "OpenPort", "9600")
-except serial.SerialException:
-    SR830 = None
-    Log.LogMassage("COM3", "Warning", "Port konnte nicht geöffnet werden (Hardware fehlt)", "Fail", "COM4")
-
-
-# --- OSTech Laser Ansteuerung ---
-#Log.LogMassage("Check Ports vor OSTech", "Info", "Test", "Check", "OSTech")
-#try:
-#    OSTech = serial.Serial("COM5", 9600, timeout=2.0)
-#    time.sleep(0.5)
-#    Log.LogMassage("COM5", "Info", "Test", "OpenPort", "9600")
-#except serial.SerialException:
-#    OSTech = None
-#    Log.LogMassage("COM5", "Warning", "Port konnte nicht geöffnet werden (Hardware fehlt)", "Fail", "COM5")
 
 
 def starte_regression(dateipfad):
@@ -152,6 +127,11 @@ def change_language(lang_code):
 GPIB_ADDRESS = "GPIB0::8::INSTR"
 lockin_device = None
 current_file_path = None
+def getPortof(PortTo : str):
+    if(PortTo == "SR830"):
+        return "COM3"
+    if(PortTo == "OSTech"):
+        return "COM4"
 
 def connect_lockin():
     global lockin_device
@@ -786,9 +766,10 @@ def live_update_loop():
     root.after(2000, live_update_loop)
 
 # Initialisierung der Displays & Launch
-update_ch1_display()
-update_ch2_display()
-update_laser_display_mode()
-root.after(2000, live_update_loop)
+#update_ch1_display()
+#update_ch2_display()
+#update_laser_display_mode()
+#root.after(2000, live_update_loop)
+
 
 root.mainloop()

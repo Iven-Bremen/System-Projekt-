@@ -4,6 +4,7 @@ import Log
 import GUI
 from typing import Optional
 
+
 def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: Optional[int] = 0)-> str:
     """
     Liest Werte von verbundenen Hardware-Geräten (SR830 / OSTech) aus.
@@ -38,7 +39,7 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     * `GS`: Get Status
     * `GM`: Get Mode
     """
-
+    from Starter import SR830, OSTech    
     # Abfangen, falls keine Hardware verbunden ist
     if Init is None:
         Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"), "Communication", "GetValue", f"Keine Hardware für {Command} verbunden!", str(Init))
@@ -50,27 +51,30 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================
         case "OAUX1":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OAUX ? 1","SR830")
-            GUI.SR830.write(b"OAUX? 1\r")
-            ValueOAUX1 = GUI.SR830.readuntil(b"\r")
-            ValueOAUX1= ValueOAUX1.decode("ascii", errors="replace").strip()
+            SR830.write(b"OAUX? 1\r")
+            ValueOAUX1 = SR830.read_until(b"\r")
+            ValueOAUX1 = ValueOAUX1.decode("ascii", errors="replace").strip()
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOAUX1","SR830")
             return ValueOAUX1
         case "OAUX2":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OAUX ? 2","SR830")
-            Init.write(b"OAUX? 2\r")
-            ValueOAUX2 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()
+            SR830.write(b"OAUX? 2\r")
+            ValueOAUX2 = SR830.read_until(b"\r")
+            ValueOAUX2 = ValueOAUX2.decode("ascii", errors="replace").strip()
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOAUX2","SR830")
             return ValueOAUX2
         case "OAUX3":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OAUX ? 3","SR830")
-            Init.write(b"OAUX? 3\r")
-            ValueOAUX3 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()
+            SR830.write(b"OAUX? 3\r")
+            ValueOAUX3 = SR830.read_until(b"\r")
+            ValueOAUX3 = ValueOAUX3.decode("ascii", errors="replace").strip()
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOAUX3","SR830")
             return ValueOAUX3
         case "OAUX4":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OAUX ? 4","SR830")
-            Init.write(b"OAUX? 4\r")
-            ValueOAUX4 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()  
+            SR830.write(b"OAUX? 4\r")
+            ValueOAUX4 = SR830.read_until(b"\r")
+            ValueOAUX4 = ValueOAUX4.decode("ascii", errors="replace").strip()  
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOAUX4","SR830")
             return ValueOAUX4 
     # ==================================================================================
@@ -78,28 +82,30 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "OUTP1":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OUTP? 1","SR830")
-            Init.write(b"OUTP? 1\r")
-            GUI.SR830.write(b"OUTP? 1\r")
-            ValueOUTP1 = GUI.SR830.read_until(b"\r")
+            SR830.write(b"OUTP? 1\r")
+            ValueOUTP1 = SR830.read_until(b"\r")
             ValueOUTP1 = ValueOUTP1.decode("ascii", errors="replace").strip()
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue",str(ValueOUTP1),"SR830")
             return ValueOUTP1
         case "OUTP2":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OUTP? 2","SR830")
-            Init.write(b"OUTP? 2\r")
-            ValueOUTP2 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()                 
+            SR830.write(b"OUTP? 2\r")
+            ValueOUTP2 = SR830.read_until(b"\r")
+            ValueOUTP2 = ValueOUTP2.decode("ascii", errors="replace").strip()                 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOUTP2","SR830")
             return ValueOUTP2
         case "OUTP3":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OUTP? 3","SR830")
-            Init.write(b"OUTP? 3\r")
-            ValueOUTP3 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()  
+            SR830.write(b"OUTP? 3\r")
+            ValueOUTP3 = SR830.read_until(b"\r")
+            ValueOUTP3 = ValueOUTP3.decode("ascii", errors="replace").strip()  
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOUTP3","SR830")
             return ValueOUTP3               
         case "OUTP4":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OUTP? 4","SR830")
-            Init.write(b"OUTP? 4\r")
-            ValueOUTP4 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()
+            SR830.write(b"OUTP? 4\r")
+            ValueOUTP4 = SR830.readuntil(b"\r")
+            ValueOUTP4 = ValueOUTP4.decode("ascii", errors="replace").strip()
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOUTP4","SR830")
             return ValueOUTP4
     # ==================================================================================
@@ -107,14 +113,16 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "OUTR1":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OUTR? 1","SR830")
-            Init.write(b"OUTR? 1\r")
-            ValueOUTR1 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()     
+            SR830.write(b"OUTR? 1\r")
+            ValueOUTR1 = SR830.read_until(b"\r")
+            ValueOUTR1 = ValueOUTR1.decode("ascii", errors="replace").strip()     
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOUTR1","SR830")
             return ValueOUTR1
         case "OUTR2":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OUTR? 2","SR830")
-            Init.write(b"OUTR? 2\r")
-            ValueOUTR2 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()                 
+            SR830.write(b"OUTR? 2\r")
+            ValueOUTR2 = SR830.read_until(b"\r")
+            ValueOUTR2 = ValueOUTR2.decode("ascii", errors="replace").strip()                 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOUTR2","SR830")
             return ValueOUTR2
     # ==================================================================================
@@ -122,8 +130,9 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "SNAP":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","SNAP?" + str(i) + "," + str(j),"SR830")
-            Init.write(b"SNAP?" + str(i).encode() + b"," + str(j).encode() + b"\r")
-            ValueSNAP = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"SNAP?" + str(i).encode() + b"," + str(j).encode() + b"\r")
+            ValueSNAP = SR830.read_until(b"\r")
+            ValueSNAP = ValueSNAP.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueSNAP","SR830")
             return ValueSNAP    
     # ==================================================================================
@@ -131,26 +140,30 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "OAUX1":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OAUX? 1","SR830")
-            Init.write(b"OAUX? 1\r")
-            ValueOAUX1 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()    
+            SR830.write(b"OAUX? 1\r")
+            ValueOAUX1 = SR830.read_until(b"\r")
+            ValueOAUX1 = ValueOAUX1.decode("ascii", errors="replace").strip()    
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOAUX1","SR830")
             return ValueOAUX1 
         case "OAUX2":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OAUX? 2","SR830")
-            Init.write(b"OAUX? 2\r")
-            ValueOAUX2 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"OAUX? 2\r")
+            ValueOAUX2 = SR830.read_until(b"\r")
+            ValueOAUX2 = ValueOAUX2.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOAUX2","SR830")
             return ValueOAUX2     
         case "OAUX3":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OAUX? 3","SR830")
-            Init.write(b"OAUX? 3\r")
-            ValueOAUX3 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()      
+            SR830.write(b"OAUX? 3\r")
+            ValueOAUX3 = SR830.read_until(b"\r")
+            ValueOAUX3 = ValueOAUX3.decode("ascii", errors="replace").strip()      
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOAUX3","SR830")
             return ValueOAUX3
         case "OAUX4":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","OAUX? 4","SR830")
-            Init.write(b"OAUX? 4\r")
-            ValueOAUX4 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"OAUX? 4\r")
+            ValueOAUX4 = SR830.read_until(b"\r")
+            ValueOAUX4 = ValueOAUX4.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueOAUX4","SR830")
             return ValueOAUX4                                                  
     # ==================================================================================
@@ -158,8 +171,9 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "SPTS":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","SPTS?","SR830")
-            Init.write(b"SPTS?\r")
-            ValueSPTS = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()    
+            SR830.write(b"SPTS?\r")
+            ValueSPTS = SR830.read_until(b"\r")
+            ValueSPTS = ValueSPTS.decode("ascii", errors="replace").strip()    
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueSPTS","SR830")
             return ValueSPTS
     # ==================================================================================
@@ -167,14 +181,16 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "TRCA1":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","TRCA? 1," + str(j) + "," + str(k),"SR830")
-            Init.write(b"TRCA? 1," + str(j).encode() + b"," + str(k).encode() + b"\r")
-            ValueTRCA1 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()
+            SR830.write(b"TRCA? 1," + str(j).encode() + b"," + str(k).encode() + b"\r")
+            ValueTRCA1 = SR830.read_until(b"\r")
+            ValueTRCA1 = ValueTRCA1.decode("ascii", errors="replace").strip()
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueTRCA1","SR830")
             return ValueTRCA1                       
         case "TRCA2":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","TRCA? 2," + str(j) + "," + str(k),"SR830")
-            Init.write(b"TRCA? 2," + str(j).encode() + b"," + str(k).encode() + b"\r")
-            ValueTRCA2 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()
+            SR830.write(b"TRCA? 2," + str(j).encode() + b"," + str(k).encode() + b"\r")
+            ValueTRCA2 = SR830.read_until(b"\r")
+            ValueTRCA2 = ValueTRCA2.decode("ascii", errors="replace").strip()
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueTRCA2","SR830")
             return ValueTRCA2        
     # ==================================================================================
@@ -182,14 +198,16 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "TRCB1":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","TRCB? 1," + str(j) + "," + str(k),"SR830")
-            Init.write(b"TRCB? 1," + str(j).encode() + b"," + str(k).encode() + b"\r")
-            ValueTRCB1 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"TRCB? 1," + str(j).encode() + b"," + str(k).encode() + b"\r")
+            ValueTRCB1 = SR830.read_until(b"\r")
+            ValueTRCB1 = ValueTRCB1.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueTRCB1","SR830")
             return ValueTRCB1                      
         case "TRCB2":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","TRCB? 2," + str(j) + "," + str(k),"SR830")
-            Init.write(b"TRCB? 2," + str(j).encode() + b"," + str(k).encode() + b"\r")
-            ValueTRCB2 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()
+            SR830.write(b"TRCB? 2," + str(j).encode() + b"," + str(k).encode() + b"\r")
+            ValueTRCB2 = SR830.read_until(b"\r")
+            ValueTRCB2 = ValueTRCB2.decode("ascii", errors="replace").strip()
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueTRCB2","SR830")
             return ValueTRCB2
     # ==================================================================================
@@ -197,14 +215,16 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "TRCL1":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","TRCL? 1," + str(j) + "," + str(k),"SR830")
-            Init.write(b"TRCL? 1," + str(j).encode() + b"," + str(k).encode() + b"\r")
-            ValueTRCL1 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip()  
+            SR830.write(b"TRCL? 1," + str(j).encode() + b"," + str(k).encode() + b"\r")
+            ValueTRCL1 = SR830.read_until(b"\r")
+            ValueTRCL1 = ValueTRCL1.decode("ascii", errors="replace").strip()  
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueTRCL1","SR830")
             return ValueTRCL1                     
         case "TRCL2":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","TRCL? 2," + str(j) + "," + str(k),"SR830")
-            Init.write(b"TRCL? 2," + str(j).encode() + b"," + str(k).encode() + b"\r")
-            ValueTRCL2 = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"TRCL? 2," + str(j).encode() + b"," + str(k).encode() + b"\r")
+            ValueTRCL2 = SR830.read_until(b"\r")
+            ValueTRCL2 = ValueTRCL2.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueTRCL2","SR830")
             return ValueTRCL2  
     # ==================================================================================
@@ -212,9 +232,9 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "IDN":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","IDN?","SR830")
-            Tester.SR830.write(b"*IDN?\r")
-            ValueIDN = Tester.SR830.read_until(b"\r")
-            ValueIDN = ValueIDN.decode("ascii", errors="replace").strip()
+            SR830.write(b"*IDN?\r")
+            ValueIDN = SR830.read_until(b"\r")
+            ValueIDN = ValueIDN.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"), "Communication", "GetValue", str(ValueIDN), "SR830")
             return ValueIDN       
     # ==================================================================================
@@ -222,8 +242,9 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "LCA":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","LCA","OSTech")
-            Init.write(b"LCA\r")
-            ValueLCA = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            OSTech.write(b"LCA\r")
+            ValueLCA = OSTech.read_until(b"\r")
+            ValueLCA = ValueLCA.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueLCA","OSTech")
             return ValueLCA   
     # ==================================================================================
@@ -231,8 +252,9 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "LVA":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","LVA","OSTech")
-            Init.write(b"LVA\r")
-            ValueLVA = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            OSTech.write(b"LVA\r")
+            ValueLVA = OSTech.read_until(b"\r")
+            ValueLVA = ValueLVA.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueLVA","OSTech")
             return ValueLVA   
     # ==================================================================================
@@ -240,8 +262,9 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "LPCA":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","LPCA","OSTech")
-            Init.write(b"LPCA\r")
-            ValueLPCA = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            OSTech.write(b"LPCA\r")
+            ValueLPCA = OSTech.read_until(b"\r")
+            ValueLPCA = ValueLPCA.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueLPCA","OSTech")
             return ValueLPCA   
     # ==================================================================================
@@ -249,8 +272,9 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "LPA":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","LPA","OSTech")
-            Init.write(b"LPA\r")
-            ValueLPA = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            OSTech.write(b"LPA\r")
+            ValueLPA = OSTech.read_until(b"\r")
+            ValueLPA = ValueLPA.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueLPA","OSTech")
             return ValueLPA   
     # ==================================================================================
@@ -258,8 +282,9 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "LPF":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","LPF","OSTech")
-            Init.write(b"LPF\r")
-            ValueLPF = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            OSTech.write(b"LPF\r")
+            ValueLPF = OSTech.read_until(b"\r")
+            ValueLPF = ValueLPF.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueLPF","OSTech")
             return ValueLPF   
     # ==================================================================================
@@ -267,8 +292,9 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "LZR":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","LZR","OSTech")
-            Init.write(b"LZR\r")
-            ValueLZR = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            OSTech.write(b"LZR\r")
+            ValueLZR = OSTech.read_until(b"\r")
+            ValueLZR = ValueLZR.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueLZR","OSTech")
             return ValueLZR   
     # ==================================================================================
@@ -276,8 +302,9 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "LPF":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","LPF","OSTech")
-            Init.write(b"LPF\r")
-            ValueLPF = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            OSTech.write(b"LPF\r")
+            ValueLPF = OSTech.read_until(b"\r")
+            ValueLPF = ValueLPF.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueLPF","OSTech")
             return ValueLPF   
     # ==================================================================================
@@ -285,8 +312,9 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "LPF":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","LPF","OSTech")
-            Init.write(b"LPF\r")
-            ValueLPF = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            OSTech.write(b"LPF\r")
+            ValueLPF = OSTech.read_until(b"\r")
+            ValueLPF = ValueLPF.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueLPF","OSTech")
             return ValueLPF   
     # ==================================================================================
@@ -294,8 +322,9 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "xTCA":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","xTCA","OSTech")
-            Init.write(b"xTCA\r")
-            ValuexTCA = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            OSTech.write(b"xTCA\r")
+            ValuexTCA = OSTech.read_until(b"\r")
+            ValuexTCA = ValuexTCA.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValuexTCA","OSTech")
             return ValuexTCA           
     # ==================================================================================
@@ -303,8 +332,9 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "xTVA":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","xTVA","OSTech")
-            Init.write(b"xTVA\r")
-            ValuexTVA = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            OSTech.write(b"xTVA\r")
+            ValuexTVA = OSTech.read_until(b"\r")
+            ValuexTVA = ValuexTVA.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValuexTVA","OSTech")
             return ValuexTVA   
     # ==================================================================================
@@ -312,8 +342,9 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "GD":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","GD","OSTech")
-            Init.write(b"GD\r")
-            ValueGD = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            OSTech.write(b"GD\r")
+            ValueGD = OSTech.read_until(b"\r")
+            ValueGD = ValueGD.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueGD","OSTech")
             return ValueGD   
     # ==================================================================================
@@ -321,8 +352,9 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "GT":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","GT","OSTech")
-            Init.write(b"GT\r")
-            ValueGT = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            OSTech.write(b"GT\r")
+            ValueGT = OSTech.read_until(b"\r")
+            ValueGT = ValueGT.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueGT","OSTech")
             return ValueGT  
     # ==================================================================================
@@ -330,8 +362,9 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "GVS":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","GVS","OSTech")
-            Init.write(b"GVS\r")
-            ValueGVS = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            OSTech.write(b"GVS\r")
+            ValueGVS = OSTech.read_until(b"\r")
+            ValueGVS = ValueGVS.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueGVS","OSTech")
             return ValueGVS      
     # ==================================================================================
@@ -339,8 +372,9 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "GVN":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","GVN","OSTech")
-            Init.write(b"GVN\r")
-            ValueGVN = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            OSTech.write(b"GVN\r")
+            ValueGVN = OSTech.read_until(b"\r")
+            ValueGVN = ValueGVN.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueGVN","OSTech")
             return ValueGVN  
     # ==================================================================================
@@ -348,8 +382,9 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "GS":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","GS","OSTech")
-            Init.write(b"GS\r")
-            ValueGS = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            OSTech.write(b"GS\r")
+            ValueGS = OSTech.read_until(b"\r")
+            ValueGS = ValueGS.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueGS","OSTech")
             return ValueGS 
     # ==================================================================================
@@ -357,8 +392,9 @@ def getValue(Init, Command: str, i: Optional[int] = 0, j: Optional[int] = 0, k: 
     # ==================================================================================                     
         case "GM":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","GM","OSTech")
-            Init.write(b"GM\r")
-            ValueGM = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            OSTech.write(b"GM\r")
+            ValueGM = OSTech.read_until(b"\r")
+            ValueGM = ValueGM.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","GetValue","ValueGM","OSTech")
             return ValueGM  
 
@@ -375,6 +411,7 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
     * `PHAS` - `PHAS`: 
     * `FMOD` - `FMOD`: 
     """
+    from Starter import SR830, OSTech
 
         # Abfangen, falls keine Hardware verbunden ist
     if Init is None:
@@ -388,8 +425,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                    
         case "PHAS":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","PHAS " + str(x),"SR830")
-            Init.write(b"PHAS " + str(x).encode() + b"\r")
-            ValuePHAS = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"PHAS " + str(x).encode() + b"\r")
+            ValuePHAS = SR830.read_until(b"\r")
+            ValuePHAS = ValuePHAS.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValuePHAS),"SR830")
             return ValuePHAS
         # ==================================================================================
@@ -397,8 +435,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================            
         case "FMOD":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","FMOD " + str(i),"SR830")
-            Init.write(b"FMOD " + str(i).encode() + b"\r")
-            ValueFMOD = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"FMOD " + str(i).encode() + b"\r")
+            ValueFMOD = SR830.read_until(b"\r")
+            ValueFMOD = ValueFMOD.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueFMOD),"SR830")
             return ValueFMOD
         # ==================================================================================
@@ -406,8 +445,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================    
         case "FREQ":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","FREQ " + str(i),"SR830")
-            Init.write(b"FREQ " + str(i).encode() + b"\r")
-            ValueFREQ = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"FREQ " + str(i).encode() + b"\r")
+            ValueFREQ = SR830.read_until(b"\r")
+            ValueFREQ = ValueFREQ.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueFREQ),"SR830")
             return ValueFREQ
         # ==================================================================================
@@ -415,8 +455,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "RSLP":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","RSLP " + str(i),"SR830")
-            Init.write(b"RSLP " + str(i).encode() + b"\r")
-            ValueRSLP = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"RSLP " + str(i).encode() + b"\r")
+            ValueRSLP = SR830.read_until(b"\r")
+            ValueRSLP = ValueRSLP.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueRSLP),"SR830")
             return ValueRSLP     
         # ==================================================================================
@@ -424,8 +465,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "HARM":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","HARM " + str(i),"SR830")
-            Init.write(b"HARM " + str(i).encode() + b"\r")
-            ValueHARM = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"HARM " + str(i).encode() + b"\r")
+            ValueHARM = SR830.read_until(b"\r")
+            ValueHARM = ValueHARM.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueHARM),"SR830")
             return ValueHARM
         # ==================================================================================
@@ -433,8 +475,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "SLVL":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","SLVL " + str(x),"SR830")
-            Init.write(b"SLVL " + str(x).encode() + b"\r")
-            ValueSLVL = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"SLVL " + str(x).encode() + b"\r")
+            ValueSLVL = SR830.read_until(b"\r")
+            ValueSLVL = ValueSLVL.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueSLVL),"SR830")
             return ValueSLVL                               
         # ==================================================================================
@@ -442,8 +485,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "ISRC":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","ISRC " + str(i),"SR830")
-            Init.write(b"ISRC " + str(i).encode() + b"\r")
-            ValueISRC = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"ISRC " + str(i).encode() + b"\r")
+            ValueISRC = SR830.read_until(b"\r")
+            ValueISRC = ValueISRC.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueISRC),"SR830")
             return ValueISRC            
         # ==================================================================================
@@ -451,8 +495,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "IGND":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","IGND " + str(i),"SR830")
-            Init.write(b"IGND " + str(i).encode() + b"\r")
-            ValueIGND = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"IGND " + str(i).encode() + b"\r")
+            ValueIGND = SR830.read_until(b"\r")
+            ValueIGND = ValueIGND.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueIGND),"SR830")
             return ValueIGND       
         # ==================================================================================
@@ -460,8 +505,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "LCPL":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","LCPL " + str(i),"SR830")
-            Init.write(b"LCPL " + str(i).encode() + b"\r")
-            ValueLCPL = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"LCPL " + str(i).encode() + b"\r")
+            ValueLCPL = SR830.read_until(b"\r")
+            ValueLCPL = ValueLCPL.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueLCPL),"SR830")
             return ValueLCPL
         # ==================================================================================
@@ -469,8 +515,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "ILN":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","ILN " + str(i),"SR830")
-            Init.write(b"ILN " + str(i).encode() + b"\r")
-            ValueILN = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"ILN " + str(i).encode() + b"\r")
+            ValueILN = SR830.read_until(b"\r")
+            ValueILN= ValueILN.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueILN),"SR830")
             return ValueILN
         # ==================================================================================
@@ -478,8 +525,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "SENS":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","SENS " + str(i),"SR830")
-            Init.write(b"SENS " + str(i).encode() + b"\r")
-            ValueSENS = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"SENS " + str(i).encode() + b"\r")
+            ValueSENS = SR830.read_until(b"\r")
+            ValueSENS = ValueSENS.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueSENS),"SR830")
             return ValueSENS
         # ==================================================================================
@@ -487,8 +535,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "RMOD":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","RMOD " + str(i),"SR830")
-            Init.write(b"RMOD " + str(i).encode() + b"\r")
-            ValueRMOD = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"RMOD " + str(i).encode() + b"\r")
+            ValueRMOD = SR830.read_until(b"\r")
+            ValueRMOD = ValueRMOD.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueRMOD),"SR830")
             return ValueRMOD
         # ==================================================================================
@@ -496,8 +545,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "OFLT":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","OFLT " + str(i),"SR830")
-            Init.write(b"OFLT " + str(i).encode() + b"\r")
-            ValueOFLT = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"OFLT " + str(i).encode() + b"\r")
+            ValueOFLT = SR830.read_until(b"\r")
+            ValueOFLT = ValueOFLT.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueOFLT),"SR830")
             return ValueOFLT
         # ==================================================================================
@@ -505,8 +555,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "OFSL":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","OFSL " + str(i),"SR830")
-            Init.write(b"OFSL " + str(i).encode() + b"\r")
-            ValueOFSL = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"OFSL " + str(i).encode() + b"\r")
+            ValueOFSL = SR830.read_until(b"\r")
+            ValueOFSL = ValueOFSL.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueOFSL),"SR830")
             return ValueOFSL
         # ==================================================================================
@@ -514,8 +565,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "SYNC":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","SYNC " + str(i),"SR830")
-            Init.write(b"SYNC " + str(i).encode() + b"\r")
-            ValueSYNC = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"SYNC " + str(i).encode() + b"\r")
+            ValueSYNC = SR830.read_until(b"\r")
+            ValueSYNC = ValueSYNC.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueSYNC),"SR830")
             return ValueSYNC
         # ==================================================================================
@@ -523,8 +575,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "DDEF":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","DDEF " + str(i) + str(j) + str(k),"SR830")
-            Init.write(b"DDEF " + str(i).encode() + str(j).encode() + str(k).encode() + b"\r")
-            ValueDDEF = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"DDEF " + str(i).encode() + str(j).encode() + str(k).encode() + b"\r")
+            ValueDDEF = SR830.read_until(b"\r")
+            ValueDDEF = ValueDDEF.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueDDEF),"SR830")
             return ValueDDEF
         # ==================================================================================
@@ -532,8 +585,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "FPOP":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","FPOP " + str(i) + str(j),"SR830")
-            Init.write(b"FPOP " + str(i).encode() + str(j).encode() + b"\r")
-            ValueFPOP = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"FPOP " + str(i).encode() + str(j).encode() + b"\r")
+            ValueFPOP = SR830.read_until(b"\r")
+            ValueFPOP = ValueFPOP.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueFPOP),"SR830")
             return ValueFPOP
         # ==================================================================================
@@ -541,8 +595,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "OEXP":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","OEXP " + str(i) + str(x)+ str(j),"SR830")
-            Init.write(b"OEXP " + str(i).encode() + str(x).encode() + str(j).encode() + b"\r")
-            ValueOEXP = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"OEXP " + str(i).encode() + str(x).encode() + str(j).encode() + b"\r")
+            ValueOEXP = SR830.read_until(b"\r")
+            ValueOEXP = ValueOEXP.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueOEXP),"SR830")
             return ValueOEXP
         # ==================================================================================
@@ -550,8 +605,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "AOFF":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","AOFF " + str(i),"SR830")
-            Init.write(b"AOFF " + str(i).encode() + b"\r")
-            ValueAOFF = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"AOFF " + str(i).encode() + b"\r")
+            ValueAOFF = SR830.read_until(b"\r")
+            ValueAOFF = ValueAOFF.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueAOFF),"SR830")
             return ValueAOFF
         # ==================================================================================
@@ -559,8 +615,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "AUXV":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","AUXV " + str(i) + " " + str(x),"SR830")
-            Init.write(b"AUXV " + str(i).encode() +  str(x).encode() + b"\r")
-            ValueAUXV = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"AUXV " + str(i).encode() +  str(x).encode() + b"\r")
+            ValueAUXV = SR830.read_until(b"\r")
+            ValueAUXV = ValueAUXV.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueAUXV),"SR830")
             return ValueAUXV
         # ==================================================================================
@@ -568,8 +625,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "OUTX":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","OUTX " + str(i),"SR830")
-            Init.write(b"OUTX " + str(i).encode() + b"\r")
-            ValueOUTX = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"OUTX " + str(i).encode() + b"\r")
+            ValueOUTX = SR830.read_until(b"\r")
+            ValueOUTX = ValueOUTX.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueOUTX),"SR830")
             return ValueOUTX
         # ==================================================================================
@@ -577,8 +635,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "OVRM":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","OVRM " + str(i),"SR830")
-            Init.write(b"OVRM " + str(i).encode() + b"\r")
-            ValueOVRM = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"OVRM " + str(i).encode() + b"\r")
+            ValueOVRM = SR830.read_until(b"\r")
+            ValueOVRM = ValueOVRM.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueOVRM),"SR830")
             return ValueOVRM
         # ==================================================================================
@@ -586,8 +645,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "AOFF":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","AOFF " + str(i),"SR830")
-            Init.write(b"AOFF " + str(i).encode() + b"\r")
-            ValueAOFF = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"AOFF " + str(i).encode() + b"\r")
+            ValueAOFF = SR830.read_until(b"\r")
+            ValueAOFF = ValueAOFF.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueAOFF),"SR830")
             return ValueAOFF
         # ==================================================================================
@@ -595,8 +655,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "AOXV":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","AOXV " + str(i) + " " + str(x),"SR830")
-            Init.write(b"AOXV " + str(i).encode() + str(x).encode() + b"\r")
-            ValueAOXV = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"AOXV " + str(i).encode() + str(x).encode() + b"\r")
+            ValueAOXV = SR830.read_until(b"\r")
+            ValueAOXV = ValueAOXV.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueAOXV),"SR830")
             return ValueAOXV
         # ==================================================================================
@@ -604,8 +665,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "OUTX":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","OUTX " + str(i),"SR830")
-            Init.write(b"OUTX " + str(i).encode() + b"\r")
-            ValueOUTX = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"OUTX " + str(i).encode() + b"\r")
+            ValueOUTX = SR830.read_until(b"\r")
+            ValueOUTX = ValueOUTX.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueOUTX),"SR830")
             return ValueOUTX
         # ==================================================================================
@@ -613,8 +675,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "OVRM":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","OVRM " + str(i),"SR830")
-            Init.write(b"OVRM " + str(i).encode() + b"\r")
-            ValueOVRM = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"OVRM " + str(i).encode() + b"\r")
+            ValueOVRM = SR830.read_until(b"\r")
+            ValueOVRM = ValueOVRM.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueOVRM),"SR830")
             return ValueOVRM
         # ==================================================================================
@@ -622,8 +685,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "KCLK":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","KCLK " + str(i),"SR830")
-            Init.write(b"KCLK " + str(i).encode() + b"\r")
-            ValueKCLK = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"KCLK " + str(i).encode() + b"\r")
+            ValueKCLK = SR830.read_until(b"\r")
+            ValueKCLK = ValueKCLK.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueKCLK),"SR830")
             return ValueKCLK
         # ==================================================================================
@@ -631,8 +695,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "ALRM":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","ALRM " + str(i),"SR830")
-            Init.write(b"ALRM " + str(i).encode() + b"\r")
-            ValueALRM = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"ALRM " + str(i).encode() + b"\r")
+            ValueALRM = SR830.read_until(b"\r")
+            ValueALRM = ValueALRM.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueALRM),"SR830")
             return ValueALRM
         # ==================================================================================
@@ -640,8 +705,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "SSET":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","SSET " + str(i),"SR830")
-            Init.write(b"SSET " + str(i).encode() + b"\r")
-            ValueSSET = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"SSET " + str(i).encode() + b"\r")
+            ValueSSET = SR830.read_until(b"\r")
+            ValueSSET = ValueSSET.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueSSET),"SR830")
             return ValueSSET
         # ==================================================================================
@@ -649,8 +715,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "RSET":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","RSET " + str(i),"SR830")
-            Init.write(b"RSET " + str(i).encode() + b"\r")
-            ValueRSET = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"RSET " + str(i).encode() + b"\r")
+            ValueRSET = SR830.read_until(b"\r")
+            ValueRSET = ValueRSET.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueRSET),"SR830")
             return ValueRSET
         # ==================================================================================
@@ -658,8 +725,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "AGAN":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","AGAN ","SR830")
-            Init.write(b"AGAN " + b"\r")
-            ValueAGAN = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"AGAN " + b"\r")
+            ValueAGAN = SR830.read_until(b"\r")
+            ValueAGAN = ValueAGAN.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueAGAN),"SR830")
             return ValueAGAN
         # ==================================================================================
@@ -667,8 +735,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "ARSV":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","ARSV ","SR830")
-            Init.write(b"ARSV " + b"\r")
-            ValueARSV = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"ARSV " + b"\r")
+            ValueARSV = SR830.read_until(b"\r")
+            ValueARSV = ValueARSV.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueARSV),"SR830")
             return ValueARSV
         # ==================================================================================
@@ -676,8 +745,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "AOFF":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","AOFF " + str(i),"SR830")
-            Init.write(b"AOFF " + str(i).encode() + b"\r")
-            ValueAOFF = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"AOFF " + str(i).encode() + b"\r")
+            ValueAOFF = SR830.read_until(b"\r")
+            ValueAOFF = ValueAOFF.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","ValueAOFF","SR830")
             return ValueAOFF
         # ==================================================================================
@@ -685,8 +755,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "APHS":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","APHS ","SR830")
-            Init.write(b"APHS " + b"\r")
-            ValueAPHS = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"APHS " + b"\r")
+            ValueAPHS = SR830.read_until(b"\r")
+            ValueAPHS = ValueAPHS.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue",str(ValueAPHS),"SR830")
             return ValueAPHS
         # ==================================================================================
@@ -694,8 +765,9 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "AOFF":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","AOFF " + str(i),"SR830")
-            Init.write(b"AOFF " + str(i).encode() + b"\r")
-            ValueAOFF = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"AOFF " + str(i).encode() + b"\r")
+            ValueAOFF = SR830.read_until(b"\r")
+            ValueAOFF = ValueAOFF.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","ValueAOFF","SR830")
             return ValueAOFF
         # ==================================================================================
@@ -703,7 +775,8 @@ def setValue(Init,Command:str,i: Optional[int] = 0,j: Optional[int] = 0,k: Optio
         # ==================================================================================                
         case "AOFF":
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","AOFF " + str(i),"SR830")
-            Init.write(b"AOFF " + str(i).encode() + b"\r")
-            ValueAOFF = Init.readuntil(b"\r").decode("ascii", errors="replace").strip() 
+            SR830.write(b"AOFF " + str(i).encode() + b"\r")
+            ValueAOFF = SR830.read_until(b"\r")
+            ValueAOFF= ValueAOFF.decode("ascii", errors="replace").strip() 
             Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"),"Communication","SetValue","ValueAOFF","SR830")
             return ValueAOFF
