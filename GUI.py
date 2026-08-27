@@ -25,8 +25,8 @@ from tkinter import messagebox, ttk, filedialog
 from tkinter.constants import DISABLED
 
 # Eigene SWP-Module
-import SWP_Calculation_PhaseVsFrequenz as PvF
-import SWP_Calculation_TimeVsNitrierschicht as TvN
+import SWP_Calculation_PhaseVsFrequenz_v3 as PvF
+#import SWP_Calculation_TimeVsNitrierschicht as TvN
 import SWP_Calculations_Streuung
 import Commands
 import Log
@@ -693,16 +693,40 @@ lbl_file_status = tk.Label(sub_tab_clean, font=("Consolas", 9), bg="#252526", fg
 lbl_file_status.pack(pady=5)
 reg_ui(lbl_file_status, "No file loaded")
 
-btn_reg = tk.Button(sub_tab_clean, font=("Consolas", 9, "bold"), bg="#388e3c", fg="white", padx=10, pady=5, command=lambda: messagebox.showinfo(auto_tr("Regression"), TvN.main()))
-btn_reg.pack(pady=10)
-reg_ui(btn_reg, "📊 Run Regression")
+#btn_reg = tk.Button(sub_tab_clean, font=("Consolas", 9, "bold"), bg="#388e3c", fg="white", padx=10, pady=5, command=lambda: messagebox.showinfo(auto_tr("Regression"), TvN.main()))
+#btn_reg.pack(pady=10)
+#reg_ui(btn_reg, "📊 Run Regression")
+
+
+def starte_pvf_analyse():
+  """Startet das PvF-Skript inklusive des Simulationstests und Plot-Fensters."""
+  try:
+    subprocess.Popen([sys.executable, "SWP_Calculation_PhaseVsFrequenz_v3.py"])
+  except Exception as e:
+    messagebox.showerror(
+        auto_tr("Berechnungsfehler"), f"Fehler beim Starten von PvF:\n{e}"
+    )
+
+
+btn_reg = tk.Button(
+    sub_tab_clean,
+    font=("Consolas", 9, "bold"),
+    bg="#388e3c",
+    fg="white",
+    padx=10,
+    pady=5,
+    command=starte_pvf_analyse
+)
+#btn_reg.pack(pady=10)
+#reg_ui(btn_reg, "Phase vs. Frequency Analysis")
+
 
 # Subtab 2: Statistics
 sub_tab_stats = tk.Frame(analysis_notebook, bg="#252526")
 analysis_notebook.add(sub_tab_stats, text="")
 reg_ui((analysis_notebook, sub_tab_stats), "Statistics", "tab_text")
 
-btn_pvf = tk.Button(sub_tab_stats, font=("Consolas", 9, "bold"), bg="#f57c00", fg="white", padx=10, pady=5, command=lambda: starte_regression(current_file_path))
+btn_pvf = tk.Button(sub_tab_stats, font=("Consolas", 9, "bold"), bg="#f57c00", fg="white", padx=10, pady=5, command=starte_pvf_analyse)
 btn_pvf.pack(pady=20)
 reg_ui(btn_pvf, "📈 Phase vs. Frequency Analysis")
 

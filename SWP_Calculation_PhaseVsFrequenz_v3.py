@@ -157,7 +157,7 @@ def process_live_measurement(f_measured, phi_measured, initial_d_guess=10.0, sho
 # EXECUTION / TESTS
 # ==============================================================================
 
-#if __name__ == "__main__":
+if __name__ == "__main__":
     # FALL 1: Test ohne Hardware (Triggert Fehlermeldung & Popup)
     #print("Test 1: Aufruf ohne Daten (Hardware nicht angeschlossen)...")
     #process_live_measurement(None, None)
