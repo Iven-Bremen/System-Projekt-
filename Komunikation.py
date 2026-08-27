@@ -10,6 +10,10 @@ import serial
 import Log
 
 
+import numpy as np
+from SWP_Calculation_PhaseVsFrequenz_v3 import process_live_measurement as prayForItToWork
+
+
 SR830: Optional[Any] = None
 OSTech: Optional[Any] = None
 SR830_PORT: Optional[str] = None
@@ -156,6 +160,42 @@ def schliesse_kommunikation() -> None:
     SR830_PORT = None
     OSTECH_PORT = None
     KOMMUNIKATIONSSTATUS = {"SR830": False, "OSTech": False}
+
+
+def frequenz_sweep_durchfuehren(
+        f_start: float = 0.1,
+        f_end: float = 500.0,
+        schritte: int = 100
+) -> tuple[np.ndarray, np.ndarray]:
+
+    # Frequenzband von f_start bis f_end logarithmisch erzeugen
+    f_sweep = np.logspace(np.log10(f_start), np.log10(f_end), schritte)
+    phi_gemessen = []
+
+    for f in f_sweep:
+        # Frequenz am SR830 setzen
+        setValue(Command="FREQ", x=f)
+
+        # Dynamische Einschwingzeit: Mind. 0.3s oder 3 Periodenlängen (3/f)
+        wartezeit = max(0.3, 3.0 / f)
+        time.sleep(wartezeit)
+
+        # SNAP liest Magnitude (i=9) und Phase (j=10) aus
+        antwort = getValue(Command="SNAP", i=9, j=10)
+
+        try:
+            _, phase_val = antwort.split(",")
+            phi_gemessen.append(float(phase_val))
+        except (ValueError, IndexError):
+            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"), "Warning", "Sweep", f"Fehler bei {f} Hz", "SR830")
+
+    f_array = np.array(f_sweep)
+    phi_array = np.array(phi_gemessen)
+
+    # Direkt an den Evaluator zur Schichtdickenberechnung übergeben
+    d_fit, d_err, r2, _ = prayForItToWork(f_array, phi_array)
+
+    return f_array, phi_array
 
 
 def _send_and_read(device: Any, command: str, device_name: str) -> str:

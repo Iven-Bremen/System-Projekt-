@@ -1,5 +1,5 @@
 """
-σ(f) = (1+j)·√(π·f/α₁) = thermische Wellenzahl
+σ(f) = (1+j)·sqrt(π·f/α₁) = thermische Wellenzahl
 R_1/2 = (1-Kc)/(1+Kc) = thermischer Reflexionskoeffizient
 z(f,d) = (1 + R_1/2 * e^(-2σd)) / (1 - R_1/2 * e^(-2σd)) = komplexe Reflexionsantwort
 Φ(f) = arg[z(f,d)] - arg[z(f,0)] = Phasensignal vs. Referenz
