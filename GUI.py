@@ -175,7 +175,7 @@ def open_file_dialog():
 # GUI ANWENDUNG
 # ==========================================
 root = tk.Tk()
-root.title('Labor-Steuerung & Analyse (SR830 & OSTech Laser Controller)')
+root.title('NIMM´S')
 root.geometry('1340x820')
 root.configure(bg="#2b2b2b")
 
@@ -526,25 +526,25 @@ var_warning = tk.BooleanVar(value=False)
 def check_laser_safety():
     if var_goggles.get() and var_interlock.get() and var_beampath.get() and var_warning.get():
         ostech_notebook.tab(tab_ostech_laser, state="normal")
-        lbl_safety_status.config(text="STATUS: GESICHERT (Laser-Menü Freigeschaltet)", fg="#00ff00")
-        messagebox.showinfo(auto_tr("Laser Security"), auto_tr("Alle Sicherheitsmaßnahmen erfüllt. Das Laser-Menü wurde freigeschaltet."))
+        lbl_safety_status.config(text="STATUS: Unlatched (Laser-Menu unlocked)", fg="#00ff00")
+        messagebox.showinfo(auto_tr("Laser Security"), auto_tr("All safety measurements complied. The Laser-Menu is now unlocked."))
     else:
         ostech_notebook.tab(tab_ostech_laser, state=DISABLED)
-        lbl_safety_status.config(text="STATUS: SPERRE (Checkliste unvollständig)", fg="#ff3333")
+        lbl_safety_status.config(text="STATUS: Interlocked (Checklist incomplete)", fg="#ff3333")
 
 frame_safety = tk.LabelFrame(tab_ostech_main, text=" Laser Security Checklist ", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#ffaa00", padx=10, pady=8)
 frame_safety.pack(fill="x", padx=10, pady=10)
 
-chk_goggles = tk.Checkbutton(frame_safety, text=" Laser-Schutzbrille aufgesetzt", variable=var_goggles, command=check_laser_safety, bg="#1e1e1e", fg="#ffffff", selectcolor="#2b2b2b", activebackground="#1e1e1e")
+chk_goggles = tk.Checkbutton(frame_safety, text=" Protective googles on?", variable=var_goggles, command=check_laser_safety, bg="#1e1e1e", fg="#ffffff", selectcolor="#2b2b2b", activebackground="#1e1e1e")
 chk_goggles.pack(anchor="w", pady=2)
 
-chk_interlock = tk.Checkbutton(frame_safety, text=" Tür-Interlock / Hardware-Interlock geschlossen", variable=var_interlock, command=check_laser_safety, bg="#1e1e1e", fg="#ffffff", selectcolor="#2b2b2b", activebackground="#1e1e1e")
+chk_interlock = tk.Checkbutton(frame_safety, text=" Door-Interlock / Hardware-Interlock closed", variable=var_interlock, command=check_laser_safety, bg="#1e1e1e", fg="#ffffff", selectcolor="#2b2b2b", activebackground="#1e1e1e")
 chk_interlock.pack(anchor="w", pady=2)
 
-chk_beampath = tk.Checkbutton(frame_safety, text=" Strahlgang gesichert & Strahlfalle positioniert", variable=var_beampath, command=check_laser_safety, bg="#1e1e1e", fg="#ffffff", selectcolor="#2b2b2b", activebackground="#1e1e1e")
+chk_beampath = tk.Checkbutton(frame_safety, text=" Beam path secured", variable=var_beampath, command=check_laser_safety, bg="#1e1e1e", fg="#ffffff", selectcolor="#2b2b2b", activebackground="#1e1e1e")
 chk_beampath.pack(anchor="w", pady=2)
 
-chk_warning = tk.Checkbutton(frame_safety, text=" Laser-Warnleuchte aktiv & Not-Aus frei erreichbar", variable=var_warning, command=check_laser_safety, bg="#1e1e1e", fg="#ffffff", selectcolor="#2b2b2b", activebackground="#1e1e1e")
+chk_warning = tk.Checkbutton(frame_safety, text=" Laser warning light active & emergency shutdown in reach", variable=var_warning, command=check_laser_safety, bg="#1e1e1e", fg="#ffffff", selectcolor="#2b2b2b", activebackground="#1e1e1e")
 chk_warning.pack(anchor="w", pady=2)
 
 lbl_safety_status = tk.Label(frame_safety, text="STATUS: SPERRE (Checkliste unvollständig)", font=("Consolas", 10, "bold"), bg="#1e1e1e", fg="#ff3333")
