@@ -7,6 +7,7 @@ def init_hardware():
     """Prüft und initialisiert alle seriellen Schnittstellen als allererstes."""
     Log.start_terminal_logging()
     Log.LogMassage("SYSTEM", "START", "Programm gestartet", "Version 1.0")
+   
 
     # --- SR830 Ansteuerung ---
     Log.LogMassage("Check Ports vor SR830", "Info", "Test", "Check", "SR830")
@@ -25,8 +26,7 @@ def init_hardware():
         #ConficPortsOSTech("COM5",9600, 2.0) 
         global OSTech
         OSTech = serial.Serial("COM5", 9600, timeout=2.0)
-        time.sleep(0.5)
-        Log.LogMassage("COM4", "Info", "Test", "OpenPort", "9600")
+        time.sleep(0.5)  
     except serial.SerialException:
         OSTech = None
         Log.LogMassage("COM4", "Warning", "Port konnte nicht geöffnet werden (Hardware fehlt)", "Fail", "COM4")
