@@ -17,7 +17,7 @@ C_SUBSTRAT = 460.0  # Spezifische Wärmekapazität Substrat [J/(kg·K)]
 # Nitrierschicht (Verbindungsschicht)
 RHO_LAYER = 7870.0  # Dichte Schicht [kg/m³]
 C_LAYER = 460.0  # Spezifische Wärmekapazität Schicht [J/(kg·K)]
-K_LAYER_DEFAULT = 14.4  # Standard-Wärmeleitfähigkeit Schicht [W/(m·K)]
+K_LAYER_DEFAULT = 14.4 # Standard-Wärmeleitfähigkeit Schicht [W/(m·K)]
 
 
 # ==============================================================================
@@ -92,19 +92,23 @@ def process_live_measurement(f_measured, phi_measured, initial_d_guess=10.0, sho
         return None, None, None, None
 
     # 2. FIT BERECHNEN (Non-Linear Least Squares)
+
+
     try:
         popt, pcov = curve_fit(
             fit_model_d_only,
             f_measured,
             phi_measured,
             p0=[initial_d_guess],
-            bounds=(0.1, 500.0)
+            bounds=(0.1, 500.0) # Min. Schichtdicke d = 0.1 µm // Max. Schichtdicke d = 500 µm
         )
         d_fitted_um = popt[0]
         d_error_um = np.sqrt(np.diag(pcov))[0]
     except Exception as e:
         show_error_popup("Fit-Fehler", f"Der mathematische Fit ist fehlgeschlagen:\n{str(e)}")
         return None, None, None, None
+
+
 
     # 3. VERIFIKATION & R²-BERECHNUNG
     phi_model_fitted = fit_model_d_only(f_measured, d_fitted_um)
@@ -138,8 +142,8 @@ def process_live_measurement(f_measured, phi_measured, initial_d_guess=10.0, sho
         sqrt_omega_dense = np.sqrt(2 * np.pi * f_dense)
         phi_dense_fit = fit_model_d_only(f_dense, d_fitted_um)
 
-        plt.plot(sqrt_omega_meas, phi_measured, 'ro', alpha=0.7, label='Lock-In Messdaten')
-        plt.plot(sqrt_omega_dense, phi_dense_fit, 'b-', linewidth=2,
+        plt.plot(sqrt_omega_meas, phi_measured, 'o', color='darkred', alpha=0.7, label='Lock-In Messdaten')
+        plt.plot(sqrt_omega_dense, phi_dense_fit, color='darkblue', linewidth=2,
                  label=f'Fit (d = {d_fitted_um:.2f} µm, R² = {r_squared:.4f})')
 
         plt.xlabel(r'$\sqrt{\omega}$ [$\sqrt{\mathrm{Hz}}$]', fontsize=11)
