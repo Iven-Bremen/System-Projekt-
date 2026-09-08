@@ -1,10 +1,27 @@
 import serial
 import time
 
-ser = serial.Serial("COM4", 9600, timeout= 2)
+SR830 = serial.Serial("COM4", 9600, timeout= 2)
 time.sleep (0.5)
-ser.write(b"*IDN?\r")
-reply = ser.read_until(b"\r")
-print("Raw: " ,repr(reply))
-print("Decoded: ", reply.decode(errors="ignore").strip())
-ser.close()
+print("Write IDN")
+SR830.write(b"*IDN?\r")
+ValueIDN = SR830.read_until(b"\r")
+print("Raw: " ,repr(ValueIDN))
+ValueIDN = ValueIDN.decode("ascii", errors="replace").strip()
+print("Decoded: ", ValueIDN)
+SR830.close()
+
+GVN
+
+
+OSTECH = serial.Serial("COM5", 9600, timeout= 2)
+time.sleep (0.5)
+print("Write GVN")
+OSTECH.write(b"GVN")
+ValueGVN = OSTECH.read_until(b"\r")
+print("Raw: " ,repr(ValueGVN))
+ValueGVN = ValueGVN.decode("ascii", errors="replace").strip()
+print("Decoded: ", ValueGVN)
+OSTECH.close()
+
+
