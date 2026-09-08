@@ -90,3 +90,15 @@ def ValidatedPort(NameOfPort : str, BaudRate : int, Timeout : float):
 if __name__ == "__main__":
     init_hardware()
     StartGui()
+
+    '''-Abgleich gleich zu true checkport apply +check
+    -Applay mit lockin +check
+    -laser menu deaktiv
+    -applay
+    -pop up für import data#
+    -ordner struktur und speichern
+    -alte datein öffenen
+    -log ordner
+    -scrollen bei logs und export
+    -port is fitting
+    -coms von 0-100 als textfeld'''
