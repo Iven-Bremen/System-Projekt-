@@ -4,21 +4,24 @@ Die CSV-Datei wird direkt im Tagesordner abgelegt und enthält die Uhrzeit im Da
 Struktur pro Zelle: Date , Time , Tag , Category , Message , Info , AdditionalInfo , Else
 (Im Terminal wird weiterhin | als Trenner für die Optik verwendet!)
 """
+import datetime
 
 import csv
 import os
-import sys
 from datetime import datetime
 from pathlib import Path
 
 # Neue aufgespaltene Spaltenstruktur
 CSV_COLUMNS = ["Date", "Time", "Tag", "Category", "Message", "Info", "AdditionalInfo", "Else"]
 CSV_DELIMITER = ","  # Für perfekte Zellentrennung im Viewer
+CSV_COLUMNS_NEW = ["Date","Time","Category","Tag","State","Message","Value","Info","AdditionalMessage","AdditionalValue","AdditionalInfo","Else"]
 
 _CURRENT_SESSION_LOG_PATH = None
 
 # --- NEU: Callbacks für die GUI ---
 _gui_callbacks = []
+
+
 
 def register_gui_callback(callback_func):
     """Erlaubt der GUI, sich für Live-Logs anzumelden."""
@@ -121,10 +124,6 @@ def LogMassage(TAG: str, Category: str, Massage: str, INFO: str, AdditionalInfo:
     
     console_line = f"{date_str} {time_str}  |  {TAG}  |  {Category}  |  {Massage}  |  {INFO}  |  {AdditionalInfo}"
     
-    # 1. Sofort im Terminal anzeigen
-    print(console_line, file=sys.__stdout__)
-    sys.__stdout__.flush()
-
     # 2. An die GUI senden (falls registriert)
     for cb in _gui_callbacks:
         cb(console_line + "\n")
@@ -203,3 +202,71 @@ def start_terminal_logging(prefix="M", csv_path=None, capture_input=True, insert
         builtins.input = logged_input
 
     return csv_path
+
+def Log(Category: str, TAG: str, State: str, Message: str, Value: str, Info: str = "", AdditionalMessage: str = "", AdditionalValue: str = "", AdditionalInfo: str = "", Else: str = ""):
+
+    # Aktuelle Zeit abrufen
+    now = datetime.now()
+    
+   
+    date_str = now.strftime("%Y-%m-%d")                                      # Tag (Jahr-Monat-Tag)
+    time_str = now.strftime("%H:%M:%S")                                     # Stunde:Minute:Sekunde
+    ms_str = f"{now.microsecond // 1000:03d},{now.microsecond % 1000:03d}"  # microsecond,microsecond
+
+    ausgabe = (
+        f"{date_str:<10.10} | "
+        f"{time_str:<10.10} | "
+        f"{ms_str:<10.10} | "
+        f"{Category:<15.15} | "
+        f"{TAG:<10.10} | "
+        f"{State:<20.20} | " 
+        f"{Message:<50.50} | "
+        f"{Value:<50.50} | "
+        f"{Info:<15.15} | "
+        f"{AdditionalMessage:<15.15} | "
+        f"{AdditionalValue:<15.15} | "
+        f"{AdditionalInfo:<10.10} | "
+        f"{Else:<10.10}"
+    )
+    
+    print(ausgabe)
+
+def Test_Log():
+    print("--- Starte Log-Tests ---")
+    
+    # Test 1: Nur Pflichtfelder (optionale Felder bleiben leer)
+    Log(
+        Category="SYSTEM", 
+        TAG="INFO", 
+        State="Start", 
+        Message="Anwendung gestartet", 
+        Value="0"
+    )
+    
+    # Test 2: Voll ausgefüllter Log-Eintrag
+    Log(
+        Category="NETWORK", 
+        TAG="ERR", 
+        State="Verbindung verloren", 
+        Message="FAILED", 
+        Value="404", 
+        Info="Retry in 3s", 
+        AdditionalMessage="Timeout Error", 
+        AdditionalValue="5000ms", 
+        AdditionalInfo="Port 80", 
+        Else="Fatal"
+    )
+    
+    # Test 3: Überlängentest (wird dank .XX sauber abgeschnitten, kein Absturz)
+    Log(
+        Category="DATABASE_SYSTEM_LONG", 
+        TAG="WARNING_TAG", 
+        State="Dieser Status ist viel zu lang", 
+        Message="Diese Nachricht überschreitet die erlaubten 50 Zeichen massiv und wird abgeschnitten.", 
+        Value="Unendlicher Wert"
+    )
+    
+    print("--- Tests beendet ---")
+
+# Test-Funktion ausführen
+Test_Log()
