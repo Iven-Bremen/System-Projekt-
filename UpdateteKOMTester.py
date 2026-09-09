@@ -102,7 +102,7 @@ def run_communication_test(sr830_port: str = "COM3", ostech_port: str = "COM5",
 def main() -> None:
     parser = argparse.ArgumentParser(description="Sequenzieller SR830/OSTech-Kommunikationstest")
     parser.add_argument("--sr830-port", default="COM3")
-    parser.add_argument("--ostech-port", default="COM5")
+    parser.add_argument("--ostech-port", default="COM4")
     parser.add_argument("--baudrate", type=int, default=9600)
     parser.add_argument("--timeout", type=float, default=0.35)
     args = parser.parse_args()
