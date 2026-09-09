@@ -39,8 +39,6 @@ def StartGui():
     GUI.update_ch1_display()
     GUI.update_ch2_display()
     GUI.update_laser_display_mode()
-    GUI.root.after(2000, GUI.live_update_loop)
-
     GUI.root.mainloop()
 
 

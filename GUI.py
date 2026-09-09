@@ -882,4 +882,5 @@ btn_dark.pack(pady=4)
 btn_light = tk.Button(sub_tab_theme, text="Light Mode", width=15, bg="#e0e0e0", fg="black", command=lambda: apply_theme("light"))
 btn_light.pack(pady=4)
 
-root.mainloop()
+if __name__ == "__main__":
+    root.mainloop()
