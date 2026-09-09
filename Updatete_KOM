@@ -1,0 +1,220 @@
+"""Low-latency serial communication for the SR830 and OSTech controller."""
+
+from __future__ import annotations
+
+import threading
+from typing import Any, Optional
+
+import serial
+from serial.tools import list_ports
+
+import Log
+
+EOL = b"\r"
+ESCAPE = b"\x1b"
+DEFAULT_TIMEOUT = 0.35
+
+SR830: Optional[Any] = None
+OSTech: Optional[Any] = None
+SR830_PORT: Optional[str] = None
+OSTECH_PORT: Optional[str] = None
+KOMMUNIKATIONSSTATUS = {"SR830": False, "OSTech": False}
+
+SR830_READ_COMMANDS = {
+    "SNAP", "SPTS", "IDN", "OAUX1", "OAUX2", "OAUX3", "OAUX4",
+    "OUTP1", "OUTP2", "OUTP3", "OUTP4", "OUTR1", "OUTR2",
+    "TRCA1", "TRCA2", "TRCB1", "TRCB2", "TRCL1", "TRCL2",
+    "FREQ", "PHAS",
+}
+OSTECH_READ_COMMANDS = {
+    "LCA", "LVA", "LPCA", "LPA", "LPF", "LZR", "xTCA", "xTVA",
+    "GD", "GT", "GVS", "GVN", "GS", "GM",
+}
+SR830_SET_ARGUMENTS = {
+    "PHAS": ("x",), "FMOD": ("i",), "FREQ": ("x",), "RSLP": ("i",),
+    "HARM": ("i",), "SLVL": ("x",), "ISRC": ("i",), "IGND": ("i",),
+    "LCPL": ("i",), "ILN": ("i",), "ILIN": ("i",), "SENS": ("i",),
+    "RMOD": ("i",), "OFLT": ("i",), "OFSL": ("i",), "SYNC": ("i",),
+    "DDEF": ("i", "j", "k"), "FPOP": ("i", "j"), "OEXP": ("i", "x", "j"),
+    "AOFF": ("i",), "AUXV": ("i", "x"), "OUTX": ("i",), "OVRM": ("i",),
+    "AOXV": ("i", "x"), "KCLK": ("i",), "ALRM": ("i",), "SSET": ("i",),
+    "RSET": ("i",), "AGAN": (), "ARSV": (), "APHS": (),
+}
+
+
+class SerialChannel:
+    """Serial transport with one lock, bounded retry, and optional OSTech echo."""
+
+    def __init__(self, device: Any, name: str, echo: bool = False):
+        self.device = device
+        self.name = name
+        self.echo = echo
+        self.lock = threading.RLock()
+
+    def query(self, command: str, retries: int = 1) -> str:
+        payload = command.strip().encode("ascii") + EOL
+        with self.lock:
+            for attempt in range(retries + 1):
+                try:
+                    self.device.reset_input_buffer()
+                    self.device.write(payload)
+                    response = self._read_line()
+                    if self.echo and response.upper() == command.upper():
+                        response = self._read_line()
+                    if response:
+                        return response
+                    raise serial.SerialTimeoutException("empty response")
+                except (serial.SerialException, OSError):
+                    if attempt >= retries:
+                        raise
+                    self.device.write(ESCAPE)
+                    self.device.reset_input_buffer()
+        return ""
+
+    def _read_line(self) -> str:
+        return self.device.read_until(EOL).decode("ascii", errors="replace").strip()
+
+    def write(self, command: str) -> None:
+        with self.lock:
+            self.device.reset_input_buffer()
+            self.device.write(command.strip().encode("ascii") + EOL)
+
+    def close(self) -> None:
+        with self.lock:
+            if getattr(self.device, "is_open", True):
+                self.device.close()
+
+
+_channels: dict[str, SerialChannel] = {}
+
+
+def _log(category: str, message: str, device: str) -> None:
+    try:
+        Log.LogMassage(device, category, message, "Communication", device)
+    except Exception:
+        pass
+
+
+def _channel(device: Any, name: str) -> Optional[SerialChannel]:
+    if device is None:
+        return None
+    if isinstance(device, SerialChannel):
+        return device
+    channel = _channels.get(name)
+    if channel is None or channel.device is not device:
+        channel = SerialChannel(device, name, name == "OSTech")
+        _channels[name] = channel
+    return channel
+
+
+def _sr830_command(command: str, i: int, j: int, k: int) -> str:
+    if command == "IDN":
+        return "*IDN?"
+    if command == "SNAP":
+        return f"SNAP? {i},{j}"
+    if command == "SPTS":
+        return "SPTS?"
+    if command in {"FREQ", "PHAS"}:
+        return f"{command}?"
+    if command.startswith(("OAUX", "OUTP", "OUTR")):
+        return f"{command[:4]}? {command[-1]}"
+    return f"{command[:4]}? {command[-1]},{j},{k}"
+
+
+def _request(device: Any, command: str, name: str) -> str:
+    channel = _channel(device, name)
+    if channel is None:
+        _log("Warning", f"Keine Hardware fuer {command} verbunden", name)
+        return "N/A"
+    try:
+        return channel.query(command)
+    except (serial.SerialException, OSError) as error:
+        _log("Warning", f"Kommunikationsfehler bei {command}: {error}", name)
+        return "N/A"
+
+
+def getValue(Init=None, Command: str = "", i: int = 0, j: int = 0, k: int = 0) -> str:
+    """Reads one value from the selected SR830 or OSTech device."""
+    if Command in SR830_READ_COMMANDS:
+        return _request(Init if Init is not None else SR830, _sr830_command(Command, i, j, k), "SR830")
+    if Command in OSTECH_READ_COMMANDS:
+        return _request(Init if Init is not None else OSTech, Command, "OSTech")
+    raise ValueError(f"Unbekannter Kommunikationsbefehl: {Command}")
+
+
+def setValue(Init=None, Command: str = "", i: int = 0, j: int = 0, k: int = 0,
+             l: int = 0, m: int = 0, f: int = 0, x: Any = 0, y: int = 0,
+             z: int = 0, s: int = 0, **kwargs) -> str:
+    """Writes an SR830 setting without blocking for a non-existent reply."""
+    if Command not in SR830_SET_ARGUMENTS:
+        raise ValueError(f"Unbekannter SR830-Setzbefehl: {Command}")
+    values = locals()
+    arguments = " ".join(str(values[key]) for key in SR830_SET_ARGUMENTS[Command])
+    channel = _channel(Init if Init is not None else SR830, "SR830")
+    if channel is None:
+        _log("Warning", f"Keine Hardware fuer {Command} verbunden", "SR830")
+        return "N/A"
+    try:
+        channel.write(Command + (" " + arguments if arguments else ""))
+        return "OK"
+    except (serial.SerialException, OSError) as error:
+        _log("Warning", f"Kommunikationsfehler bei {Command}: {error}", "SR830")
+        return "N/A"
+
+
+def initialisiere_kommunikation(sr830_port: str = "COM3", ostech_port: str = "COM5",
+                                baudrate: int = 9600, timeout: float = DEFAULT_TIMEOUT):
+    """Detects, opens, and identifies both devices once."""
+    global SR830, OSTech, SR830_PORT, OSTECH_PORT, _channels
+    found: dict[str, Optional[SerialChannel]] = {"SR830": None, "OSTech": None}
+    ports = list(dict.fromkeys([sr830_port, ostech_port] + [info.device for info in list_ports.comports()]))
+    for port in ports:
+        if all(found.values()) or not port:
+            break
+        try:
+            raw = serial.Serial(port, baudrate, timeout=timeout, write_timeout=timeout)
+        except (serial.SerialException, OSError):
+            continue
+        channel = SerialChannel(raw, "Port-Scan")
+        try:
+            identity = channel.query("*IDN?", retries=0)
+            if "sr830" in identity.lower() or "stanford" in identity.lower():
+                channel.name, found["SR830"] = "SR830", channel
+                continue
+            identity = channel.query("GVN", retries=0)
+            if identity.strip().lower() not in {"", "?", "err", "error", "-1"}:
+                channel.name, channel.echo, found["OSTech"] = "OSTech", True, channel
+                continue
+        except (serial.SerialException, OSError):
+            pass
+        channel.close()
+    SR830, OSTech = found["SR830"], found["OSTech"]
+    SR830_PORT = getattr(getattr(SR830, "device", None), "port", None)
+    OSTECH_PORT = getattr(getattr(OSTech, "device", None), "port", None)
+    _channels = {name: channel for name, channel in found.items() if channel is not None}
+    KOMMUNIKATIONSSTATUS.update(SR830=SR830 is not None, OSTech=OSTech is not None)
+    return SR830, OSTech
+
+
+def schliesse_kommunikation() -> None:
+    global SR830, OSTech, SR830_PORT, OSTECH_PORT, _channels
+    for channel in (SR830, OSTech):
+        if channel is not None:
+            channel.close()
+    SR830 = OSTech = SR830_PORT = OSTECH_PORT = None
+    _channels = {}
+    KOMMUNIKATIONSSTATUS.update(SR830=False, OSTech=False)
+
+
+def sr830_get(command: str, i: int = 0, j: int = 0, k: int = 0) -> str:
+    return getValue(SR830, command, i, j, k)
+
+
+def ostech_get(command: str) -> str:
+    return getValue(OSTech, command)
+
+
+initialize_communication = initialisiere_kommunikation
+close_communication = schliesse_kommunikation
+get_value = getValue
+set_value = setValue
