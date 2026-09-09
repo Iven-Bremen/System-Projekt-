@@ -10,7 +10,9 @@ from typing import Any
 import Log
 
 
-SR830_GET_TESTS = ("IDN", "OUTP1", "OUTP2", "OUTP3", "OUTP4", "FREQ", "PHAS")
+SR830_GET_TESTS = (
+    "IDN", "OUTP1", "OUTP2", "OUTP3", "OUTP4", "OUTR1", "OUTR2", "FREQ", "PHAS",
+)
 OSTECH_GET_TESTS = ("GVN", "GVS", "GT", "GS", "GM", "LCA", "LVA", "LPCA", "LPA", "xTCA", "xTVA")
 
 
@@ -38,14 +40,15 @@ def _write_log(device: str, state: str, message: str, value: Any = "", info: str
 def _run_get_tests(communication, device: str, commands: tuple[str, ...]) -> dict[str, str]:
     results: dict[str, str] = {}
     for command in commands:
+        _write_log(device, "START", f"GET {command} gestartet", "", "Reihenfolge strikt einzeln")
         try:
             value = communication.getValue(Command=command)
             results[command] = value
             state = "PASS" if value != "N/A" else "FAILED"
-            _write_log(device, state, f"GET {command}", value)
+            _write_log(device, state, f"GET {command} abgeschlossen", value)
         except Exception as error:
             results[command] = f"ERROR: {error}"
-            _write_log(device, "FAILED", f"GET {command}", error)
+            _write_log(device, "FAILED", f"GET {command} fehlgeschlagen", error)
     return results
 
 

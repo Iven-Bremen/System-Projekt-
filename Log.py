@@ -422,6 +422,34 @@ def Log(Category: str, TAG: str, State: str, Message: str, Value: str, Info: str
     for cb in _gui_callbacks:
         cb(ausgabe + "\n")
 
+def Look_Up_CVS(Category: str, TAG: str, Message: str, State: str = " "):
+    """Sucht passende Eintraege in der aktuell verwendeten CSV-Datei.
+
+    `Category`, `TAG` und `Message` werden immer exakt verglichen. Wenn
+    `State` leer oder nur aus Leerzeichen besteht, wird jeder Status akzeptiert;
+    andernfalls muss auch der Status exakt passen. Zur weiteren Verarbeitung
+    werden nur die angeforderten Datenfelder als Liste von Dictionaries
+    zurueckgegeben.
+    """
+    log_path = _get_active_log_path()
+    result = []
+    requested_fields = (
+        "Date", "Time", "Ms", "Value", "Info",
+        "AdditionalValue", "AdditionalInfo",
+    )
+
+    with open(log_path, mode="r", newline="", encoding="utf-8") as csv_file:
+        for row in csv.DictReader(csv_file):
+            if (
+                row.get("Category") == Category
+                and row.get("Tag") == TAG
+                and row.get("Message") == Message
+                and (not State.strip() or row.get("State") == State)
+            ):
+                result.append({field: row.get(field, "") for field in requested_fields})
+
+    return result
+
 def Test_Log():
     """Fuehrt drei einfache manuelle Tests fuer das Logging aus.
 
@@ -468,3 +496,4 @@ def Test_Log():
 
 if __name__ == "__main__":
     Test_Log()
+

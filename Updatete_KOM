@@ -126,10 +126,14 @@ def _request(device: Any, command: str, name: str) -> str:
     if channel is None:
         _log("Warning", f"Keine Hardware fuer {command} verbunden", name)
         return "N/A"
+    wire_command = f"{command}\r"
+    _log("GetValue", f"Senden: {wire_command!r}", name)
     try:
-        return channel.query(command)
+        value = channel.query(command)
+        _log("GetValue", f"Antwort auf {wire_command!r}: {value!r}", name)
+        return value
     except (serial.SerialException, OSError) as error:
-        _log("Warning", f"Kommunikationsfehler bei {command}: {error}", name)
+        _log("Warning", f"Kommunikationsfehler bei {wire_command!r}: {error}", name)
         return "N/A"
 
 
@@ -154,11 +158,14 @@ def setValue(Init=None, Command: str = "", i: int = 0, j: int = 0, k: int = 0,
     if channel is None:
         _log("Warning", f"Keine Hardware fuer {Command} verbunden", "SR830")
         return "N/A"
+    wire_command = Command + (" " + arguments if arguments else "") + "\r"
+    _log("SetValue", f"Senden: {wire_command!r}", "SR830")
     try:
         channel.write(Command + (" " + arguments if arguments else ""))
+        _log("SetValue", f"Gesendet: {wire_command!r}", "SR830")
         return "OK"
     except (serial.SerialException, OSError) as error:
-        _log("Warning", f"Kommunikationsfehler bei {Command}: {error}", "SR830")
+        _log("Warning", f"Kommunikationsfehler bei {wire_command!r}: {error}", "SR830")
         return "N/A"
 
 
