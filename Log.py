@@ -7,20 +7,16 @@ import csv
 import os
 import sys
 from datetime import datetime
-import Commands
 
 CSV_COLUMNS = ["Timestamp", "Device", "Command", "Raw_Response", "Decoded_Info", "Latency_ms"]
 
 def GetValue(COM, Command):
-
-    #Anfrage üver RS232 
-
-    updateGUI(Value)
+    """Lese einen Wert über die angegebene Kommunikationsschnittstelle."""
+    raise NotImplementedError("GetValue ist für diese Kommunikationsschnittstelle noch nicht implementiert.")
 
 def SetValue(COM, Command, Value):
-    # Sende Wert über RS232
-
-    Indicate to GUI that value has been set
+    """Sende einen Wert über die angegebene Kommunikationsschnittstelle."""
+    raise NotImplementedError("SetValue ist für diese Kommunikationsschnittstelle noch nicht implementiert.")
 
 def make_log_path(prefix="M", base_name=None):
     """Erzeuge pro Programmstart einen eigenen Ordner mit Datum und Startzeit."""
