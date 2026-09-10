@@ -14,13 +14,16 @@ ask_SR830("OUTP? 1")
 ask_SR830("OUTP? 2")
 ask_SR830("OUTP? 3")
 ask_SR830("OUTP? 4")
-ask_SR830("OUTP? 1")
-ask_SR830("OUTP? 1")
-ask_SR830("OUTP? 1")
-ask_SR830("OUTP? 1")
-ask_SR830("OUTP? 1")
-ask_SR830("OUTP? 1")
+ask_SR830("OAUX? 1")
+ask_SR830("OAUX? 2")
+ask_SR830("OAUX? 3")
+ask_SR830("OAUX? 4")
 
+ask_SR830("SNAP? 1")
+ask_SR830("SNAP? 2")
+
+
+print("Kom Test for ST830 Done")
 SR830.close()
 
 
