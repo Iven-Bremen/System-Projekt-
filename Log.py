@@ -450,6 +450,64 @@ def Look_Up_CVS(Category: str, TAG: str, Message: str, State: str = " "):
 
     return result
 
+
+def Merge_Look_Up_CVS(first_lookup, second_lookup):
+    """Fuehrt zwei Look-Up-Ergebnisse nach ihrem Zeitstempel zusammen.
+
+    Die Argumente sind die Listen, die `Look_Up_CVS()` zurueckgibt. Bei jedem
+    Schritt wird der zeitlich aeltere Eintrag uebernommen. Ist der erste
+    Zeitstempel kleiner, kommt der Eintrag aus `first_lookup`; andernfalls
+    kommt er aus `second_lookup`. Bei gleichem Zeitstempel wird also der
+    zweite Eintrag zuerst genommen.
+
+    Jeder zurueckgegebene Eintrag erhaelt das zusaetzliche Feld `Source` mit
+    dem Wert `1` oder `2`, damit erkennbar bleibt, aus welcher Suche er
+    stammt. Beide Eingabelisten werden dabei nicht veraendert.
+    """
+    def timestamp(row):
+        try:
+            return datetime.strptime(
+                f"{row.get('Date', '')} {row.get('Time', '')}.{row.get('Ms', '0')}",
+                "%Y-%m-%d %H:%M:%S.%f",
+            )
+        except (TypeError, ValueError):
+            return datetime.max
+
+    first_lookup = sorted(
+        (dict(row) for row in first_lookup),
+        key=timestamp,
+    )
+    second_lookup = sorted(
+        (dict(row) for row in second_lookup),
+        key=timestamp,
+    )
+
+    first_index = 0
+    second_index = 0
+    merged = []
+
+    while first_index < len(first_lookup) or second_index < len(second_lookup):
+        if second_index >= len(second_lookup):
+            source = 1
+        elif first_index >= len(first_lookup):
+            source = 2
+        elif timestamp(first_lookup[first_index]) < timestamp(second_lookup[second_index]):
+            source = 1
+        else:
+            source = 2
+
+        if source == 1:
+            row = first_lookup[first_index]
+            first_index += 1
+        else:
+            row = second_lookup[second_index]
+            second_index += 1
+
+        row["Source"] = source
+        merged.append(row)
+
+    return merged
+
 def Test_Log():
     """Fuehrt drei einfache manuelle Tests fuer das Logging aus.
 

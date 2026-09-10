@@ -1,0 +1,1 @@
+Return = (False," only CVS is allowed")
