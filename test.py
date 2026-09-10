@@ -9,6 +9,18 @@ ValueIDN = SR830.read_until(b"\r")
 print("Raw: " ,repr(ValueIDN))
 ValueIDN = ValueIDN.decode("ascii", errors="replace").strip()
 print("Decoded: ", ValueIDN)
+
+ask_SR830("OUTP? 1")
+ask_SR830("OUTP? 2")
+ask_SR830("OUTP? 3")
+ask_SR830("OUTP? 4")
+ask_SR830("OUTP? 1")
+ask_SR830("OUTP? 1")
+ask_SR830("OUTP? 1")
+ask_SR830("OUTP? 1")
+ask_SR830("OUTP? 1")
+ask_SR830("OUTP? 1")
+
 SR830.close()
 
 
@@ -23,3 +35,26 @@ ValueGVN = ValueGVN.decode("ascii", errors="replace").strip()
 print("Decoded: ", ValueGVN)
 
 
+
+
+
+
+
+OSTECH.close()
+
+
+def ask_SR830(Command: str):
+    print("Write "+str(Command))
+    SR830.write(b"" + Command +"\r")
+    ValueSR830 = SR830.read_until(b"\r")
+    print("Raw: " ,repr(ValueSR830))
+    ValueSR830 = ValueSR830.decode("ascii", errors="replace").strip()
+    print("Decoded: ", ValueSR830)
+
+def ask_OSTECH(Command: str):
+    print("Write "+str(Command))
+    OSTECH.write(b"" + Command + b"\r")
+    ValueOSTECH = OSTECH.read_until(b"\r")
+    print("Raw: " ,repr(ValueOSTECH))
+    ValueOSTECH = ValueOSTECH.decode("ascii", errors="replace").strip()
+    print("Decoded: ", ValueOSTECH)
