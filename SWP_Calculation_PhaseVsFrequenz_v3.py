@@ -100,7 +100,7 @@ def process_live_measurement(f_measured, phi_measured, initial_d_guess=10.0, sho
             f_measured,
             phi_measured,
             p0=[initial_d_guess],
-            bounds=(0.1, 500.0) # Min. Schichtdicke d = 0.1 µm // Max. Schichtdicke d = 500 µm
+            bounds=([0.1], [500.0]) # Min. Schichtdicke d = 0.1 µm // Max. Schichtdicke d = 500 µm
         )
         d_fitted_um = popt[0]
         d_error_um = np.sqrt(np.diag(pcov))[0]
