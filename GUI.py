@@ -128,6 +128,7 @@ LASER_PORT = "COM4"
 lockin_device = None
 current_file_path = None
 
+
 def connect_lockin():
     global lockin_device
     if lockin_device is None and pyvisa:
@@ -218,7 +219,8 @@ tab_connections = tk.Frame(main_notebook, bg="#1e1e1e")
 main_notebook.add(tab_connections, text="")
 reg_ui((main_notebook, tab_connections), "Connections", "tab_text")
 
-frame_coms = tk.LabelFrame(tab_connections, text=" Hardware COM Interfaces & System Tools ", font=("Consolas", 10, "bold"),
+frame_coms = tk.LabelFrame(tab_connections, text=" Hardware COM Interfaces & System Tools ",
+                           font=("Consolas", 10, "bold"),
                            bg="#1e1e1e", fg="#00ffcc", padx=15, pady=15)
 frame_coms.pack(pady=15, padx=20, fill="x")
 
@@ -234,7 +236,7 @@ tk.Label(frame_coms, text="OSTech Laser Port:", bg="#1e1e1e", fg="#aaaaaa", font
                                                                                                        sticky="w",
                                                                                                        pady=5)
 entry_com_laser = ttk.Entry(frame_coms, width=25)
-entry_com_laser.insert(0,LASER_PORT)
+entry_com_laser.insert(0, LASER_PORT)
 entry_com_laser.grid(row=1, column=1, padx=10, pady=5)
 
 frame_com_btns = tk.Frame(frame_coms, bg="#1e1e1e")
@@ -245,20 +247,41 @@ def apply_com_settings():
     global LOCK_IN_AMPLIFIER_PORT, LASER_PORT
     LOCK_IN_AMPLIFIER_PORT = entry_com_lockin.get()
     LASER_PORT = entry_com_laser.get()
-    messagebox.showinfo("COM Config", f"Ports successfully updated:\nLock-In: {LOCK_IN_AMPLIFIER_PORT}\nLaser: {LASER_PORT}")
+    messagebox.showinfo("COM Config",
+                        f"Ports erfolgreich aktualisiert:\nLock-In: {LOCK_IN_AMPLIFIER_PORT}\nLaser: {LASER_PORT}")
 
 
-btn_apply_com = tk.Button(frame_com_btns, text="Refresh", font=("Consolas", 9, "bold"), bg="#007acc", fg="white")
+def connect_all_devices():
+    if connect_lockin():
+        messagebox.showinfo("Verbindung", f"Erfolgreich mit Lock-In Amplifier ({LOCK_IN_AMPLIFIER_PORT}) verbunden!")
+    else:
+        messagebox.showwarning("Verbindung", f"Verbindung zu Lock-In ({LOCK_IN_AMPLIFIER_PORT}) fehlgeschlagen.")
+
+
+def disconnect_all_devices():
+    global lockin_device
+    if lockin_device is not None:
+        try:
+            lockin_device.close()
+        except Exception:
+            pass
+        lockin_device = None
+        messagebox.showinfo("Verbindung", "Verbindungen erfolgreich getrennt.")
+    else:
+        messagebox.showinfo("Verbindung", "Keine aktiven Verbindungen vorhanden.")
+
+
+btn_apply_com = tk.Button(frame_com_btns, text="Refresh", font=("Consolas", 9, "bold"), bg="#007acc", fg="white",
+                          command=apply_com_settings)
 btn_apply_com.pack(side="left", padx=5)
 
-btn_scan_com = tk.Button(frame_com_btns, text="Connect", font=("Consolas", 9, "bold"), bg="#f57c00",
-                         fg="white")
+btn_scan_com = tk.Button(frame_com_btns, text="Connect", font=("Consolas", 9, "bold"), bg="#f57c00", fg="white",
+                         command=connect_all_devices)
 btn_scan_com.pack(side="left", padx=5)
 
-btn_dev_manager = tk.Button(frame_com_btns, text="Disconnect", font=("Consolas", 9, "bold"), bg="#3c3f41",
-                            fg="white")
+btn_dev_manager = tk.Button(frame_com_btns, text="Disconnect", font=("Consolas", 9, "bold"), bg="#3c3f41", fg="white",
+                            command=disconnect_all_devices)
 btn_dev_manager.pack(side="left", padx=5)
-
 
 # ------------------------------------------
 # 3. TAB: LOCK-IN AMPLIFIER
@@ -688,28 +711,28 @@ frame_lmenu.columnconfigure((0, 1, 2), weight=1)
 
 tk.Label(frame_lmenu, text="LCL (Laser Current Limit - A):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(
     row=0, column=0, sticky="w", pady=2)
-entry_lcl = tk.Entry(frame_lmenu, font=("Consolas", 9));
-entry_lcl.insert(0, "6.300");
+entry_lcl = tk.Entry(frame_lmenu, font=("Consolas", 9))
+entry_lcl.insert(0, "6.300")
 entry_lcl.grid(row=1, column=0, sticky="ew", padx=5)
 
 tk.Label(frame_lmenu, text="LVC (Compliance Voltage - V):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(
     row=2, column=0, sticky="w", pady=2)
-entry_lvc = tk.Entry(frame_lmenu, font=("Consolas", 9));
-entry_lvc.insert(0, "3.00");
+entry_lvc = tk.Entry(frame_lmenu, font=("Consolas", 9))
+entry_lvc.insert(0, "3.00")
 entry_lvc.grid(row=3, column=0, sticky="ew", padx=5)
 
 tk.Label(frame_lmenu, text="LCLM (Avg Current Limit - A):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(
     row=4, column=0, sticky="w", pady=2)
-entry_lclm = tk.Entry(frame_lmenu, font=("Consolas", 9));
-entry_lclm.insert(0, "6.300");
+entry_lclm = tk.Entry(frame_lmenu, font=("Consolas", 9))
+entry_lclm.insert(0, "6.300")
 entry_lclm.grid(row=5, column=0, sticky="ew", padx=5)
 
 tk.Label(frame_lmenu, text="LTM (Max Temp Limit - °C):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(row=6,
                                                                                                                 column=0,
                                                                                                                 sticky="w",
                                                                                                                 pady=2)
-entry_ltm = tk.Entry(frame_lmenu, font=("Consolas", 9));
-entry_ltm.insert(0, "33.0");
+entry_ltm = tk.Entry(frame_lmenu, font=("Consolas", 9))
+entry_ltm.insert(0, "33.0")
 entry_ltm.grid(row=7, column=0, sticky="ew", padx=5)
 
 tk.Label(frame_lmenu, text="Modulation Mode:", bg="#1e1e1e", fg="#00ffcc", font=("Consolas", 9, "bold")).grid(row=0,
@@ -725,18 +748,38 @@ combo_mod_mode = ttk.Combobox(frame_lmenu, values=[
 combo_mod_mode.current(1)
 combo_mod_mode.grid(row=1, column=1, sticky="ew", padx=5)
 
+
+def on_modulation_mode_change(event=None):
+    selected_mode = combo_mod_mode.get()
+
+    if "Internal Digital Modulation" in selected_mode:
+        entry_freq.config(state="disabled")
+        entry_ref_phase.config(state="disabled")
+        entry_ampl.config(state="disabled")
+        btn_apply_ref.config(state="disabled")
+        val_ref_display.config(text="AUTO (Internal Mod)")
+    else:
+        entry_freq.config(state="normal")
+        entry_ref_phase.config(state="normal")
+        entry_ampl.config(state="normal")
+        btn_apply_ref.config(state="normal")
+        val_ref_display.config(text=f"{entry_freq.get()} Hz")
+
+
+combo_mod_mode.bind("<<ComboboxSelected>>", on_modulation_mode_change)
+
 tk.Label(frame_lmenu, text="LMW (Modulation Width - ms):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(row=2,
                                                                                                                   column=1,
                                                                                                                   sticky="w",
                                                                                                                   pady=2)
-entry_lmw = tk.Entry(frame_lmenu, font=("Consolas", 9));
-entry_lmw.insert(0, "1.000");
+entry_lmw = tk.Entry(frame_lmenu, font=("Consolas", 9))
+entry_lmw.insert(0, "1.000")
 entry_lmw.grid(row=3, column=1, sticky="ew", padx=5)
 
 tk.Label(frame_lmenu, text="LMP (Modulation Period - ms):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(
     row=4, column=1, sticky="w", pady=2)
-entry_lmp = tk.Entry(frame_lmenu, font=("Consolas", 9));
-entry_lmp.insert(0, "2.000");
+entry_lmp = tk.Entry(frame_lmenu, font=("Consolas", 9))
+entry_lmp.insert(0, "2.000")
 entry_lmp.grid(row=5, column=1, sticky="ew", padx=5)
 
 tk.Label(frame_lmenu, text="PC (Pulse Count Mode):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(row=0,
@@ -761,19 +804,20 @@ def apply_laser_settings():
 
 def reset_laser_defaults():
     if messagebox.askyesno("Reset", "Laser-Parameter auf Werkseinstellungen zurücksetzen?"):
-        entry_lcl.delete(0, tk.END);
+        entry_lcl.delete(0, tk.END)
         entry_lcl.insert(0, "6.300")
-        entry_lvc.delete(0, tk.END);
+        entry_lvc.delete(0, tk.END)
         entry_lvc.insert(0, "3.00")
-        entry_lclm.delete(0, tk.END);
+        entry_lclm.delete(0, tk.END)
         entry_lclm.insert(0, "6.300")
-        entry_ltm.delete(0, tk.END);
+        entry_ltm.delete(0, tk.END)
         entry_ltm.insert(0, "33.0")
-        entry_lmw.delete(0, tk.END);
+        entry_lmw.delete(0, tk.END)
         entry_lmw.insert(0, "1.000")
-        entry_lmp.delete(0, tk.END);
+        entry_lmp.delete(0, tk.END)
         entry_lmp.insert(0, "2.000")
         combo_mod_mode.current(1)
+        on_modulation_mode_change()
         combo_pc.current(0)
         chk_lg.deselect()
         messagebox.showinfo("Reset", "Laser-Standardwerte wiederhergestellt.")
@@ -802,15 +846,15 @@ frame_tmenu.columnconfigure((0, 1, 2), weight=1)
 tk.Label(frame_tmenu, text="TLU (Upper Temp Limit - °C):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(row=0,
                                                                                                                   column=0,
                                                                                                                   sticky="w")
-entry_tlu = tk.Entry(frame_tmenu, font=("Consolas", 9));
-entry_tlu.insert(0, "40.00");
+entry_tlu = tk.Entry(frame_tmenu, font=("Consolas", 9))
+entry_tlu.insert(0, "40.00")
 entry_tlu.grid(row=1, column=0, sticky="ew", padx=5)
 
 tk.Label(frame_tmenu, text="TLL (Lower Temp Limit - °C):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(row=2,
                                                                                                                   column=0,
                                                                                                                   sticky="w")
-entry_tll = tk.Entry(frame_tmenu, font=("Consolas", 9));
-entry_tll.insert(0, "5.00");
+entry_tll = tk.Entry(frame_tmenu, font=("Consolas", 9))
+entry_tll.insert(0, "5.00")
 entry_tll.grid(row=3, column=0, sticky="ew", padx=5)
 
 chk_tc_auto = tk.Checkbutton(frame_tmenu, text="TC Auto On (Activate within limits)", bg="#1e1e1e", fg="#ffffff",
@@ -822,18 +866,18 @@ frame_pid = tk.LabelFrame(frame_tmenu, text=" PID Parameters ", font=("Consolas"
 frame_pid.grid(row=0, column=1, rowspan=5, sticky="nsew", padx=5)
 
 tk.Label(frame_pid, text="Tk (Proportional):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).pack(anchor="w")
-entry_tk = tk.Entry(frame_pid, font=("Consolas", 9));
-entry_tk.insert(0, "2.000");
+entry_tk = tk.Entry(frame_pid, font=("Consolas", 9))
+entry_tk.insert(0, "2.000")
 entry_tk.pack(fill="x", pady=2)
 
 tk.Label(frame_pid, text="Tn (Integral - s):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).pack(anchor="w")
-entry_tn = tk.Entry(frame_pid, font=("Consolas", 9));
-entry_tn.insert(0, "50.000");
+entry_tn = tk.Entry(frame_pid, font=("Consolas", 9))
+entry_tn.insert(0, "50.000")
 entry_tn.pack(fill="x", pady=2)
 
 tk.Label(frame_pid, text="Tv (Derivative - s):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).pack(anchor="w")
-entry_tv = tk.Entry(frame_pid, font=("Consolas", 9));
-entry_tv.insert(0, "1.000");
+entry_tv = tk.Entry(frame_pid, font=("Consolas", 9))
+entry_tv.insert(0, "1.000")
 entry_tv.pack(fill="x", pady=2)
 
 frame_sens = tk.LabelFrame(frame_tmenu, text=" Sensor Selection ", font=("Consolas", 8, "bold"), bg="#1e1e1e",
@@ -858,15 +902,15 @@ def apply_tec_settings():
 
 def reset_tec_defaults():
     if messagebox.askyesno("Reset", "TEC-Parameter auf Werkseinstellungen zurücksetzen?"):
-        entry_tlu.delete(0, tk.END);
+        entry_tlu.delete(0, tk.END)
         entry_tlu.insert(0, "40.00")
-        entry_tll.delete(0, tk.END);
+        entry_tll.delete(0, tk.END)
         entry_tll.insert(0, "5.00")
-        entry_tk.delete(0, tk.END);
+        entry_tk.delete(0, tk.END)
         entry_tk.insert(0, "2.000")
-        entry_tn.delete(0, tk.END);
+        entry_tn.delete(0, tk.END)
         entry_tn.insert(0, "50.000")
-        entry_tv.delete(0, tk.END);
+        entry_tv.delete(0, tk.END)
         entry_tv.insert(0, "1.000")
         combo_sensor.current(0)
         combo_sens_model.current(0)
@@ -911,7 +955,7 @@ frame_gfd = tk.Frame(frame_dmenu, bg="#1e1e1e")
 frame_gfd.pack(fill="x", pady=5)
 tk.Label(frame_gfd, text="GFD (Default Fan Voltage - V):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).pack(
     side="left")
-entry_gfd = tk.Entry(frame_gfd, font=("Consolas", 9), width=8);
+entry_gfd = tk.Entry(frame_gfd, font=("Consolas", 9), width=8)
 entry_gfd.insert(0, "12.0 V")
 entry_gfd.pack(side="left", padx=10)
 
@@ -925,9 +969,9 @@ def reset_device_defaults():
     if messagebox.askyesno("Reset", "Gerätesystem-Einstellungen zurücksetzen?"):
         chk_ext_start.deselect()
         chk_pilot.deselect()
-        spin_pilot.delete(0, tk.END);
+        spin_pilot.delete(0, tk.END)
         spin_pilot.insert(0, "0")
-        entry_gfd.delete(0, tk.END);
+        entry_gfd.delete(0, tk.END)
         entry_gfd.insert(0, "12.0 V")
         messagebox.showinfo("Reset", "System-Standardwerte wiederhergestellt.")
 
