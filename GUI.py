@@ -6,6 +6,8 @@ import tkinter as tk
 from tkinter import messagebox, ttk, filedialog
 from tkinter.constants import DISABLED
 
+from GUI_Sandcastle2 import sub_tab_stats
+
 # Externe Bibliotheken
 try:
     from deep_translator import GoogleTranslator
@@ -126,39 +128,6 @@ LASER_PORT = "COM4"
 lockin_device = None
 current_file_path = None
 
-
-def open_device_manager():
-    """Öffnet den Windows Geräte-Manager"""
-    try:
-        if sys.platform == "win32":
-            subprocess.Popen(["devmgmt.msc"], shell=True)
-        else:
-            messagebox.showinfo("Info", "Geräte-Manager steht nur unter Windows zur Verfügung.")
-    except Exception as e:
-        messagebox.showerror("Fehler", f"Kann Geräte-Manager nicht öffnen: {e}")
-
-
-def detect_com_ports():
-    """Sucht nach aktiven COM-Ports im System und aktualisiert die Dropdowns"""
-    ports = []
-    if serial:
-        found_ports = serial.tools.list_ports.comports()
-        for p in found_ports:
-            ports.append(p.device)
-
-    if not ports:
-        ports = ["COM1", "COM2", "COM3", "COM4", "COM5"]
-
-    lockin_ports = list(ports)
-    if "GPIB0::8::INSTR" not in lockin_ports:
-        lockin_ports.append("GPIB0::8::INSTR")
-
-    entry_com_lockin['values'] = lockin_ports
-    entry_com_laser['values'] = ports
-
-    messagebox.showinfo("COM Scan", f"Gefundene COM-Ports: {', '.join(ports) if ports else 'Keine gefunden'}")
-
-
 def connect_lockin():
     global lockin_device
     if lockin_device is None and pyvisa:
@@ -241,7 +210,15 @@ lbl_info = tk.Label(tab_home, font=("Segoe UI", 10), bg="#1e1e1e", fg="#aaaaaa",
 lbl_info.pack(pady=5)
 reg_ui(lbl_info, "Select a tab above to control hardware or run data analysis.")
 
-frame_coms = tk.LabelFrame(tab_home, text=" Hardware COM Interfaces & System Tools ", font=("Consolas", 10, "bold"),
+# ------------------------------------------
+# 2. TAB: CONNECTIONS
+# ------------------------------------------
+
+tab_connections = tk.Frame(main_notebook, bg="#1e1e1e")
+main_notebook.add(tab_connections, text="")
+reg_ui((main_notebook, tab_connections), "Connections", "tab_text")
+
+frame_coms = tk.LabelFrame(tab_connections, text=" Hardware COM Interfaces & System Tools ", font=("Consolas", 10, "bold"),
                            bg="#1e1e1e", fg="#00ffcc", padx=15, pady=15)
 frame_coms.pack(pady=15, padx=20, fill="x")
 
@@ -271,20 +248,20 @@ def apply_com_settings():
     messagebox.showinfo("COM Config", f"Ports successfully updated:\nLock-In: {LOCK_IN_AMPLIFIER_PORT}\nLaser: {LASER_PORT}")
 
 
-btn_apply_com = tk.Button(frame_com_btns, text="Apply Ports", font=("Consolas", 9, "bold"), bg="#007acc", fg="white",
-                          command=apply_com_settings)
+btn_apply_com = tk.Button(frame_com_btns, text="Refresh", font=("Consolas", 9, "bold"), bg="#007acc", fg="white")
 btn_apply_com.pack(side="left", padx=5)
 
-btn_scan_com = tk.Button(frame_com_btns, text="🔍 Auto-Detect Ports", font=("Consolas", 9, "bold"), bg="#f57c00",
-                         fg="white", command=detect_com_ports)
+btn_scan_com = tk.Button(frame_com_btns, text="Connect", font=("Consolas", 9, "bold"), bg="#f57c00",
+                         fg="white")
 btn_scan_com.pack(side="left", padx=5)
 
-btn_dev_manager = tk.Button(frame_com_btns, text="🖥️ Open Device Manager", font=("Consolas", 9, "bold"), bg="#3c3f41",
-                            fg="white", command=open_device_manager)
+btn_dev_manager = tk.Button(frame_com_btns, text="Disconnect", font=("Consolas", 9, "bold"), bg="#3c3f41",
+                            fg="white")
 btn_dev_manager.pack(side="left", padx=5)
 
+
 # ------------------------------------------
-# 2. TAB: LOCK-IN AMPLIFIER
+# 3. TAB: LOCK-IN AMPLIFIER
 # ------------------------------------------
 tab_lockin = tk.Frame(main_notebook, bg="#1e1e1e")
 main_notebook.add(tab_lockin, text="")
@@ -559,7 +536,7 @@ combo_layout = ttk.Combobox(frame_layout_sel, values=[
     "(d) Controller for one TEC",
     "(e) Controller for two TECs"
 ], state="readonly", width=42)
-combo_layout.current(2)
+combo_layout.current(1)
 combo_layout.pack(side="left", padx=5)
 
 frame_lcd = tk.Frame(tab_ostech_main, bg="#000000", bd=3, relief="sunken")
@@ -976,16 +953,16 @@ reg_ui((main_notebook, tab_analysis), "Analysis", "tab_text")
 analysis_notebook = ttk.Notebook(tab_analysis)
 analysis_notebook.pack(fill="both", expand=True, padx=10, pady=10)
 
-sub_tab_clean = tk.Frame(analysis_notebook, bg="#252526")
-analysis_notebook.add(sub_tab_clean, text="")
-reg_ui((analysis_notebook, sub_tab_clean), "Data Cleansing & Fit", "tab_text")
+sub_tab_stats = tk.Frame(analysis_notebook, bg="#252526")
+analysis_notebook.add(sub_tab_stats, text="")
+reg_ui((analysis_notebook, sub_tab_stats), "Statistics", "tab_text")
 
-btn_load = tk.Button(sub_tab_clean, font=("Consolas", 9, "bold"), bg="#007acc", fg="white", padx=10, pady=5,
+btn_load = tk.Button(sub_tab_stats, font=("Consolas", 9, "bold"), bg="#007acc", fg="white", padx=10, pady=5,
                      command=open_file_dialog)
 btn_load.pack(pady=15)
 reg_ui(btn_load, "📁 Import Data File")
 
-lbl_file_status = tk.Label(sub_tab_clean, font=("Consolas", 9), bg="#252526", fg="#aaaaaa")
+lbl_file_status = tk.Label(sub_tab_stats, font=("Consolas", 9), bg="#252526", fg="#aaaaaa")
 lbl_file_status.pack(pady=5)
 reg_ui(lbl_file_status, "No file loaded")
 
@@ -1000,10 +977,6 @@ def starte_pvf_analyse():
     except Exception as e:
         messagebox.showerror(auto_tr("Berechnungsfehler"), f"Fehler bei Analyse:\n{e}")
 
-
-sub_tab_stats = tk.Frame(analysis_notebook, bg="#252526")
-analysis_notebook.add(sub_tab_stats, text="")
-reg_ui((analysis_notebook, sub_tab_stats), "Statistics", "tab_text")
 
 btn_pvf = tk.Button(sub_tab_stats, font=("Consolas", 9, "bold"), bg="#f57c00", fg="white", padx=10, pady=5,
                     command=starte_pvf_analyse)
