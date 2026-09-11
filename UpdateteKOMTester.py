@@ -17,7 +17,7 @@ OSTECH_GET_TESTS = ("GVN", "GVS", "GT", "GS", "GM", "LCA", "LVA", "LPCA", "LPA",
 
 
 def _load_communication_module():
-    loader = importlib.machinery.SourceFileLoader("updatete_kom_test_target", "Updatete_KOM")
+    loader = importlib.machinery.SourceFileLoader("updatete_kom_test_target", "Updatete_KOM.py")
     spec = importlib.util.spec_from_loader(loader.name, loader)
     if spec is None or spec.loader is None:
         raise ImportError("Updatete_KOM konnte nicht geladen werden")
@@ -67,7 +67,7 @@ def _run_sr830_set_test(communication) -> bool:
         return False
 
 
-def run_communication_test(sr830_port: str = "COM3", ostech_port: str = "COM5",
+def run_communication_test(sr830_port: str = "COM3", ostech_port: str = "COM4",
                            baudrate: int = 9600, timeout: float = 0.35) -> dict[str, Any]:
     """Fuehrt den Hardwaretest strikt nacheinander aus und schreibt jeden Wert ins CSV-Log."""
     communication = _load_communication_module()

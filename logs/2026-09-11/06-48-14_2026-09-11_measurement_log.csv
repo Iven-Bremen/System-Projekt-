@@ -1,0 +1,6 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-11,06:48:14,621,COMMUNICATION_TEST,SYSTEM,START,Kommunikationstest gestartet,,COM3/COM4,,,,
+2026-09-11,06:48:14,637,COMMUNICATION_TEST,SYSTEM,FAILED,Geraeteinitialisierung,,"{'SR830': False, 'OSTech': False}",,,,
+2026-09-11,06:48:14,637,COMMUNICATION_TEST,SR830,SKIPPED,SR830 nicht verbunden,,,,,,
+2026-09-11,06:48:14,641,COMMUNICATION_TEST,OSTech,SKIPPED,OSTech nicht verbunden,,,,,,
+2026-09-11,06:48:14,641,COMMUNICATION_TEST,SYSTEM,END,Kommunikationstest beendet,"{'SR830': {}, 'OSTech': {}, 'SR830_SET': False}",,,,,

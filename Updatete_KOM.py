@@ -6,7 +6,6 @@ import threading
 from typing import Any, Optional
 
 import serial
-from serial.tools import list_ports
 
 import Log
 
@@ -169,12 +168,12 @@ def setValue(Init=None, Command: str = "", i: int = 0, j: int = 0, k: int = 0,
         return "N/A"
 
 
-def initialisiere_kommunikation(sr830_port: str = "COM3", ostech_port: str = "COM5",
+def initialisiere_kommunikation(sr830_port: str, ostech_port: str,
                                 baudrate: int = 9600, timeout: float = DEFAULT_TIMEOUT):
-    """Detects, opens, and identifies both devices once."""
+    """Opens and identifies devices on the ports supplied by the caller."""
     global SR830, OSTech, SR830_PORT, OSTECH_PORT, _channels
     found: dict[str, Optional[SerialChannel]] = {"SR830": None, "OSTech": None}
-    ports = list(dict.fromkeys([sr830_port, ostech_port] + [info.device for info in list_ports.comports()]))
+    ports = list(dict.fromkeys([sr830_port, ostech_port]))
     for port in ports:
         if all(found.values()) or not port:
             break
