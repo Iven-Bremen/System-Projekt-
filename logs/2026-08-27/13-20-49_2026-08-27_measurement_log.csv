@@ -1,0 +1,32 @@
+Date,Time,Tag,Category,Message,Info,AdditionalInfo,Else
+
+
+
+
+
+
+
+
+
+
+2026-08-27,13:20:49,SESSION,START,HARDWARE, , , 
+2026-08-27,13:20:49.385,SYSTEM,START,Programm gestartet,Version 1.0, , 
+2026-08-27,13:20:49.385,Check Ports vor SR830,Info,Test,Check,SR830, 
+2026-08-27,13:20:49.385,COM3,Warning,Port konnte nicht geöffnet werden (Hardware fehlt),Fail,COM3, 
+2026-08-27,13:20:49.385,Check Ports vor OSTech,Info,Test,Check,OSTech, 
+2026-08-27,13:20:49.385,COM4,Warning,Port konnte nicht geöffnet werden (Hardware fehlt),Fail,COM4, 
+2026-08-27,13:20:49.385,Gui,Info,Starting Gui, , , 
+2026-08-27,13:20:49.385,ERROR,OUTPUT,Traceback (most recent call last):, , , 
+2026-08-27,13:20:49.385,ERROR,OUTPUT,"File ""c:\Users\ivenh\Coding\Projekte\Python\Softwear_Projekt\Starter.py"", line 4, in <module>", , , 
+2026-08-27,13:20:49.385,ERROR,OUTPUT,import GUI, , , 
+2026-08-27,13:20:49.397,ERROR,OUTPUT,"File ""c:\Users\ivenh\Coding\Projekte\Python\Softwear_Projekt\GUI.py"", line 31, in <module>", , , 
+2026-08-27,13:20:49.398,ERROR,OUTPUT,import Commands, , , 
+2026-08-27,13:20:49.400,ERROR,OUTPUT,"File ""c:\Users\ivenh\Coding\Projekte\Python\Softwear_Projekt\Commands.py"", line 7, in <module>", , , 
+2026-08-27,13:20:49.400,ERROR,OUTPUT,from Starter import SR830, , , 
+2026-08-27,13:20:49.401,ERROR,OUTPUT,"File ""c:\Users\ivenh\Coding\Projekte\Python\Softwear_Projekt\Starter.py"", line 92, in <module>", , , 
+2026-08-27,13:20:49.402,ERROR,OUTPUT,StartGui(), , , 
+2026-08-27,13:20:49.402,ERROR,OUTPUT,"File ""c:\Users\ivenh\Coding\Projekte\Python\Softwear_Projekt\Starter.py"", line 39, in StartGui", , , 
+2026-08-27,13:20:49.404,ERROR,OUTPUT,GUI.update_ch1_display(), , , 
+2026-08-27,13:20:49.405,ERROR,OUTPUT,AttributeError, , , 
+2026-08-27,13:20:49.406,ERROR,OUTPUT,:, , , 
+2026-08-27,13:20:49.406,ERROR,OUTPUT,partially initialized module 'GUI' has no attribute 'update_ch1_display' (most likely due to a circular import), , , 

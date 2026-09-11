@@ -1,0 +1,113 @@
+"""Sequenzieller Labortest fuer SR830- und OSTech-Kommunikation."""
+
+from __future__ import annotations
+
+import argparse
+import importlib.machinery
+import importlib.util
+from typing import Any
+
+import Log
+
+
+SR830_GET_TESTS = (
+    "IDN", "OUTP1", "OUTP2", "OUTP3", "OUTP4", "OUTR1", "OUTR2", "FREQ", "PHAS",
+)
+OSTECH_GET_TESTS = ("GVN", "GVS", "GT", "GS", "GM", "LCA", "LVA", "LPCA", "LPA", "xTCA", "xTVA")
+
+
+def _load_communication_module():
+    loader = importlib.machinery.SourceFileLoader("updatete_kom_test_target", "Updatete_KOM.py")
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    if spec is None or spec.loader is None:
+        raise ImportError("Updatete_KOM konnte nicht geladen werden")
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+def _write_log(device: str, state: str, message: str, value: Any = "", info: str = "") -> None:
+    Log.Log(
+        Category="COMMUNICATION_TEST",
+        TAG=device,
+        State=state,
+        Message=message,
+        Value=str(value),
+        Info=info,
+    )
+
+
+def _run_get_tests(communication, device: str, commands: tuple[str, ...]) -> dict[str, str]:
+    results: dict[str, str] = {}
+    for command in commands:
+        _write_log(device, "START", f"GET {command} gestartet", "", "Reihenfolge strikt einzeln")
+        try:
+            value = communication.getValue(Command=command)
+            results[command] = value
+            state = "PASS" if value != "N/A" else "FAILED"
+            _write_log(device, state, f"GET {command} abgeschlossen", value)
+        except Exception as error:
+            results[command] = f"ERROR: {error}"
+            _write_log(device, "FAILED", f"GET {command} fehlgeschlagen", error)
+    return results
+
+
+def _run_sr830_set_test(communication) -> bool:
+    """Setzt PHAS auf den aktuellen Wert, liest zurueck und veraendert nichts."""
+    try:
+        original = communication.getValue(Command="PHAS")
+        original_value = float(original)
+        set_result = communication.setValue(Command="PHAS", x=original_value)
+        readback = communication.getValue(Command="PHAS")
+        passed = set_result == "OK" and abs(float(readback) - original_value) < 1e-9
+        _write_log("SR830", "PASS" if passed else "FAILED", "SET PHAS mit Ruecklesung", readback, f"gesetzt={set_result}")
+        return passed
+    except Exception as error:
+        _write_log("SR830", "FAILED", "SET PHAS mit Ruecklesung", error)
+        return False
+
+
+def run_communication_test(sr830_port: str = "COM3", ostech_port: str = "COM4",
+                           baudrate: int = 9600, timeout: float = 0.35) -> dict[str, Any]:
+    """Fuehrt den Hardwaretest strikt nacheinander aus und schreibt jeden Wert ins CSV-Log."""
+    communication = _load_communication_module()
+    _write_log("SYSTEM", "START", "Kommunikationstest gestartet", "", f"{sr830_port}/{ostech_port}")
+    results: dict[str, Any] = {"SR830": {}, "OSTech": {}, "SR830_SET": False}
+
+    try:
+        sr830, ostech = communication.initialisiere_kommunikation(
+            sr830_port=sr830_port,
+            ostech_port=ostech_port,
+            baudrate=baudrate,
+            timeout=timeout,
+        )
+        _write_log("SYSTEM", "PASS" if sr830 or ostech else "FAILED", "Geraeteinitialisierung", "", str(communication.KOMMUNIKATIONSSTATUS))
+        if sr830 is not None:
+            results["SR830"] = _run_get_tests(communication, "SR830", SR830_GET_TESTS)
+            results["SR830_SET"] = _run_sr830_set_test(communication)
+        else:
+            _write_log("SR830", "SKIPPED", "SR830 nicht verbunden")
+        if ostech is not None:
+            results["OSTech"] = _run_get_tests(communication, "OSTech", OSTECH_GET_TESTS)
+        else:
+            _write_log("OSTech", "SKIPPED", "OSTech nicht verbunden")
+    except Exception as error:
+        _write_log("SYSTEM", "FAILED", "Kommunikationstest abgebrochen", error)
+    finally:
+        communication.schliesse_kommunikation()
+        _write_log("SYSTEM", "END", "Kommunikationstest beendet", results)
+    return results
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Sequenzieller SR830/OSTech-Kommunikationstest")
+    parser.add_argument("--sr830-port", default="COM3")
+    parser.add_argument("--ostech-port", default="COM4")
+    parser.add_argument("--baudrate", type=int, default=9600)
+    parser.add_argument("--timeout", type=float, default=0.35)
+    args = parser.parse_args()
+    run_communication_test(args.sr830_port, args.ostech_port, args.baudrate, args.timeout)
+
+
+if __name__ == "__main__":
+    main()
