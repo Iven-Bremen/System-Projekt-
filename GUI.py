@@ -285,7 +285,7 @@ frame_com_btns.grid(row=2, column=0, columnspan=3, pady=15, sticky="w")
 # ------------------------------------------
 tab_lockin = tk.Frame(main_notebook, bg="#1e1e1e")
 main_notebook.add(tab_lockin, text="")
-reg_ui((main_notebook, tab_lockin), "Lock-In Amplifier", "tab_text")
+reg_ui((main_notebook, tab_lockin), "Lock-In Amplifier 🔒 (locked)", "tab_text")
 
 lbl_lockin_com_locked = tk.Label(tab_lockin, text="", bg="#1e1e1e")
 
@@ -556,7 +556,7 @@ reg_ui(btn_stop_lockin, "⏹ Stop Sine Out")
 # ------------------------------------------
 tab_laser = tk.Frame(main_notebook, bg="#1e1e1e")
 main_notebook.add(tab_laser, text="")
-reg_ui((main_notebook, tab_laser), "Laser / TEC Controller", "tab_text")
+reg_ui((main_notebook, tab_laser), "Laser / TEC Controller 🔒 (locked)", "tab_text")
 
 lbl_laser_com_locked = tk.Label(tab_laser, text="", bg="#1e1e1e")
 
@@ -651,7 +651,8 @@ var_warning = tk.BooleanVar(value=False)
 
 def check_laser_safety():
     if var_goggles.get() and var_interlock.get() and var_beampath.get() and var_warning.get():
-        ostech_notebook.tab(tab_ostech_laser, state="normal", text=" Laser Menu ")
+        ostech_notebook.tab(tab_ostech_laser, state="normal")
+        reg_ui((ostech_notebook, tab_ostech_laser), "Laser Menu", "tab_text")
         lbl_disabled_banner.pack_forget()
         frame_lmenu.pack(fill="both", expand=True, padx=10, pady=10)
         lbl_safety_status.config(
@@ -662,7 +663,8 @@ def check_laser_safety():
         messagebox.showinfo(auto_tr("Laser Security"),
                             auto_tr("All safety measurements complied. The Laser-Menu is now unlocked."))
     else:
-        ostech_notebook.tab(tab_ostech_laser, state=DISABLED, text=" 🔒 Laser Menu (Locked) ")
+        ostech_notebook.tab(tab_ostech_laser, state=DISABLED)
+        reg_ui((ostech_notebook, tab_ostech_laser), "🔒 Laser Menu (Locked)", "tab_text")
         frame_lmenu.pack_forget()
         lbl_disabled_banner.pack(fill="both", expand=True, padx=20, pady=40)
         lbl_safety_status.config(
@@ -711,7 +713,9 @@ lbl_safety_status.pack(fill="x", pady=(10, 0))
 
 # Laser Menu Tab
 tab_ostech_laser = tk.Frame(ostech_notebook, bg="#1e1e1e")
-ostech_notebook.add(tab_ostech_laser, text=" 🔒 Laser Menu (Locked) ", state=DISABLED)
+ostech_notebook.add(tab_ostech_laser, text="")
+reg_ui((ostech_notebook, tab_ostech_laser), "🔒 Laser Menu (Locked)", "tab_text")
+ostech_notebook.tab(tab_ostech_laser, state=DISABLED)
 
 lbl_disabled_banner = tk.Label(
     tab_ostech_laser,
@@ -993,6 +997,8 @@ def update_tab_states():
     if is_emergency_bypass:
         main_notebook.tab(tab_lockin, state="normal")
         main_notebook.tab(tab_laser, state="normal")
+        reg_ui((main_notebook, tab_lockin), "Lock-In Amplifier", "tab_text")
+        reg_ui((main_notebook, tab_laser), "Laser / TEC Controller", "tab_text")
         lbl_lockin_com_locked.pack_forget()
         lbl_laser_com_locked.pack_forget()
         lbl_status_lockin.config(text="⚠️ OVERRIDE (EMERGENCY)", fg="#ffaa00")
@@ -1001,18 +1007,22 @@ def update_tab_states():
 
     if is_lockin_connected:
         main_notebook.tab(tab_lockin, state="normal")
+        reg_ui((main_notebook, tab_lockin), "Lock-In Amplifier", "tab_text")
         lbl_lockin_com_locked.pack_forget()
         lbl_status_lockin.config(text="🟢 Verbunden", fg="#00ff00")
     else:
-        main_notebook.tab(tab_lockin, state="disabled", text="Lock-in Amplifier 🔒 (locked)")
+        main_notebook.tab(tab_lockin, state="disabled")
+        reg_ui((main_notebook, tab_lockin), "Lock-In Amplifier 🔒 (locked)", "tab_text")
         lbl_status_lockin.config(text="🔴 Nicht Verbunden", fg="#ff4444")
 
     if is_laser_connected:
         main_notebook.tab(tab_laser, state="normal")
+        reg_ui((main_notebook, tab_laser), "Laser / TEC Controller", "tab_text")
         lbl_laser_com_locked.pack_forget()
         lbl_status_laser.config(text="🟢 Verbunden", fg="#00ff00")
     else:
-        main_notebook.tab(tab_laser, state="disabled", text="Laser 🔒 (locked)")
+        main_notebook.tab(tab_laser, state="disabled")
+        reg_ui((main_notebook, tab_laser), "Laser 🔒 (locked)", "tab_text")
         lbl_status_laser.config(text="🔴 Nicht Verbunden", fg="#ff4444")
 
 
@@ -1370,140 +1380,118 @@ reg_ui((settings_notebook, sub_tab_theme), "Theme / Layout", "tab_text")
 
 
 def apply_theme(theme_name):
-    if theme_name == "light":
-        bg_main = "#f0f0f0"
-        bg_card = "#ffffff"
-        fg_text = "#000000"
-        btn_bg = "#e0e0e0"
-        tab_bg = "#d6d6d6"
-        display_bg = "#e8f5e9"
-        display_fg = "#1b5e20"
-        canvas_bg = "#ffffff"
-        lf_title_fg = "#005588"
+    try:
+        if theme_name == "light":
+            bg_main = "#f0f0f0"
+            bg_card = "#ffffff"
+            fg_text = "#000000"
+            btn_bg = "#e0e0e0"
+            tab_bg = "#d6d6d6"
+            display_bg = "#e8f5e9"
+            display_fg = "#1b5e20"
+            canvas_bg = "#e0e0e0"
+            lf_title_fg = "#005588"
 
-        style.configure("TNotebook", background=bg_main, borderwidth=0)
-        style.configure("TNotebook.Tab", background=tab_bg, foreground=fg_text, padding=[10, 6],
-                        font=('Consolas', 10, 'bold'))
-        style.map("TNotebook.Tab", background=[("selected", "#007acc")], foreground=[("selected", "#ffffff")])
-        style.configure("TCombobox", fieldbackground="#ffffff", background="#e0e0e0", foreground="#000000")
-        style.configure("TLabelframe", background=bg_main, borderwidth=1)
-        style.configure("TLabelframe.Label", background=bg_main, foreground=lf_title_fg, font=('Consolas', 10, 'bold'))
-        style.configure("Treeview", background="#ffffff", foreground="#000000", fieldbackground="#ffffff")
+            style.configure("TNotebook", background=bg_main, borderwidth=0)
+            style.configure("TNotebook.Tab", background=tab_bg, foreground=fg_text, padding=[10, 6], font=('Consolas', 10, 'bold'))
+            style.map("TNotebook.Tab", background=[("selected", "#007acc")], foreground=[("selected", "#ffffff")])
+            style.configure("TCombobox", fieldbackground="#ffffff", background="#e0e0e0", foreground="#000000")
+            style.configure("TLabelframe", background=bg_main, borderwidth=1)
+            style.configure("TLabelframe.Label", background=bg_main, foreground=lf_title_fg, font=('Consolas', 10, 'bold'))
 
-        ax_pvf.set_facecolor("#ffffff")
-        fig_pvf.set_facecolor("#ffffff")
-        ax_pvf.tick_params(colors="black")
-        ax_pvf.xaxis.label.set_color("black")
-        ax_pvf.yaxis.label.set_color("black")
-        ax_pvf.title.set_color("black")
-        canvas_pvf.draw_idle()
+        else:
+            bg_main = "#1e1e1e"
+            bg_card = "#2b2b2b"
+            fg_text = "#ffffff"
+            btn_bg = "#3c3f41"
+            tab_bg = "#3c3f41"
+            display_bg = "#000000"
+            display_fg = "#00ff00"
+            canvas_bg = "#000000"
+            lf_title_fg = "#00ffcc"
 
-    else:
-        bg_main = "#1e1e1e"
-        bg_card = "#2b2b2b"
-        fg_text = "#ffffff"
-        btn_bg = "#3c3f41"
-        tab_bg = "#3c3f41"
-        display_bg = "#000000"
-        display_fg = "#00ff00"
-        canvas_bg = "#000000"
-        lf_title_fg = "#00ffcc"
+            style.configure("TNotebook", background="#2b2b2b", borderwidth=0)
+            style.configure("TNotebook.Tab", background=tab_bg, foreground=fg_text, padding=[10, 6], font=('Consolas', 10, 'bold'))
+            style.map("TNotebook.Tab", background=[("selected", "#007acc")], foreground=[("selected", "#ffffff")])
+            style.configure("TCombobox", fieldbackground="#2b2b2b", background="#3c3f41", foreground="#ffffff")
+            style.configure("TLabelframe", background="#1e1e1e", borderwidth=1)
+            style.configure("TLabelframe.Label", background="#1e1e1e", foreground=lf_title_fg, font=('Consolas', 10, 'bold'))
 
-        style.configure("TNotebook", background="#2b2b2b", borderwidth=0)
-        style.configure("TNotebook.Tab", background=tab_bg, foreground=fg_text, padding=[10, 6],
-                        font=('Consolas', 10, 'bold'))
-        style.map("TNotebook.Tab", background=[("selected", "#007acc")], foreground=[("selected", "#ffffff")])
-        style.configure("TCombobox", fieldbackground="#2b2b2b", background="#3c3f41", foreground="#ffffff")
-        style.configure("TLabelframe", background="#1e1e1e", borderwidth=1)
-        style.configure("TLabelframe.Label", background="#1e1e1e", foreground=lf_title_fg,
-                        font=('Consolas', 10, 'bold'))
-        style.configure("Treeview", background="#2b2b2b", foreground="#ffffff", fieldbackground="#2b2b2b")
+        root.configure(bg=bg_card)
 
-        ax_pvf.set_facecolor("#2b2b2b")
-        fig_pvf.set_facecolor("#1e1e1e")
-        ax_pvf.tick_params(colors="white")
-        ax_pvf.xaxis.label.set_color("white")
-        ax_pvf.yaxis.label.set_color("white")
-        ax_pvf.title.set_color("white")
-        canvas_pvf.draw_idle()
+        def force_widget_colors(widget):
+            is_display = False
+            is_protected_signal = False
 
-    root.configure(bg=bg_card)
-
-    def force_widget_colors(widget):
-        is_display = False
-        is_protected_signal = False
-
-        try:
-            if widget in (val_ch1_label, val_ch2_label, val_ref_display, lbl_lcd_main,
-                          txt_log_terminal) or widget in lcd_vars.values():
-                is_display = True
-            elif widget in (btn_start_lockin, btn_stop_lockin, btn_reset_def, btn_reset_laser, btn_reset_tec, btn_pvf,
-                            lbl_safety_status, btn_scan_com, btn_dev_manager, btn_apply_ref, btn_apply_input,
-                            btn_apply_laser, btn_apply_tec, btn_apply_dev, lbl_disabled_banner, lbl_lockin_com_locked,
-                            lbl_laser_com_locked, btn_run_logs, btn_emergency_bypass):
-                is_protected_signal = True
-        except Exception:
-            pass
-
-        if is_protected_signal:
             try:
-                for child in widget.winfo_children():
-                    force_widget_colors(child)
+                if widget in (val_ch1_label, val_ch2_label, val_ref_display, lbl_lcd_main) or widget in lcd_vars.values():
+                    is_display = True
+                elif widget in (btn_start_lockin, btn_stop_lockin, btn_reset_def, btn_reset_laser, btn_reset_tec, btn_pvf,
+                                lbl_safety_status, btn_scan_com, btn_dev_manager, btn_apply_ref, btn_apply_input,
+                                btn_apply_laser, btn_apply_tec, btn_apply_dev, lbl_disabled_banner):
+                    is_protected_signal = True
+                elif any(keyword in str(widget).lower() for keyword in ("start", "stop", "interlock", "laser_on", "laser_off")):
+                    is_protected_signal = True
             except Exception:
                 pass
-            return
 
-        if is_display:
-            target_bg = display_bg
-            target_fg = display_fg
-        else:
-            target_bg = bg_main
-            target_fg = fg_text
+            if is_protected_signal:
+                try:
+                    for child in widget.winfo_children():
+                        force_widget_colors(child)
+                except Exception:
+                    pass
+                return
 
-        if widget.winfo_class() not in ("Frame", "LabelFrame", "Panedwindow", "TLabelframe"):
-            for bg_attr in ("bg", "background", "activebackground", "highlightbackground"):
+            if is_display:
+                target_bg = display_bg
+                target_fg = display_fg
+            else:
+                target_bg = bg_main
+                target_fg = fg_text
+
+            for bg_attr in ("bg", "background", "activebackground", "highlightbackground", "readonlybackground", "selectcolor"):
                 try:
                     widget[bg_attr] = target_bg
                 except Exception:
                     pass
 
-        for fg_attr in ("fg", "foreground", "activeforeground", "disabledforeground"):
+            for fg_attr in ("fg", "foreground", "activeforeground", "disabledforeground"):
+                try:
+                    widget[fg_attr] = target_fg
+                except Exception:
+                    pass
+
             try:
-                widget[fg_attr] = target_fg
+                if widget.winfo_class() == "Button":
+                    widget.configure(bg=btn_bg)
             except Exception:
                 pass
 
-        try:
-            if widget.winfo_class() == "Button":
-                widget.configure(bg=btn_bg)
-        except Exception:
-            pass
+            try:
+                if widget.winfo_class() == "Canvas":
+                    widget.configure(bg=canvas_bg)
+            except Exception:
+                pass
 
-        try:
-            if widget.winfo_class() == "Canvas" and widget != canvas_pvf.get_tk_widget():
-                widget.configure(bg=canvas_bg)
-        except Exception:
-            pass
+            try:
+                for child in widget.winfo_children():
+                    force_widget_colors(child)
+            except Exception:
+                pass
 
-        try:
-            for child in widget.winfo_children():
-                force_widget_colors(child)
-        except Exception:
-            pass
-
-    force_widget_colors(root)
+        force_widget_colors(root)
+    except Exception as e:
+        GUIErrorHandler.handle_exception(e, context="Theme Umschalten")
 
 
-lbl_theme_sel = tk.Label(sub_tab_theme, text="Select Layout Theme:", font=("Consolas", 10, "bold"), bg="#252526",
-                         fg="#ffffff")
+lbl_theme_sel = tk.Label(sub_tab_theme, text="Select Layout Theme:", font=("Consolas", 10, "bold"), bg="#252526", fg="#ffffff")
 lbl_theme_sel.pack(pady=15)
 
-btn_dark = tk.Button(sub_tab_theme, text="Dark Mode", width=15, bg="#3c3f41", fg="white",
-                     command=lambda: apply_theme("dark"))
+btn_dark = tk.Button(sub_tab_theme, text="Dark Mode", width=15, bg="#3c3f41", fg="white", command=lambda: apply_theme("dark"))
 btn_dark.pack(pady=4)
 
-btn_light = tk.Button(sub_tab_theme, text="Light Mode", width=15, bg="#e0e0e0", fg="black",
-                      command=lambda: apply_theme("light"))
+btn_light = tk.Button(sub_tab_theme, text="Light Mode", width=15, bg="#e0e0e0", fg="black", command=lambda: apply_theme("light"))
 btn_light.pack(pady=4)
 
 sub_tab_security = tk.Frame(settings_notebook, bg="#252526")
@@ -1530,8 +1518,9 @@ btn_change_pwd = tk.Button(sub_tab_security, text="Change Emergency Password", f
                            bg="#007acc", fg="white", command=change_emergency_password)
 btn_change_pwd.pack(pady=5)
 
-# Aufruf zum Abschluss, wenn alle Gui-Elemente geladen wurden
+# Initialisierung der Tab-Zustände beim Start
 update_tab_states()
+check_laser_safety()
 
 if __name__ == "__main__":
     root.mainloop()
