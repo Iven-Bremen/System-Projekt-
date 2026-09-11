@@ -1,0 +1,8 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-11,12:22:47,201,KOM_Test,SR830,T,Proramm start,Ask,Komunkiations Test für SR830 und OSTECH,,,,
+2026-09-11,12:22:47,749,KOM_Test,SR830,T,SR830 Kom Test Start,Ask,Komunkiations Test für SR830 und OSTECH,,,,
+2026-09-11,12:22:47,818,KOM_Test,SR830,T,SR830 Kom Test Start,"b'Stanford_Research_Systems,SR830,s/n46328,ver1.07 \r'",Raw,Komunkiations Test für SR830 und OSTECH,,,
+2026-09-11,12:22:47,819,KOM_Test,SR830,T,SR830 Kom Test Start,"Stanford_Research_Systems,SR830,s/n46328,ver1.07",Decoded,Komunkiations Test für SR830 und OSTECH,,,
+2026-09-11,12:22:48,364,KOM_Test,OSTECH,T,OSTECH auf COM4 erreichbar,Ask,Komunkiations Test für SR830 und OSTECH,,,,
+2026-09-11,12:22:48,364,KOM_Test,OSTECH,T,Test all relevant commands for OSTECH,Ask,Komunkiations Test für SR830 und OSTECH,,,,
+2026-09-11,12:22:49,366,KOM_Test,OSTECH,T,GVS,,Ask,Komunkiations Test für SR830 und OSTECH,,,
