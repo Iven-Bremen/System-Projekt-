@@ -22,7 +22,6 @@ class OSTECHCommandInfo:
     def type(self) -> str:
         return self.type_name
 
-
 @dataclass(frozen=True)
 class OSTECHResult:
     value: object
@@ -153,6 +152,30 @@ class SR830CommandInfo:
     def type(self) -> str:
         return self.type_name
 
+    def validate(self, parameters) -> None:
+        """Validate command parameters before they are serialized."""
+        if not parameters:
+            return
+        if self.data_type is bool:
+            raise ValueError(f"{self.command} does not accept a value.")
+
+        for parameter in parameters:
+            if self.data_type is int:
+                if isinstance(parameter, bool) or not isinstance(parameter, int):
+                    raise ValueError(f"{self.command} expects integer values.")
+                value = parameter
+            elif self.data_type is float:
+                if isinstance(parameter, bool) or not isinstance(parameter, (int, float)):
+                    raise ValueError(f"{self.command} expects numeric values.")
+                value = float(parameter)
+            else:
+                continue
+
+            if self.minimum is not None and isinstance(self.minimum, (int, float)) and value < self.minimum:
+                raise ValueError(f"{self.command} must be >= {self.minimum}.")
+            if self.maximum is not None and isinstance(self.maximum, (int, float)) and value > self.maximum:
+                raise ValueError(f"{self.command} must be <= {self.maximum}.")
+
     def build(self, *parameters, query: bool | None = None) -> str:
         """Build an SR830 command with optional query and parameters.
 
@@ -168,11 +191,26 @@ class SR830CommandInfo:
         if is_query_only and query is False:
             query = True
 
+        if not query:
+            self.validate(parameters)
+
         command = f"{base_command}{'?' if query else ''}"
         if parameters:
             values = ",".join(str(parameter) for parameter in parameters)
             command = f"{command} {values}"
         return command
+
+    def decode(self, response: str):
+        """Convert one instrument response to the declared Python type."""
+        if self.data_type is str:
+            return response.strip()
+        if self.data_type is bytes:
+            return response.encode() if isinstance(response, str) else response
+        if self.data_type is int:
+            return int(float(response.strip()))
+        if self.data_type is float:
+            return float(response.strip())
+        return response.strip()
 
 
 @dataclass(frozen=True)
@@ -292,5 +330,37 @@ class SR830Command(Enum):
     def build(self, *parameters, query: bool | None = None) -> str:
         """Build this SR830 command, optionally adding query parameters."""
         return self.value.build(*parameters, query=query)
+
+    @property
+    def command(self) -> str:
+        """Return the instrument mnemonic, for example ``"PHAS"``."""
+        return self.value.command.rstrip("?")
+
+    @property
+    def info(self) -> SR830CommandInfo:
+        return self.value
+
+    def decode(self, response: str):
+        return self.value.decode(response)
+
+
+class SR830CommandEncoder:
+    """Build validated SR830 command strings from enum members."""
+
+    @staticmethod
+    def encode(command: SR830Command, *values, query: bool = False) -> str:
+        if not isinstance(command, SR830Command):
+            raise TypeError("command must be an SR830Command member")
+        return command.build(*values, query=query)
+
+
+class SR830ValueDecoder:
+    """Decode SR830 query responses according to command metadata."""
+
+    @staticmethod
+    def decode(command: SR830Command, response: str) -> SR830Result:
+        if not isinstance(command, SR830Command):
+            raise TypeError("command must be an SR830Command member")
+        return SR830Result(command.decode(response), command.info)
 
 

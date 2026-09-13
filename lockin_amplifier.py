@@ -19,6 +19,8 @@ import os
 import time
 from datetime import datetime
 
+from Commands import SR830Command, SR830CommandEncoder, SR830Result, SR830ValueDecoder
+
 try:
     import serial
 except Exception:  # pragma: no cover - pyserial kann in Testumgebungen fehlen
@@ -273,6 +275,22 @@ class LAM:
         Verwendung: LAM.send_command("PHAS", 12.34)
         """
         return self.write(mnemonic, *params, query=query)
+
+    def write_command(self, command: SR830Command, *values):
+        """Send an enum command with optional validated values."""
+        command_text = SR830CommandEncoder.encode(command, *values)
+        self._send_command(command_text)
+        self._log_transaction("TX", command_text)
+        return command_text
+
+    def query_command(self, command: SR830Command, *values) -> SR830Result:
+        """Query an enum command and return a typed ``SR830Result``."""
+        command_text = SR830CommandEncoder.encode(command, *values, query=True)
+        response, latency = self.query(command_text)
+        if response is None:
+            raise ConnectionError(f"Keine Antwort auf {command_text}.")
+        result = SR830ValueDecoder.decode(command, response)
+        return SR830Result(result.value, result.info)
 
     def query_value(self, mnemonic, *params):
         """Sendet einen Query-Befehl und gibt nur den Wert zurück.
