@@ -1,0 +1,4 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-14,19:30:52,664,KOM_Test,SR830,I,startup,SR830 nicht bereit: COM3 konnte nicht geöffnet werden; SR830 ist nicht angeschlossen.,status im SR830-Thread,Komunkiations Test für SR830 und OSTECH,,,
+2026-09-14,19:30:52,666,KOM_Test,OSTECH,I,startup,OSTECH nicht bereit: COM4 konnte nicht geöffnet werden; OSTECH ist nicht angeschlossen.,status im OSTECH-Thread,Komunkiations Test für SR830 und OSTECH,,,
+2026-09-14,19:30:52,668,KOM_Test,SYSTEM,I,status,whileTest gestartet; Geräte-Threads laufen parallel.,status im SYSTEM-Thread,Komunkiations Test für SR830 und OSTECH,,,

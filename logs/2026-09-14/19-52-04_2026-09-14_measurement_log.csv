@@ -1,0 +1,6 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-14,19:52:04,379,KOM_Test,SR830,E,SR830 Verbindung fehlgeschlagen,"SerialException: could not open port 'COM3': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)",Connection error,Komunkiations Test für SR830 und OSTECH,,,
+2026-09-14,19:52:06,385,KOM_Test,OSTECH,E,OSTECH Verbindung fehlgeschlagen,"SerialException: could not open port 'COM4': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)",Connection error,Komunkiations Test für SR830 und OSTECH,,,
+2026-09-14,19:52:08,406,KOM_Test,SR830,E,startup,SR830 nicht bereit: COM3 konnte nicht geöffnet werden; SR830 ist nicht angeschlossen.,error im SR830-Thread,Komunkiations Test für SR830 und OSTECH,,,
+2026-09-14,19:52:08,406,KOM_Test,OSTECH,E,startup,OSTECH nicht bereit: COM4 konnte nicht geöffnet werden; OSTECH ist nicht angeschlossen.,error im OSTECH-Thread,Komunkiations Test für SR830 und OSTECH,,,
+2026-09-14,19:52:08,406,KOM_Test,SYSTEM,I,status,whileTest gestartet; Geräte-Threads laufen parallel.,status im SYSTEM-Thread,Komunkiations Test für SR830 und OSTECH,,,

@@ -1,0 +1,4 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-14,19:26:17,830,KOM_Test,SR830,T,Proramm start,Ask,Komunkiations Test für SR830 und OSTECH,,,,
+2026-09-14,19:26:17,833,KOM_Test,SR830,T,result,"{'step': 'startup', 'value': 'SR830 nicht bereit'}",Thread,Komunkiations Test für SR830 und OSTECH,,,
+2026-09-14,19:26:17,833,KOM_Test,OSTECH,T,result,"{'step': 'startup', 'value': 'OSTECH nicht bereit'}",Thread,Komunkiations Test für SR830 und OSTECH,,,

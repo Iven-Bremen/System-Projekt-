@@ -1,0 +1,5 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-14,17:59:46,253,KOM_Test,SR830,T,Proramm start,Ask,Komunkiations Test für SR830 und OSTECH,,,,
+2026-09-14,17:59:46,256,KOM_Test,OSTECH,E,OSTECH auf COM4 nicht erreichbar,"Error: could not open port 'COM4': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)",Decoded,Komunkiations Test für SR830 und OSTECH,,,
+2026-09-14,17:59:46,256,KOM_Test,OSTECH,T,Test all relevant commands for OSTECH,Ask,Komunkiations Test für SR830 und OSTECH,,,,
+2026-09-14,17:59:47,259,KOM_Test,OSTECH,T,Set binary mode,GMS8,Ask,Komunkiations Test für SR830 und OSTECH,,,

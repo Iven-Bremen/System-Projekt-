@@ -1,0 +1,4 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-14,19:30:54,214,KOM_Test,SR830,I,startup,"SR830 nicht bereit: Falsche Geräte-ID. Erwartet: 'Stanford_Research_Systems,SR830,s/n46328,ver1.07'; erhalten: 'wrong-device-id'.",status im SR830-Thread,Komunkiations Test für SR830 und OSTECH,,,
+2026-09-14,19:30:54,226,KOM_Test,OSTECH,I,startup,OSTECH nicht bereit: Abfrage GVN fehlgeschlagen: AssertionError: OSTECH darf nach falscher SR830-ID nicht geprüft werden,status im OSTECH-Thread,Komunkiations Test für SR830 und OSTECH,,,
+2026-09-14,19:30:54,231,KOM_Test,SYSTEM,I,status,whileTest gestartet; Geräte-Threads laufen parallel.,status im SYSTEM-Thread,Komunkiations Test für SR830 und OSTECH,,,
