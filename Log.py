@@ -25,7 +25,8 @@ import csv
 import os
 import sys
 from datetime import datetime
-global Experiment
+
+import State
 
 CSV_COLUMNS_NEW = [
     # Diese Reihenfolge ist verbindlich fuer jede geschriebene Datenzeile.
@@ -85,7 +86,7 @@ def make_log_path(prefix="M", base_name=None):
     elif prefix == "T":
         filename = f"{time_str}_{date_folder}_simulation_log.csv"
     else:
-        filename = f"{time_str}_{date_folder}_{Experiment}_log.csv"
+        filename = f"{time_str}_{date_folder}_{State.Experiment}_log.csv"
 
     return os.path.join(log_dir, filename)
 

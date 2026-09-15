@@ -7,6 +7,12 @@ from dataclasses import dataclass
 from serial.tools import list_ports
 
 
+# Shared display values used by the GUI and other modules.
+disp1val = 1
+disp2val = 4
+Experiment = "Test"
+
+
 @dataclass(frozen=True)
 class COMPort:
 	"""Describes one serial port visible to the operating system."""
