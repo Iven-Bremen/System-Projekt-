@@ -241,53 +241,53 @@ def LabOSTECHCommand(Port, Command: OSTECHCommand, Sensor_Number=1):
 def set_ostech_binary_mode(Port):
     LabOSTECH(Port, "GMS8", int)
 
-
+def TestOstech():
 # testing all relevant commands for OSTECH
-TestingLog.Log("KOM_Test","OSTECH","T","Test all relevant commands for OSTECH","Ask",str(Test_Tag))
-time.sleep(1)
+    TestingLog.Log("KOM_Test","OSTECH","T","Test all relevant commands for OSTECH","Ask",str(Test_Tag))
+    time.sleep(1)
 
-TestingLog.Log("KOM_Test","OSTECH","T","Set binary mode","GMS8","Ask",str(Test_Tag))
-set_ostech_binary_mode(OSTECH)
+    TestingLog.Log("KOM_Test","OSTECH","T","Set binary mode","GMS8","Ask",str(Test_Tag))
+    set_ostech_binary_mode(OSTECH)
 
-TestingLog.Log("KOM_Test","OSTECH","T","GVS","","Ask",str(Test_Tag))
-Res = LabOSTECHCommand(OSTECH, OSTECHCommand.GVS)
-TestingLog.Log("KOM_Test","OSTECH","T","GVS",str(Res),"software version",str(Test_Tag))
+    TestingLog.Log("KOM_Test","OSTECH","T","GVS","","Ask",str(Test_Tag))
+    Res = LabOSTECHCommand(OSTECH, OSTECHCommand.GVS)
+    TestingLog.Log("KOM_Test","OSTECH","T","GVS",str(Res),"software version",str(Test_Tag))
 
-TestingLog.Log("KOM_Test","OSTECH","T","GVN","","Ask",str(Test_Tag))
-Res = LabOSTECHCommand(OSTECH, OSTECHCommand.GVN)
-TestingLog.Log("KOM_Test","OSTECH","T","GVN",str(Res),"serial number",str(Test_Tag))
+    TestingLog.Log("KOM_Test","OSTECH","T","GVN","","Ask",str(Test_Tag))
+    Res = LabOSTECHCommand(OSTECH, OSTECHCommand.GVN)
+    TestingLog.Log("KOM_Test","OSTECH","T","GVN",str(Res),"serial number",str(Test_Tag))
 
-TestingLog.Log("KOM_Test","OSTECH","T","GS","","Ask",str(Test_Tag))
-Status = LabOSTECHCommand(OSTECH, OSTECHCommand.GS)
-TestingLog.Log("KOM_Test","OSTECH","T","GS",str(Status),"get status",str(Test_Tag))
+    TestingLog.Log("KOM_Test","OSTECH","T","GS","","Ask",str(Test_Tag))
+    Status = LabOSTECHCommand(OSTECH, OSTECHCommand.GS)
+    TestingLog.Log("KOM_Test","OSTECH","T","GS",str(Status),"get status",str(Test_Tag))
 
-TestingLog.Log("KOM_Test","OSTECH","T","LTM","","Ask",str(Test_Tag))
-Res = LabOSTECHCommand(OSTECH, OSTECHCommand.LTM)
-TestingLog.Log("KOM_Test","OSTECH","T","LTM",str(Res),"laser temperature maximum",str(Test_Tag))
+    TestingLog.Log("KOM_Test","OSTECH","T","LTM","","Ask",str(Test_Tag))
+    Res = LabOSTECHCommand(OSTECH, OSTECHCommand.LTM)
+    TestingLog.Log("KOM_Test","OSTECH","T","LTM",str(Res),"laser temperature maximum",str(Test_Tag))
 
-TestingLog.Log("KOM_Test","OSTECH","T","LCA","","Ask",str(Test_Tag))
-Res = LabOSTECHCommand(OSTECH, OSTECHCommand.LCA)
-TestingLog.Log("KOM_Test","OSTECH","T","LCA",str(Res),"actual current",str(Test_Tag))
+    TestingLog.Log("KOM_Test","OSTECH","T","LCA","","Ask",str(Test_Tag))
+    Res = LabOSTECHCommand(OSTECH, OSTECHCommand.LCA)
+    TestingLog.Log("KOM_Test","OSTECH","T","LCA",str(Res),"actual current",str(Test_Tag))
 
-TestingLog.Log("KOM_Test","OSTECH","T","LVA","","Ask",str(Test_Tag))
-Res = LabOSTECHCommand(OSTECH, OSTECHCommand.LVA)
-TestingLog.Log("KOM_Test","OSTECH","T","LVA",str(Res),"laser voltage actual",str(Test_Tag))
+    TestingLog.Log("KOM_Test","OSTECH","T","LVA","","Ask",str(Test_Tag))
+    Res = LabOSTECHCommand(OSTECH, OSTECHCommand.LVA)
+    TestingLog.Log("KOM_Test","OSTECH","T","LVA",str(Res),"laser voltage actual",str(Test_Tag))
 
-TestingLog.Log("KOM_Test","OSTECH","T","LTA","","Ask",str(Test_Tag))
-Res = LabOSTECHCommand(OSTECH, OSTECHCommand.XTA)
-TestingLog.Log("KOM_Test","OSTECH","T","LTA",str(Res),"temperature actual",str(Test_Tag))
+    TestingLog.Log("KOM_Test","OSTECH","T","LTA","","Ask",str(Test_Tag))
+    Res = LabOSTECHCommand(OSTECH, OSTECHCommand.XTA)
+    TestingLog.Log("KOM_Test","OSTECH","T","LTA",str(Res),"temperature actual",str(Test_Tag))
 
-TestingLog.Log("KOM_Test","OSTECH","T","GT","","Ask",str(Test_Tag))
-Res = LabOSTECHCommand(OSTECH, OSTECHCommand.GT)
-TestingLog.Log("KOM_Test","OSTECH","T","GT",str(Res),"device temperature (head)",str(Test_Tag))
+    TestingLog.Log("KOM_Test","OSTECH","T","GT","","Ask",str(Test_Tag))
+    Res = LabOSTECHCommand(OSTECH, OSTECHCommand.GT)
+    TestingLog.Log("KOM_Test","OSTECH","T","GT",str(Res),"device temperature (head)",str(Test_Tag))
 
-TestingLog.Log("KOM_Test","OSTECH","T","LVC","","Ask",str(Test_Tag))
-Res = LabOSTECHCommand(OSTECH, OSTECHCommand.LVC)
-TestingLog.Log("KOM_Test","OSTECH","T","LVC",str(Res),"compliance voltage",str(Test_Tag))
+    TestingLog.Log("KOM_Test","OSTECH","T","LVC","","Ask",str(Test_Tag))
+    Res = LabOSTECHCommand(OSTECH, OSTECHCommand.LVC)
+    TestingLog.Log("KOM_Test","OSTECH","T","LVC",str(Res),"compliance voltage",str(Test_Tag))
 
-TestingLog.Log("KOM_Test","OSTECH","T","xTC","","Ask",str(Test_Tag))
-Res = LabOSTECHCommand(OSTECH, OSTECHCommand.XTC)
-TestingLog.Log("KOM_Test","OSTECH","T","xTC",str(Res),"temperature controller stop/run ",str(Test_Tag))
+    TestingLog.Log("KOM_Test","OSTECH","T","xTC","","Ask",str(Test_Tag))
+    Res = LabOSTECHCommand(OSTECH, OSTECHCommand.XTC)
+    TestingLog.Log("KOM_Test","OSTECH","T","xTC",str(Res),"temperature controller stop/run ",str(Test_Tag))
 
 
 
@@ -316,56 +316,56 @@ def ask_OSTECH(Command: str):
 
 def Test_SR830():
     ask_SR830("*IDN?")
-    ask_SR830("SRAT 0")
-    ask_SR830("SRAT 0")
+    #ask_SR830("SRAT 0")
+    #ask_SR830("SRAT 0")
     ask_SR830("SRAT?")
-    ask_SR830("SRAT 1")
+    ask_SR830("SRAT? 1")
     ask_SR830("SRAT?")
-    ask_SR830("SRAT 2")
+    #ask_SR830("SRAT 2")
     ask_SR830("SRAT?")
-    ask_SR830("SRAT 3")
+    #ask_SR830("SRAT 3")
     ask_SR830("SRAT?")
-    ask_SR830("SRAT 4")
+    #ask_SR830("SRAT 4")
     ask_SR830("SRAT?")
-    ask_SR830("SRAT 5")
+    #ask_SR830("SRAT 5")
     ask_SR830("SRAT?")
-    ask_SR830("SRAT 6")
+    #ask_SR830("SRAT 6")
     ask_SR830("SRAT?")
-    ask_SR830("SRAT 7")
+    #ask_SR830("SRAT 7")
     ask_SR830("SRAT?")
-    ask_SR830("SRAT 8")
+    #ask_SR830("SRAT 8")
     ask_SR830("SRAT?")
-    ask_SR830("SRAT 9")
+    #ask_SR830("SRAT 9")
     ask_SR830("SRAT?")
-    ask_SR830("SRAT 10")
+    #ask_SR830("SRAT 10")
     ask_SR830("SRAT?")
-    ask_SR830("SRAT 11")
+    #ask_SR830("SRAT 11")
     ask_SR830("SRAT?")
-    ask_SR830("SRAT 12")
+    #ask_SR830("SRAT 12")
     ask_SR830("SRAT?")
-    ask_SR830("SRAT 13")
+    #ask_SR830("SRAT 13")
     ask_SR830("SRAT?")
-    ask_SR830("SRAT 14")
+    #ask_SR830("SRAT 14")
 
     ask_SR830("SEND?")
-    ask_SR830("SEND 1")
+    #ask_SR830("SEND 1")
     ask_SR830("SEND?")
-    ask_SR830("SEND 2")
+    #ask_SR830("SEND 2")
     ask_SR830("SEND?")
 
-    ask_SR830("TRIG")
+    #ask_SR830("TRIG")
 
     ask_SR830("TSTR ?")
-    ask_SR830("TSTR 1")
+    #ask_SR830("TSTR 1")
     ask_SR830("TSTR ?")
-    ask_SR830("TSTR 2")
+    #ask_SR830("TSTR 2")
     ask_SR830("TSTR ?")
 
-    ask_SR830("STRT")
+    #ask_SR830("STRT")
 
-    ask_SR830("PAUS")
+    #ask_SR830("PAUS")
 
-    ask_SR830("REST")
+    #ask_SR830("REST")
 
     ask_SR830("OAUX? 1")
     ask_SR830("OAUX? 2")
@@ -393,44 +393,44 @@ def Test_SR830():
 
     ask_SR830("SPTS?")
 
-    ask_SR830("TRCA? 1,2,1")
-    ask_SR830("TRCA? 2,2,1")
+    ask_SR830("TRCA 1,2,1")
+    ask_SR830("TRCA 2,2,1")
 
-    ask_SR830("TRCB? 1,2,1")
-    ask_SR830("TRCB? 2,2,1")
+    ask_SR830("TRCB 1,2,1")
+    ask_SR830("TRCB 2,2,1")
 
-    ask_SR830("TRCL? 2,2,1")
-    ask_SR830("TRCL? 2,2,1")
-
-    ask_SR830("FAST? 1")
-    ask_SR830("FAST?")
-
-    ask_SR830("STRD")
-
-    ask_SR830("FAST? 2")
-    ask_SR830("FAST?")
-
-    ask_SR830("STRD")
-
-    ask_SR830("FAST? 3")
-    ask_SR830("FAST?")
-
-    ask_SR830("STRD")
+    ask_SR830("TRCL 2,2,1")
+    ask_SR830("TRCL 2,2,1")
 
     ask_SR830("FAST 1")
     ask_SR830("FAST?")
 
-    ask_SR830("STRD")
+   # ask_SR830("STRD")
 
     ask_SR830("FAST 2")
     ask_SR830("FAST?")
 
-    ask_SR830("STRD")
+    #ask_SR830("STRD")
 
     ask_SR830("FAST 3")
     ask_SR830("FAST?")
 
-    ask_SR830("STRD")
+    #ask_SR830("STRD")
+
+    ask_SR830("FAST 1")
+    ask_SR830("FAST?")
+
+    #ask_SR830("STRD")
+
+    ask_SR830("FAST 2")
+    ask_SR830("FAST?")
+
+    #ask_SR830("STRD")
+
+    ask_SR830("FAST 3")
+    ask_SR830("FAST?")
+
+    #ask_SR830("STRD")
 
     ask_SR830("*RST")
 
@@ -440,11 +440,7 @@ def Test_SR830():
 
     ask_SR830("LOCL?")
 
-    ask_SR830("*RST")
-
-    ask_SR830("LOCL 1")
-
-    ask_SR830("LOCL?")
+    #ask_SR830("*RST")
 
     ask_SR830("*RST")
 
@@ -452,17 +448,17 @@ def Test_SR830():
 
     ask_SR830("LOCL?")
 
-    ask_SR830("*RST")
+    #ask_SR830("*RST")
 
-    ask_SR830("OVRM? 0")
-
-    ask_SR830("OVRM?")
-
-    ask_SR830("OVRM? 1")
+    #ask_SR830("OVRM? 0")
 
     ask_SR830("OVRM?")
 
-    ask_SR830("*RST")
+    #ask_SR830("OVRM? 1")
+
+    #ask_SR830("OVRM?")
+
+    #ask_SR830("*RST")
 
     ask_SR830("TRIG")
 
@@ -478,8 +474,13 @@ def Test_SR830():
 
     ask_SR830("*STB?")
 
-    ask_SR830("*CLS")
+    #ask_SR830("*CLS")
 
+    ask_SR830("PHAS?")
+   
+
+   
+    ask_SR830("FREQ?")
 
 
 
@@ -523,6 +524,6 @@ def Test_OSTech():
     print("Kom Test for ST830 Done")
     OSTECH.close()
 
-# Test_SR830()
+Test_SR830()
 #Test_OSTech()
 

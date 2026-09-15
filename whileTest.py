@@ -17,10 +17,10 @@ from Threads import CommunicationThreads, ThreadMessage
 EXPECTED_SR830_ID = "Stanford_Research_Systems,SR830,s/n46328,ver1.07"
 EXPECTED_OSTECH_SERIAL_NUMBER = 8661
 
-TAKT_SR830 = 100
-TAKT_OSTTECH = 100
-TAKT_GUI = 100
-CYCLES = None
+TAKT_SR830 = 1
+TAKT_OSTTECH = 1
+TAKT_GUI = 12,5
+CYCLES = 500
 
 Test_Tag = "Komunkiations Test für SR830 und OSTECH"
 
@@ -599,8 +599,8 @@ def _create_sr830_thread_steps(delay_ms: int):
     return [
         CommunicationStep("SNAP 1,2,3,4,10,11", lambda: ask_SR830("SNAP? 1,2,3,4,10,11"), delay_ms),
         CommunicationStep("SNAP 5,6,7,8,9", lambda: ask_SR830("SNAP? 5,6,7,8,9"), delay_ms),
-        CommunicationStep("PHAS", lambda: ask_SR830("PHAS"), delay_ms),
-        CommunicationStep("FREQ", lambda: ask_SR830("FREQ"), delay_ms),
+        CommunicationStep("PHAS", lambda: ask_SR830("PHAS?"), delay_ms),
+        CommunicationStep("FREQ", lambda: ask_SR830("FREQ?"), delay_ms),
     ]
 
 
