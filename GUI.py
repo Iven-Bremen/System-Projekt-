@@ -10,6 +10,8 @@ from tkinter.constants import DISABLED
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+import Starter
 from State import scan_com_ports
 import GUIErrorHandler
 
@@ -1080,7 +1082,7 @@ def trigger_emergency_bypass():
 
 
 btn_apply_com = tk.Button(frame_com_btns, text="Refresh", font=("Consolas", 9, "bold"), bg="#007acc", fg="white",
-                          command=apply_com_settings)
+                          command=Starter.get_available_com_ports)
 btn_apply_com.pack(side="left", padx=5)
 
 btn_scan_com = tk.Button(frame_com_btns, text="Connect", font=("Consolas", 9, "bold"), bg="#2e7d32", fg="white",
