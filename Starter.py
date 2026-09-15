@@ -18,6 +18,8 @@ OSTech = None
 
 def get_available_com_ports():
     """Returns all COM ports currently available to the Starter/GUI."""
+    if scan_com_ports().__len__()==0: print('No COM ports available')
+    else: print(scan_com_ports())
     return scan_com_ports()
 
 def init_hardware():
@@ -60,7 +62,8 @@ def ConficPortsOSTech(NameOfPort : str, BaudRate : int, Timeout : float):
     Log.LogMassage(NameOfPort,"Info","Test","OpenPort",str(BaudRate))
     ValidatedPort(NameOfPort,BaudRate,Timeout)
 
-def ValidatedPort(NameOfPort : str, BaudRate : int, Timeout : float):
+
+def ValidatedPort(NameOfPort : str, BaudRate : int, Timeout : float, SR830=None):
     import GUI
 
     if(NameOfPort == GUI.getPortOf(OSTech)):
