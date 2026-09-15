@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+import Komunikation
 import Starter
 from State import scan_com_ports
 import GUIErrorHandler
@@ -30,6 +31,14 @@ try:
     import serial.tools.list_ports
 except ImportError:
     serial = None
+
+# ==========================================
+# GLOBALE VARIABLEN
+# ==========================================
+
+global disp1val
+global disp2val
+
 
 # ==========================================
 # KONFIGURATION & PASSWORT-MANAGEMENT
@@ -390,7 +399,7 @@ def update_ch1_display(event=None):
     selection = combo_ch1_src.get()
     cmd_map = {"X": ("OUTP1", "V"), "R": ("OUTP3", "V"), "X Noise": ("OUTR1", "V"), "Aux In 1": ("OAUX1", "V"), "Aux In 2": ("OAUX2", "V")}
     cmd, unit = cmd_map.get(selection, ("OUTP1", "V"))
-    val = 0
+    val = disp1val
     val_ch1_label.config(text=f"{val} {unit}")
 
 
@@ -440,7 +449,7 @@ def update_ch2_display(event=None):
     selection = combo_ch2_src.get()
     cmd_map = {"Y": ("OUTP2", "V"), "Phase (θ)": ("OUTP4", "°"), "Y Noise": ("OUTR2", "V"), "Aux In 3": ("OAUX3", "V"), "AUX IN 4": ("OAUX4", "V")}
     cmd, unit = cmd_map.get(selection, ("OUTP4", "°"))
-    val = 0
+    val = disp2val
     val_ch2_label.config(text=f"{val} {unit}")
 
 
@@ -1527,6 +1536,7 @@ btn_change_pwd.pack(pady=5)
 # Initialisierung der Tab-Zustände beim Start
 update_tab_states()
 check_laser_safety()
-
+for i in range(20): disp1val =+ disp1val
+for j in range(20): disp2val =+ disp1val
 if __name__ == "__main__":
     root.mainloop()
