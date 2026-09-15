@@ -37,8 +37,9 @@ except ImportError:
 # ==========================================
 
 global disp1val
+disp1val = 1
 global disp2val
-
+disp2val = 4
 
 # ==========================================
 # KONFIGURATION & PASSWORT-MANAGEMENT
@@ -390,7 +391,7 @@ combo_ch1_src = ttk.Combobox(frame_ch1, values=["X", "R", "X Noise", "Aux In 1",
 combo_ch1_src.current(0)
 combo_ch1_src.pack(fill="x", pady=2)
 
-val_ch1_label = tk.Label(frame_ch1, text="0.0 V", font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00",
+val_ch1_label = tk.Label(frame_ch1, text=str(disp1val)+" V", font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00",
                          relief="sunken", bd=3)
 val_ch1_label.pack(fill="x", pady=(10, 2))
 
@@ -440,7 +441,7 @@ combo_ch2_src = ttk.Combobox(frame_ch2, values=["Y", "Phase (θ)", "Y Noise", "A
 combo_ch2_src.current(1)
 combo_ch2_src.pack(fill="x", pady=2)
 
-val_ch2_label = tk.Label(frame_ch2, text="0.0 °", font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00",
+val_ch2_label = tk.Label(frame_ch2, text=str(disp2val)+" °", font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00",
                          relief="sunken", bd=3)
 val_ch2_label.pack(fill="x", pady=(10, 2))
 
