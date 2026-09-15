@@ -213,7 +213,7 @@ def on_closing():
 # ==========================================
 root = tk.Tk()
 root.title('PAMO - Photothermal Analysis & Monitoring Overview')
-root.geometry('1340x840')
+root.state("zoomed")
 root.configure(bg="#2b2b2b")
 root.protocol("WM_DELETE_WINDOW", on_closing)
 
@@ -335,7 +335,7 @@ lbl_res = tk.Label(frame_input, font=("Consolas", 8), bg="#1e1e1e", fg="#aaaaaa"
 lbl_res.pack(anchor="w", pady=(5, 0))
 reg_ui(lbl_res, "Dynamic Reserve:")
 combo_res = ttk.Combobox(frame_input, values=["High Reserve", "Normal", "Low Noise"], state="readonly")
-combo_res.current(0)
+combo_res.current(1)
 combo_res.pack(fill="x", pady=2)
 
 lbl_tc = tk.Label(frame_input, font=("Consolas", 8), bg="#1e1e1e", fg="#aaaaaa")
@@ -369,7 +369,7 @@ reg_ui(frame_ch1, " CH1 Display ")
 
 lbl_ch1_src = tk.Label(frame_ch1, text="DISPLAY SOURCE:", font=("Consolas", 8, "bold"), bg="#1e1e1e", fg="#aaaaaa")
 lbl_ch1_src.pack(anchor="w")
-combo_ch1_src = ttk.Combobox(frame_ch1, values=["X", "R", "X Noise", "Aux In 1"], state="readonly")
+combo_ch1_src = ttk.Combobox(frame_ch1, values=["X", "R", "X Noise", "Aux In 1", "Aux In 2"], state="readonly")
 combo_ch1_src.current(0)
 combo_ch1_src.pack(fill="x", pady=2)
 
@@ -380,7 +380,7 @@ val_ch1_label.pack(fill="x", pady=(10, 2))
 
 def update_ch1_display(event=None):
     selection = combo_ch1_src.get()
-    cmd_map = {"X": ("OUTP1", "V"), "R": ("OUTP3", "V"), "X Noise": ("OUTR1", "V"), "Aux In 1": ("OAUX1", "V")}
+    cmd_map = {"X": ("OUTP1", "V"), "R": ("OUTP3", "V"), "X Noise": ("OUTR1", "V"), "Aux In 1": ("OAUX1", "V"), "Aux In 2": ("OAUX2", "V")}
     cmd, unit = cmd_map.get(selection, ("OUTP1", "V"))
     val = 0
     val_ch1_label.config(text=f"{val} {unit}")
@@ -419,7 +419,7 @@ reg_ui(frame_ch2, " CH2 Display ")
 
 lbl_ch2_src = tk.Label(frame_ch2, text="DISPLAY SOURCE:", font=("Consolas", 8, "bold"), bg="#1e1e1e", fg="#aaaaaa")
 lbl_ch2_src.pack(anchor="w")
-combo_ch2_src = ttk.Combobox(frame_ch2, values=["Y", "Phase (θ)", "Y Noise", "Aux In 2"], state="readonly")
+combo_ch2_src = ttk.Combobox(frame_ch2, values=["Y", "Phase (θ)", "Y Noise", "Aux In 3", "Aux In 4"], state="readonly")
 combo_ch2_src.current(1)
 combo_ch2_src.pack(fill="x", pady=2)
 
@@ -430,7 +430,7 @@ val_ch2_label.pack(fill="x", pady=(10, 2))
 
 def update_ch2_display(event=None):
     selection = combo_ch2_src.get()
-    cmd_map = {"Y": ("OUTP2", "V"), "Phase (θ)": ("OUTP4", "°"), "Y Noise": ("OUTR2", "V"), "Aux In 2": ("OAUX2", "V")}
+    cmd_map = {"Y": ("OUTP2", "V"), "Phase (θ)": ("OUTP4", "°"), "Y Noise": ("OUTR2", "V"), "Aux In 3": ("OAUX3", "V"), "AUX IN 4": ("OAUX4", "V")}
     cmd, unit = cmd_map.get(selection, ("OUTP4", "°"))
     val = 0
     val_ch2_label.config(text=f"{val} {unit}")
@@ -1267,8 +1267,9 @@ paned_logs.add(frame_logs_work, weight=4)
 frame_log_ctrl = tk.Frame(frame_logs_work, bg="#252526")
 frame_log_ctrl.pack(fill="x", pady=5)
 
+def run_logs_skript():
 
-def run_logs_script():
+'''def run_logs_script():
     txt_log_terminal.config(state="normal")
     txt_log_terminal.insert("end", "=== EXECUTING LOGS.TXT SCRIPT ABLAUF ===\n")
 
@@ -1305,7 +1306,7 @@ btn_clear_logs.pack(side="left", padx=5)
 txt_log_terminal = tk.Text(frame_logs_work, bg="#000000", fg="#00ff00", font=("Consolas", 9), state="disabled",
                            wrap="word")
 txt_log_terminal.pack(fill="both", expand=True, padx=5, pady=5)
-
+'''
 
 def on_tree_logs_select(event):
     selected = tree_logs.selection()
