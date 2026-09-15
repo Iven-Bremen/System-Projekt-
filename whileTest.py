@@ -21,7 +21,9 @@ GUI_INTERVAL_MS = 12
 TEST_TAG = "Kommunikations-Test fuer SR830 und OSTECH"
 
 SR830 = None
+SR830_ID = None
 OSTECH = None
+OSTECH_SERIAL_NUMBER = None
 SR830_LOCK = threading.Lock()
 OSTECH_LOCK = threading.Lock()
 
@@ -76,9 +78,12 @@ class OSTECHCommand(Enum):
     L = OSTECHCommandInfo ("L", bool)
 
 def open_devices(sr830_port=SR830_PORT, ostech_port=OSTECH_PORT):
-    global SR830, OSTECH
+    global SR830, SR830_ID, OSTECH, OSTECH_SERIAL_NUMBER
     SR830 = serial.Serial(sr830_port, BAUDRATE, timeout=TIMEOUT)
     OSTECH = serial.Serial(ostech_port, BAUDRATE, timeout=TIMEOUT)
+    SR830_ID = ask_SR830("*IDN?")
+    OSTECH_SERIAL_NUMBER = query_ostech_text("GVN")
+    set_ostech_binary_mode()
     return SR830, OSTECH
 
 
@@ -112,6 +117,40 @@ def send_ostech_command(command: str):
     with OSTECH_LOCK:
         OSTECH.write(f"{command}\r".encode("ascii"))
         OSTECH.flush()
+
+
+def query_ostech_text(command: str):
+    """Read one OSTECH command while the device is still in text mode."""
+    if OSTECH is None:
+        raise RuntimeError("OSTECH ist nicht verbunden.")
+    with OSTECH_LOCK:
+        OSTECH.reset_input_buffer()
+        OSTECH.write(f"{command}\r".encode("ascii"))
+        OSTECH.flush()
+        echo = OSTECH.read_until(b"\r")
+        expected_echo = f"{command.upper()}\r".encode("ascii")
+        if echo != expected_echo:
+            raise RuntimeError(f"Unerwartetes {command}-Echo: {echo!r}")
+        response = OSTECH.read_until(b"\r")
+        if not response:
+            raise RuntimeError(f"Keine Antwort auf {command} erhalten.")
+        return response.decode("ascii", errors="replace").strip()
+
+
+def set_ostech_binary_mode():
+    """Switch OSTECH from its startup text mode to binary response mode."""
+    if OSTECH is None:
+        raise RuntimeError("OSTECH ist nicht verbunden.")
+    with OSTECH_LOCK:
+        OSTECH.reset_input_buffer()
+        OSTECH.write(b"GMS8\r")
+        OSTECH.flush()
+        echo = OSTECH.read_until(b"\r")
+        if echo != b"GMS8\r":
+            raise RuntimeError(f"Unerwartetes GMS8-Echo: {echo!r}")
+        response = OSTECH.read_until(b"\r")
+        if not response:
+            raise RuntimeError("Keine Antwort auf GMS8 erhalten.")
 
 
 def LabOSTECH(port, command: str, data_type: type):
@@ -218,7 +257,7 @@ def _device_status_is_ready(publish):
     if SR830 is None or OSTECH is None:
         return False
     try:
-        sr830_id = ask_SR830("*IDN?")
+        sr830_id = SR830_ID or ask_SR830("*IDN?")
         status = LabOSTECHCommand(OSTECH, OSTECHCommand.GS).value
         serial_number = LabOSTECHCommand(OSTECH, OSTECHCommand.GVN).value
         publish({"step": "status SR830", "value": sr830_id})
