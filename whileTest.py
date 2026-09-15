@@ -463,6 +463,9 @@ def _result_value(result):
     return result.value if isinstance(result, OSTECHResult) else result
 
 
+
+
+
 def check_sr830():
     if SR830 is None:
         return False, "COM3 konnte nicht geöffnet werden; SR830 ist nicht angeschlossen."
@@ -521,6 +524,8 @@ def create_measurement_steps(delay_ms: int = 100):
     ]
 
 
+
+
 def start_measurement(tick_ms: int = 100, cycles: int | None = None):
     check_devices_before_measurement()
     return run_communication_loop(create_measurement_steps(tick_ms), tick_ms, cycles)
@@ -567,6 +572,27 @@ def _run_device_steps(
         cycle_number += 1
         if stop_requested.wait(max(0, tick_ms / 1000)):
             return
+
+
+def switch_FrequencyMode():
+    ask_SR830("FREQ?")
+
+def setFrequency():
+    TestingLog.Log("KOM_Test","OSTECH","T","GVS","","Ask",str(Test_Tag))
+    Res = LabOSTECHCommand(OSTECH, OSTECHCommand.LMDI)
+    TestingLog.Log("KOM_Test","OSTECH","T","LMDI",str(Res),"internal digital modulation",str(Test_Tag))
+
+    TestingLog.Log("KOM_Test","OSTECH","T","GVS","","Ask",str(Test_Tag))
+    Res = LabOSTECHCommand(OSTECH, OSTECHCommand.LMW)
+    TestingLog.Log("KOM_Test","OSTECH","T","LMW",str(Res),"pulse width",str(Test_Tag))
+
+    TestingLog.Log("KOM_Test","OSTECH","T","GVS","","Ask",str(Test_Tag))
+    Res = LabOSTECHCommand(OSTECH, OSTECHCommand.LMP)
+    TestingLog.Log("KOM_Test","OSTECH","T","LMP",str(Res),"pulse period",str(Test_Tag))
+
+    TestingLog.Log("KOM_Test","OSTECH","T","GVS","","Ask",str(Test_Tag))
+    Res = LabOSTECHCommand(OSTECH, OSTECHCommand.LMDIC)
+    TestingLog.Log("KOM_Test","OSTECH","T","LMDIC",str(Res),"number of pulses",str(Test_Tag))
 
 
 def _create_sr830_thread_steps(delay_ms: int):
