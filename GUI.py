@@ -11,6 +11,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+import random
+
 import Komunikation
 import Starter
 import State
@@ -460,11 +462,11 @@ root.after(100, refresh_shared_values)
 
 
 def test_increment_disp1():
-    State.disp1val += 1
+    State.disp1val = random.randint(1, 5000)
     root.after(5000, test_increment_disp1)
 
 
-root.after(5000, test_increment_disp1)
+root.after(1000, test_increment_disp1)
 
 lbl_bar2 = tk.Label(frame_ch2, text="LEVEL BAR GRAPH", font=("Consolas", 7), bg="#1e1e1e", fg="#888888")
 lbl_bar2.pack(anchor="w", pady=(5, 0))
