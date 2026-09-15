@@ -1,0 +1,5 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-15,22:28:31,209,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-09-15,22:28:31,211,START,SYSTEM,Version 1.0,Programm gestartet,Version 1.0,,,,, 
+2026-09-15,22:28:31,213,Warning,COM3,Fail,Port nicht verbunden,Fail,,,,SR830, 
+2026-09-15,22:28:31,215,Warning,COM4,Fail,Port nicht verbunden,Fail,,,,OSTech, 
