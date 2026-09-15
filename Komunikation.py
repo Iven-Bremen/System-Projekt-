@@ -1,276 +1,473 @@
-"""Zentrale Kommunikation mit SR830 und OSTech."""
-
-from __future__ import annotations
-
+﻿import struct
+import threading
 import time
-from typing import Any, Optional
+from dataclasses import dataclass
+from enum import Enum
+from typing import Callable
 
 import serial
 
 import Log
+from Threads import CommunicationThreads, ThreadMessage
 
 
-import numpy as np
-from SWP_Calculation_PhaseVsFrequenz_v3 import process_live_measurement as prayForItToWork
+SR830_PORT = "COM3"
+OSTECH_PORT = "COM4"
+BAUDRATE = 9600
+TIMEOUT = 2
+DEFAULT_TICK_MS = 1
+DEFAULT_CYCLES = 5
+GUI_INTERVAL_MS = 12
+TEST_TAG = "Kommunikations-Test fuer SR830 und OSTECH"
+
+SR830 = None
+SR830_ID = None
+OSTECH = None
+OSTECH_SERIAL_NUMBER = None
+SR830_LOCK = threading.Lock()
+OSTECH_LOCK = threading.Lock()
 
 
-SR830: Optional[Any] = None
-OSTech: Optional[Any] = None
-SR830_PORT: Optional[str] = None
-OSTECH_PORT: Optional[str] = None
-KOMMUNIKATIONSSTATUS = {"SR830": False, "OSTech": False}
-
-SR830_READ_COMMANDS = {
-    "SNAP", "SPTS", "IDN", "OAUX1", "OAUX2", "OAUX3", "OAUX4",
-    "OUTP1", "OUTP2", "OUTP3", "OUTP4", "OUTR1", "OUTR2",
-    "TRCA1", "TRCA2", "TRCB1", "TRCB2", "TRCL1", "TRCL2",
-}
-OSTECH_READ_COMMANDS = {
-    "LCA", "LVA", "LPCA", "LPA", "LPF", "LZR", "xTCA", "xTVA",
-    "GD", "GT", "GVS", "GVN", "GS", "GM",
-}
-
-SR830_SET_ARGUMENTS = {
-    "PHAS": ("x",), "FMOD": ("i",), "FREQ": ("i",), "RSLP": ("i",),
-    "HARM": ("i",), "SLVL": ("x",), "ISRC": ("i",), "IGND": ("i",),
-    "LCPL": ("i",), "ILN": ("i",), "SENS": ("i",), "RMOD": ("i",),
-    "OFLT": ("i",), "OFSL": ("i",), "SYNC": ("i",),
-    "DDEF": ("i", "j", "k"), "FPOP": ("i", "j"),
-    "OEXP": ("i", "x", "j"), "AOFF": ("i",), "AUXV": ("i", "x"),
-    "OUTX": ("i",), "OVRM": ("i",), "AOXV": ("i", "x"),
-    "KCLK": ("i",), "ALRM": ("i",), "SSET": ("i",), "RSET": ("i",),
-    "AGAN": (), "ARSV": (), "APHS": (),
-}
+@dataclass(frozen=True)
+class OSTECHCommandInfo:
+    command: str
+    data_type: type
+    unit: str = ""
 
 
-def _open_port(port: str, baudrate: int, timeout: float, device_name: str):
+@dataclass(frozen=True)
+class OSTECHResult:
+    value: object
+    info: OSTECHCommandInfo
+
+    @property
+    def command(self):
+        return self.info.command
+
+    @property
+    def data_type(self):
+        return self.info.data_type
+
+    @property
+    def unit(self):
+        return self.info.unit
+
+    def __str__(self):
+        return str(self.value)
+
+
+class OSTECHCommand(Enum):
+    # Regelmaessige Messwerte
+    LCT = OSTECHCommandInfo("LCT", float, "mA")
+    XTA = OSTECHCommandInfo("xTA", float, "C")
+    LVA = OSTECHCommandInfo("LVA", float, "V")
+    XTCA = OSTECHCommandInfo("xTCA", float, "mA")
+    XTVA = OSTECHCommandInfo("xTVA", float, "V")
+    LCA = OSTECHCommandInfo("LCA", float, "mA")
+    # Einmalige Startabfragen
+   
+    XTT = OSTECHCommandInfo("xTT", float, "C")
+    LTM = OSTECHCommandInfo("LTM", float, "C")
+    GT = OSTECHCommandInfo("GT", float, "C")
+    GS = OSTECHCommandInfo("GS", int)
+    GVN = OSTECHCommandInfo("GVN", int)
+
+
+    # send ones after Usere Intent 
+    LMDX = OSTECHCommandInfo("LMDX", bool)
+    L = OSTECHCommandInfo ("L", bool)
+
+def CheckCOM(COM, ID, Command, returnvalue):
+    """Prueft einen COM-Port und gibt bei jedem Fehler ``False`` zurueck.
+
+    ``ID`` beschreibt das erwartete Geraet fuer die Diagnose. Wenn
+    ``returnvalue`` nicht ``None`` ist, muss die Antwort genau diesem Wert
+    entsprechen. Der Port wird nur fuer die Pruefung geoeffnet und danach
+    wieder geschlossen.
+    """
+    port = None
     try:
-        device = serial.Serial(port, baudrate, timeout=timeout)
-        time.sleep(0.5)
-        Log.LogMassage(port, "Info", "Communication", "OpenPort", device_name)
-        return device
-    except serial.SerialException as error:
-        Log.LogMassage(port, "Warning", "Communication", str(error), device_name)
-        return None
+        port = serial.Serial(COM, BAUDRATE, timeout=TIMEOUT)
+        port.write(f"{Command}\r".encode("ascii"))
+        port.flush()
+        response = port.read_until(b"\r").decode("ascii", errors="replace").strip()
+        if response.upper() == str(Command).upper():
+            response = port.read_until(b"\r").decode("ascii", errors="replace").strip()
+        if not response:
+            return False
+        return returnvalue is None or response == str(returnvalue)
+    except (serial.SerialException, OSError, UnicodeError):
+        return False
+    finally:
+        if port is not None and port.is_open:
+            port.close()
 
 
-def _verfuegbare_ports(*bevorzugte_ports: str) -> list[str]:
-    """Liefert bevorzugte Ports und danach alle aktuell sichtbaren COM-Ports."""
-    from serial.tools import list_ports
-
-    ports = list(bevorzugte_ports)
-    ports.extend(info.device for info in list_ports.comports())
-    return list(dict.fromkeys(port for port in ports if port))
-
-
-def _probe(device: Any, command: str) -> str:
-    """Sendet einen kurzen Identifikationsbefehl ohne zusaetzliches Logging."""
-    try:
-        device.reset_input_buffer()
-        device.write(f"{command}\r".encode("ascii"))
-        return device.read_until(b"\r").decode("ascii", errors="replace").strip()
-    except (serial.SerialException, OSError):
-        return ""
-
-
-def _gueltige_antwort(response: str) -> bool:
-    """Filtert leere Antworten und typische Fehlerantworten der Geraete."""
-    normalized = response.strip().lower()
-    return bool(normalized) and normalized not in {"?", "error", "err", "-1"}
-
-
-def _sr830_antwort(response: str) -> bool:
-    normalized = response.lower()
-    return _gueltige_antwort(response) and ("sr830" in normalized or "stanford" in normalized)
-
-
-def _konfiguriere_port(device: Any, baudrate: int, timeout: float) -> Any:
-    """Setzt die verbindungsweiten Parameter nach erfolgreicher Pruefung."""
-    device.baudrate = baudrate
-    device.timeout = timeout
-    device.bytesize = serial.EIGHTBITS
-    device.parity = serial.PARITY_NONE
-    device.stopbits = serial.STOPBITS_ONE
-    return device
-
-
-def _suche_geraete(
-    sr830_port: str,
-    ostech_port: str,
-    baudrate: int,
-    timeout: float,
-) -> tuple[Optional[Any], Optional[Any], Optional[str], Optional[str]]:
-    """Prueft jeden sichtbaren Port einmal und ordnet die Geraete Antworten zu."""
-    sr830 = None
-    ostech = None
-    found_sr830_port = None
-    found_ostech_port = None
-
-    for port in _verfuegbare_ports(sr830_port, ostech_port):
-        if sr830 is not None and ostech is not None:
-            break
-        device = _open_port(port, baudrate, 0.5, "Port-Scan")
-        if device is None:
-            continue
-
-        sr_response = _probe(device, "*IDN?")
-        if sr830 is None and _sr830_antwort(sr_response):
-            sr830 = _konfiguriere_port(device, baudrate, timeout)
-            found_sr830_port = port
-            Log.LogMassage(port, "Info", "Communication", "SR830 erkannt", sr_response)
-            continue
-
-        ostech_response = _probe(device, "GVN")
-        if ostech is None and _gueltige_antwort(ostech_response):
-            ostech = _konfiguriere_port(device, baudrate, timeout)
-            found_ostech_port = port
-            Log.LogMassage(port, "Info", "Communication", "OSTech erkannt", ostech_response)
-            continue
-
-        device.close()
-        Log.LogMassage(port, "Info", "Communication", "Keine passende Hardwareantwort", "Port-Scan")
-
-    return sr830, ostech, found_sr830_port, found_ostech_port
-
-
-def initialisiere_kommunikation(
-    sr830_port: str = "COM3",
-    ostech_port: str = "COM5",
-    baudrate: int = 9600,
-    timeout: float = 2.0,
-) -> tuple[Optional[Any], Optional[Any]]:
-    """Scannt die COM-Ports einmal, prueft die Kommunikation und konfiguriert sie."""
-    global SR830, OSTech, SR830_PORT, OSTECH_PORT, KOMMUNIKATIONSSTATUS
-    if SR830 is None or OSTech is None:
-        SR830, OSTech, SR830_PORT, OSTECH_PORT = _suche_geraete(
-            sr830_port, ostech_port, baudrate, timeout
-        )
-    KOMMUNIKATIONSSTATUS = {"SR830": SR830 is not None, "OSTech": OSTech is not None}
-    return SR830, OSTech
-
-
-def schliesse_kommunikation() -> None:
-    """Schliesst beide Schnittstellen, sofern sie geoeffnet sind."""
-    global SR830, OSTech, SR830_PORT, OSTECH_PORT, KOMMUNIKATIONSSTATUS
-    for device in (SR830, OSTech):
-        if device is not None and getattr(device, "is_open", True):
-            device.close()
+def open_devices(sr830_port=SR830_PORT, ostech_port=OSTECH_PORT):
+    global SR830, SR830_ID, OSTECH, OSTECH_SERIAL_NUMBER
     SR830 = None
-    OSTech = None
-    SR830_PORT = None
-    OSTECH_PORT = None
-    KOMMUNIKATIONSSTATUS = {"SR830": False, "OSTech": False}
+    SR830_ID = None
+    OSTECH = None
+    OSTECH_SERIAL_NUMBER = None
 
-
-def frequenz_sweep_durchfuehren(
-        f_start: float = 0.1,
-        f_end: float = 500.0,
-        schritte: int = 100
-) -> tuple[np.ndarray, np.ndarray]:
-
-    # Frequenzband von f_start bis f_end logarithmisch erzeugen
-    f_sweep = np.logspace(np.log10(f_start), np.log10(f_end), schritte)
-    phi_gemessen = []
-
-    for f in f_sweep:
-        # Frequenz am SR830 setzen
-        setValue(Command="FREQ", x=f)
-
-        # Dynamische Einschwingzeit: Mind. 0.3s oder 3 Periodenlängen (3/f)
-        wartezeit = max(0.3, 3.0 / f)
-        time.sleep(wartezeit)
-
-        # SNAP liest Magnitude (i=9) und Phase (j=10) aus
-        antwort = getValue(Command="SNAP", i=9, j=10)
-
+    if CheckCOM(sr830_port, "SR830", "*IDN?", None):
         try:
-            _, phase_val = antwort.split(",")
-            phi_gemessen.append(float(phase_val))
-        except (ValueError, IndexError):
-            Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"), "Warning", "Sweep", f"Fehler bei {f} Hz", "SR830")
+            SR830 = serial.Serial(sr830_port, BAUDRATE, timeout=TIMEOUT)
+            SR830_ID = ask_SR830("*IDN?")
+        except (serial.SerialException, OSError, RuntimeError):
+            SR830 = None
 
-    f_array = np.array(f_sweep)
-    phi_array = np.array(phi_gemessen)
+    if CheckCOM(ostech_port, "OSTECH", "GVN", None):
+        try:
+            OSTECH = serial.Serial(ostech_port, BAUDRATE, timeout=TIMEOUT)
+            OSTECH_SERIAL_NUMBER = query_ostech_text("GVN")
+            set_ostech_binary_mode()
+        except (serial.SerialException, OSError, RuntimeError):
+            if OSTECH is not None and OSTECH.is_open:
+                OSTECH.close()
+            OSTECH = None
 
-    # Direkt an den Evaluator zur Schichtdickenberechnung übergeben
-    d_fit, d_err, r2, _ = prayForItToWork(f_array, phi_array)
-
-    return f_array, phi_array
-
-
-def _send_and_read(device: Any, command: str, device_name: str) -> str:
-    if device is None:
-        Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"), "Communication", "Read", f"Keine Hardware fuer {command} verbunden!", device_name)
-        return "N/A"
-    Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"), "Communication", "Send", command, device_name)
-    device.write(f"{command}\r".encode("ascii"))
-    value = device.read_until(b"\r").decode("ascii", errors="replace").strip()
-    Log.LogMassage(time.strftime("%Y-%m-%d %H:%M:%S"), "Communication", "Receive", value, device_name)
-    return value
+    return SR830, OSTECH
 
 
-def _sr830_command(command: str, i: int, j: int, k: int) -> str:
-    query_templates = {
-        "IDN": "*IDN?",
-        "SNAP": f"SNAP? {i},{j}",
-        "SPTS": "SPTS?",
+def close_devices():
+    for port in (SR830, OSTECH):
+        if port is not None and getattr(port, "is_open", True):
+            port.close()
+
+
+def _format_command(command: str, value=None):
+    return str(command) if value is None else f"{command} {value}"
+
+
+def _convert_response(response: str, return_type):
+    if return_type is str:
+        return response
+    if return_type is bool:
+        normalized = response.strip().lower()
+        if normalized in ("1", "true", "on"):
+            return True
+        if normalized in ("0", "false", "off"):
+            return False
+        raise ValueError(f"Keine boolesche Antwort: {response!r}")
+    return return_type(response)
+
+
+def ask_SR830(command: str, value=None, return_type=str):
+    """Sendet einen SR830-Befehl und gibt die Antwort typisiert zurueck.
+
+    Beispiele: ``ask_SR830("FREQ?", return_type=float)`` oder
+    ``ask_SR830("PHAS?", return_type=float)``. Fuer Setzbefehle kann der Wert
+    direkt mitgegeben werden, zum Beispiel ``ask_SR830("PHAS", 12.5)``.
+    """
+    if SR830 is None:
+        raise RuntimeError("SR830 ist nicht verbunden.")
+    with SR830_LOCK:
+        SR830.write(f"{_format_command(command, value)}\r".encode("ascii"))
+        SR830.flush()
+        response = SR830.read_until(b"\r").decode("ascii", errors="replace").strip()
+        return _convert_response(response, return_type)
+
+
+def send_SR830(command: str, value=None):
+    """Sendet einen SR830-Setzbefehl ohne eine Antwort zu erwarten."""
+    if SR830 is None:
+        raise RuntimeError("SR830 ist nicht verbunden.")
+    with SR830_LOCK:
+        SR830.write(f"{_format_command(command, value)}\r".encode("ascii"))
+        SR830.flush()
+
+
+def ask_OSTECH(command: str, value=None, return_type=str):
+    """Sendet einen OSTECH-Textbefehl und gibt die Antwort typisiert zurueck."""
+    if OSTECH is None:
+        raise RuntimeError("OSTECH ist nicht verbunden.")
+    with OSTECH_LOCK:
+        OSTECH.write(f"{_format_command(command, value)}\r".encode("ascii"))
+        OSTECH.flush()
+        response = OSTECH.read_until(b"\r").decode("ascii", errors="replace").strip()
+        return _convert_response(response, return_type)
+
+
+def send_ostech_command(command: str):
+    if OSTECH is None:
+        raise RuntimeError("OSTECH ist nicht verbunden.")
+    with OSTECH_LOCK:
+        OSTECH.write(f"{command}\r".encode("ascii"))
+        OSTECH.flush()
+
+
+def send_OSTECH(command: str, value=None):
+    """Sendet einen OSTECH-Setzbefehl ohne eine Antwort zu erwarten."""
+    if OSTECH is None:
+        raise RuntimeError("OSTECH ist nicht verbunden.")
+    with OSTECH_LOCK:
+        OSTECH.write(f"{_format_command(command, value)}\r".encode("ascii"))
+        OSTECH.flush()
+
+
+def query_ostech_text(command: str):
+    """Read one OSTECH command while the device is still in text mode."""
+    if OSTECH is None:
+        raise RuntimeError("OSTECH ist nicht verbunden.")
+    with OSTECH_LOCK:
+        OSTECH.reset_input_buffer()
+        OSTECH.write(f"{command}\r".encode("ascii"))
+        OSTECH.flush()
+        echo = OSTECH.read_until(b"\r")
+        expected_echo = f"{command.upper()}\r".encode("ascii")
+        if echo != expected_echo:
+            raise RuntimeError(f"Unerwartetes {command}-Echo: {echo!r}")
+        response = OSTECH.read_until(b"\r")
+        if not response:
+            raise RuntimeError(f"Keine Antwort auf {command} erhalten.")
+        return response.decode("ascii", errors="replace").strip()
+
+
+def set_ostech_binary_mode():
+    """Switch OSTECH from its startup text mode to binary response mode."""
+    if OSTECH is None:
+        raise RuntimeError("OSTECH ist nicht verbunden.")
+    with OSTECH_LOCK:
+        OSTECH.reset_input_buffer()
+        OSTECH.write(b"GMS8\r")
+        OSTECH.flush()
+        echo = OSTECH.read_until(b"\r")
+        if echo != b"GMS8\r":
+            raise RuntimeError(f"Unerwartetes GMS8-Echo: {echo!r}")
+        response = OSTECH.read_until(b"\r")
+        if not response:
+            raise RuntimeError("Keine Antwort auf GMS8 erhalten.")
+
+
+def LabOSTECH(port, command: str, data_type: type):
+    with OSTECH_LOCK:
+        port.reset_input_buffer()
+        port.write(f"{command}\r".encode("ascii"))
+        port.flush()
+        echo = port.read_until(b"\r")
+        expected_echo = f"{command.upper()}\r".encode("ascii")
+        if echo != expected_echo:
+            raise RuntimeError(f"Unerwartetes Echo: erwartet {expected_echo!r}, erhalten {echo!r}")
+
+        if data_type is bool:
+            response = port.read(1)
+            if response not in (b"\xAA", b"\x55"):
+                raise RuntimeError(f"Ungueltige bool-Antwort: {response!r}")
+            return response == b"\xAA"
+
+        payload_length = 2 if data_type is int else 4 if data_type is float else 0
+        if not payload_length:
+            raise TypeError("data_type muss bool, int oder float sein.")
+        response = port.read(payload_length + 1)
+        if len(response) != payload_length + 1:
+            raise RuntimeError("OSTECH-Antwort ist zu kurz.")
+        checksum = (0x55 + sum(response[:payload_length])) % 256
+        if response[payload_length] != checksum:
+            raise RuntimeError("Ungueltige OSTECH-Pruefsumme.")
+        return struct.unpack(">H" if data_type is int else ">f", response[:payload_length])[0]
+
+
+def decode_ostech_status(status_word: int):
+    masks = {
+        "interlock_ok": 0x0001,
+        "driver_supply_ok": 0x0004,
+        "driver_temperature_ok": 0x0008,
+        "lt_sensor_ok": 0x0400,
+        "ct_sensor_ok": 0x0800,
+        "lc_on": 0x4000,
+        "lc_error": 0x8000,
     }
-    if command in query_templates:
-        return query_templates[command]
-    if command[:4] in {"OAUX", "OUTP", "OUTR"}:
-        return f"{command[:4]}? {command[-1]}"
-    return f"{command[:4]}? {command[-1]},{j},{k}"
+    return {"status_word": status_word, **{name: bool(status_word & mask) for name, mask in masks.items()}}
 
 
-def getValue(Init=None, Command: str = "", i: int = 0, j: int = 0, k: int = 0) -> str:
-    """Liest einen bekannten SR830- oder OSTech-Befehl."""
-    if Command in SR830_READ_COMMANDS:
-        return _send_and_read(Init if Init is not None else SR830, _sr830_command(Command, i, j, k), "SR830")
-    if Command in OSTECH_READ_COMMANDS:
-        return _send_and_read(Init if Init is not None else OSTech, Command, "OSTech")
-    raise ValueError(f"Unbekannter Kommunikationsbefehl: {Command}")
+def LabOSTECHCommand(port, command: OSTECHCommand):
+    info = command.value
+    value = LabOSTECH(port, info.command, info.data_type)
+    if command is OSTECHCommand.GS:
+        value = decode_ostech_status(value)
+    return OSTECHResult(value, info)
 
 
-def setValue(
-    Init=None,
-    Command: str = "",
-    i: int = 0,
-    j: int = 0,
-    k: int = 0,
-    l: int = 0,
-    m: int = 0,
-    f: int = 0,
-    x: Any = 0,
-    y: int = 0,
-    z: int = 0,
-    s: int = 0,
-    **kwargs,
-) -> str:
-    """Setzt einen SR830-Parameter ueber eine zentrale Befehlsdefinition."""
-    if Command not in SR830_SET_ARGUMENTS:
-        raise ValueError(f"Unbekannter SR830-Setzbefehl: {Command}")
-
-    arguments = {"i": i, "j": j, "k": k, "l": l, "m": m, "f": f, "x": x, "y": y, "z": z, "s": s}
-    values = tuple(arguments[name] for name in SR830_SET_ARGUMENTS[Command])
-    command_text = Command + (" " + " ".join(map(str, values)) if values else "")
-    return _send_and_read(Init if Init is not None else SR830, command_text, "SR830")
-
-
-def sr830_get(command: str, i: int = 0, j: int = 0, k: int = 0) -> str:
-    """Liest gezielt vom SR830."""
-    if command not in SR830_READ_COMMANDS:
-        raise ValueError(f"Unbekannter SR830-Lesebefehl: {command}")
-    return getValue(SR830, command, i, j, k)
-
-
-def ostech_get(command: str) -> str:
-    """Liest gezielt vom OSTech-Controller."""
-    if command not in OSTECH_READ_COMMANDS:
-        raise ValueError(f"Unbekannter OSTech-Lesebefehl: {command}")
-    return getValue(OSTech, command)
+def _device_steps():
+    sr830_steps = (
+        ("SNAP 1,2,3,4,10,11", lambda: ask_SR830("SNAP? 1,2,3,4,10,11")),
+        ("SNAP 5,6,7,8,9", lambda: ask_SR830("SNAP? 5,6,7,8,9")),
+        ("PHAS", lambda: ask_SR830("PHAS?")),
+        ("FREQ", lambda: ask_SR830("FREQ?")),
+    )
+    ostech_periodic_steps = tuple(
+        (command.name, lambda command=command: LabOSTECHCommand(OSTECH, command))
+        for command in (
+            OSTECHCommand.LCT,
+            OSTECHCommand.XTA,
+            OSTECHCommand.LVA,
+            OSTECHCommand.XTCA,
+            OSTECHCommand.XTVA,
+            OSTECHCommand.LCA,
+        )
+    )
+    ostech_startup_steps = tuple(
+        (command.name, lambda command=command: LabOSTECHCommand(OSTECH, command))
+        for command in (
+            OSTECHCommand.XTT,
+            OSTECHCommand.LTM,
+            OSTECHCommand.GT,
+            OSTECHCommand.GS,
+            OSTECHCommand.GVN,
+        )
+    )
+    return sr830_steps, ostech_periodic_steps, ostech_startup_steps
 
 
-initialize_communication = initialisiere_kommunikation
-close_communication = schliesse_kommunikation
-get_value = getValue
-set_value = setValue
+def _run_device(source, steps, tick_ms, cycles, stop_requested, publish):
+    connected = SR830 is not None if source == "SR830" else OSTECH is not None
+    if not connected:
+        publish({"step": "startup", "value": f"{source} ist nicht verbunden."})
+        return
+    cycle = 0
+    while cycles is None or cycle < cycles:
+        for name, action in steps:
+            if stop_requested.is_set():
+                return
+            try:
+                publish({"step": name, "value": action()})
+            except Exception as error:
+                publish({"step": "error", "value": f"{name}: {type(error).__name__}: {error}"})
+                return
+            if stop_requested.wait(tick_ms / 1000):
+                return
+        cycle += 1
+
+
+def _device_status_is_ready(publish):
+    if SR830 is None or OSTECH is None:
+        return False
+    try:
+        sr830_id = SR830_ID or ask_SR830("*IDN?")
+        status = LabOSTECHCommand(OSTECH, OSTECHCommand.GS).value
+        serial_number = LabOSTECHCommand(OSTECH, OSTECHCommand.GVN).value
+        publish({"step": "status SR830", "value": sr830_id})
+        publish({"step": "status OSTECH", "value": {"status": status, "serial": serial_number}})
+        return bool(sr830_id) and not status.get("lc_error", False)
+    except Exception as error:
+        publish({"step": "status error", "value": f"{type(error).__name__}: {error}"})
+        return False
+
+
+def _run_commands(command_queries, command_steps, stop_commands, interval_seconds, stop_requested, publish):
+    while not stop_requested.is_set() and not _device_status_is_ready(publish):
+        stop_requested.wait(interval_seconds)
+    if stop_requested.is_set():
+        return
+
+    for name, action in command_queries:
+        if stop_requested.is_set():
+            return
+        try:
+            publish({"step": f"query {name}", "value": action()})
+        except Exception as error:
+            publish({"step": "error", "value": f"query {name}: {type(error).__name__}: {error}"})
+
+    for name, action in command_steps:
+        if stop_requested.is_set():
+            return
+        try:
+            publish({"step": name, "value": action()})
+        except Exception as error:
+            publish({"step": "error", "value": f"{name}: {type(error).__name__}: {error}"})
+
+    stop_requested.wait()
+    for name, action in stop_commands:
+        try:
+            publish({"step": f"stop {name}", "value": action()})
+        except Exception as error:
+            publish({"step": "error", "value": f"stop {name}: {type(error).__name__}: {error}"})
+
+
+def start_threaded_measurement(
+    tick_ms=DEFAULT_TICK_MS,
+    cycles=DEFAULT_CYCLES,
+    gui_handler: Callable[[ThreadMessage], None] | None = None,
+    sr830_tick_ms=None,
+    ostech_tick_ms=None,
+    sr830_cycles=None,
+    ostech_cycles=None,
+    command_interval_seconds=1,
+    command_queries=None,
+    command_steps=None,
+    stop_commands=None,
+):
+    sr830_tick_ms = tick_ms if sr830_tick_ms is None else sr830_tick_ms
+    ostech_tick_ms = tick_ms if ostech_tick_ms is None else ostech_tick_ms
+    sr830_cycles = cycles if sr830_cycles is None else sr830_cycles
+    ostech_cycles = cycles if ostech_cycles is None else ostech_cycles
+    if sr830_tick_ms <= 0 or ostech_tick_ms <= 0:
+        raise ValueError("Die Geraete-Takte muessen groesser als 0 sein.")
+    if sr830_cycles is not None and sr830_cycles <= 0:
+        raise ValueError("sr830_cycles muss groesser als 0 oder None sein.")
+    if ostech_cycles is not None and ostech_cycles <= 0:
+        raise ValueError("ostech_cycles muss groesser als 0 oder None sein.")
+    if command_interval_seconds <= 0:
+        raise ValueError("command_interval_seconds muss groesser als 0 sein.")
+    sr830_steps, ostech_periodic_steps, _ = _device_steps()
+    if command_queries is None:
+        command_queries = (
+            ("OSTECH LMDX", lambda: LabOSTECHCommand(OSTECH, OSTECHCommand.LMDX)),
+            ("OSTECH L", lambda: LabOSTECHCommand(OSTECH, OSTECHCommand.L)),
+        )
+    else:
+        command_queries = tuple(command_queries)
+    if command_steps is None:
+        command_steps = ()
+    else:
+        command_steps = tuple(command_steps)
+    if stop_commands is None:
+        stop_commands = ()
+    else:
+        stop_commands = tuple(stop_commands)
+
+    def log_handler(message: ThreadMessage):
+        payload = message.value if isinstance(message.value, dict) else {"value": message.value}
+        level = {"result": "T", "status": "I", "error": "E"}[message.kind]
+        Log.Log("KOM_Test", message.source, level, str(payload.get("step", message.kind)),
+            str(payload.get("value", "")), message.kind, TEST_TAG)
+
+    def default_gui_handler(message: ThreadMessage):
+        payload = message.value if isinstance(message.value, dict) else {"value": message.value}
+        print(f"[{message.source}] {payload.get('step', message.kind)}: {payload.get('value', '')}")
+
+    threads = CommunicationThreads(
+        lambda stop, publish: _run_device(
+            "SR830", sr830_steps, sr830_tick_ms, sr830_cycles, stop, publish,
+        ),
+        lambda stop, publish: _run_device(
+            "OSTECH", ostech_periodic_steps, ostech_tick_ms, ostech_cycles, stop, publish,
+        ),
+        log_handler,
+        gui_handler or default_gui_handler,
+        gui_interval_ms=GUI_INTERVAL_MS,
+        command_runner=lambda stop, publish: _run_commands(
+            command_queries, command_steps, stop_commands,
+            command_interval_seconds, stop, publish,
+        ),
+    )
+    threads.start()
+    return threads
+
+
+def run_threaded_measurement(tick_ms=DEFAULT_TICK_MS, cycles=DEFAULT_CYCLES, **options):
+    threads = start_threaded_measurement(tick_ms, cycles, **options)
+    try:
+        while threads.sr830.thread.is_alive() or threads.ostech.thread.is_alive():
+            time.sleep(0.05)
+    finally:
+        threads.stop()
+
+
+if __name__ == "__main__":
+    try:
+        open_devices()
+        run_threaded_measurement()
+    finally:
+        close_devices()

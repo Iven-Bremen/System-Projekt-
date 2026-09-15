@@ -10,6 +10,8 @@ from tkinter.constants import DISABLED
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from State import scan_com_ports
+import GUIErrorHandler
 
 # Externe Bibliotheken
 try:
@@ -159,8 +161,7 @@ is_emergency_bypass = False
 
 def check_real_com_port(port_name):
     if serial:
-        ports = [p.device for p in serial.tools.list_ports.comports()]
-        return port_name in ports
+        return port_name in scan_com_ports()
     if pyvisa:
         try:
             rm = pyvisa.ResourceManager()
@@ -169,6 +170,11 @@ def check_real_com_port(port_name):
         except Exception:
             return False
     return False
+
+
+def get_available_com_ports():
+    """Returns all COM ports currently available for the GUI."""
+    return scan_com_ports()
 
 
 def connect_lockin():
@@ -1267,9 +1273,7 @@ paned_logs.add(frame_logs_work, weight=4)
 frame_log_ctrl = tk.Frame(frame_logs_work, bg="#252526")
 frame_log_ctrl.pack(fill="x", pady=5)
 
-def run_logs_skript():
-
-'''def run_logs_script():
+def run_logs_script():
     txt_log_terminal.config(state="normal")
     txt_log_terminal.insert("end", "=== EXECUTING LOGS.TXT SCRIPT ABLAUF ===\n")
 
@@ -1306,7 +1310,6 @@ btn_clear_logs.pack(side="left", padx=5)
 txt_log_terminal = tk.Text(frame_logs_work, bg="#000000", fg="#00ff00", font=("Consolas", 9), state="disabled",
                            wrap="word")
 txt_log_terminal.pack(fill="both", expand=True, padx=5, pady=5)
-'''
 
 def on_tree_logs_select(event):
     selected = tree_logs.selection()

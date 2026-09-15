@@ -1,39 +1,43 @@
 import Log
 import serial
 import time
-import GUI
+from Komunikation import (
+    ask_OSTECH,
+    ask_SR830,
+    close_devices,
+    open_devices,
+    send_OSTECH,
+    send_SR830,
+)
+from State import COMScanner, scan_com_ports
+
+
+SR830 = None
+OSTech = None
+
+
+def get_available_com_ports():
+    """Returns all COM ports currently available to the Starter/GUI."""
+    return scan_com_ports()
 
 def init_hardware():
     """Prüft und initialisiert alle seriellen Schnittstellen als allererstes."""
+    global SR830, OSTech
     Log.start_terminal_logging()
     Log.LogMassage("SYSTEM", "START", "Programm gestartet", "Version 1.0")
-
-    # --- SR830 Ansteuerung ---
-    Log.LogMassage("Check Ports vor SR830", "Info", "Test", "Check", "SR830")
-    try:
-        #ConficPortsSR830("COM5",9600, 2.0) 
-        SR830 = serial.Serial("COM3", 9600, timeout=2.0)
-        time.sleep(0.5)
-        Log.LogMassage("COM3", "Info", "Test", "OpenPort", "9600")
-    except serial.SerialException:
-        SR830 = None
-        Log.LogMassage("COM3", "Warning", "Port konnte nicht geöffnet werden (Hardware fehlt)", "Fail", "COM3")
-
-    # --- OSTech Laser Ansteuerung ---
-    Log.LogMassage("Check Ports vor OSTech", "Info", "Test", "Check", "OSTech")
-    try:
-        #ConficPortsOSTech("COM5",9600, 2.0) 
-        global OSTech
-        OSTech = serial.Serial("COM5", 9600, timeout=2.0)
-        time.sleep(0.5)
-        Log.LogMassage("COM4", "Info", "Test", "OpenPort", "9600")
-    except serial.SerialException:
-        OSTech = None
-        Log.LogMassage("COM4", "Warning", "Port konnte nicht geöffnet werden (Hardware fehlt)", "Fail", "COM4")
+    SR830, OSTech = open_devices()
+    Log.LogMassage("COM3", "Info" if SR830 is not None else "Warning",
+                   "OpenPort" if SR830 is not None else "Port nicht verbunden",
+                   "OK" if SR830 is not None else "Fail", "SR830")
+    Log.LogMassage("COM4", "Info" if OSTech is not None else "Warning",
+                   "OpenPort" if OSTech is not None else "Port nicht verbunden",
+                   "OK" if OSTech is not None else "Fail", "OSTech")
 
 
 def StartGui():
     """Startet erst die GUI, wenn die Hardware-Prüfung komplett abgeschlossen ist."""
+    import GUI
+
     Log.LogMassage("Gui", "Info", "Starting Gui", " ", " ")
 
     GUI.update_ch1_display()
@@ -57,6 +61,8 @@ def ConficPortsOSTech(NameOfPort : str, BaudRate : int, Timeout : float):
     ValidatedPort(NameOfPort,BaudRate,Timeout)
 
 def ValidatedPort(NameOfPort : str, BaudRate : int, Timeout : float):
+    import GUI
+
     if(NameOfPort == GUI.getPortOf(OSTech)):
         OSTech = serial.Serial(NameOfPort, BaudRate, timeout = Timeout)
         time.sleep (1)
