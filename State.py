@@ -6,11 +6,29 @@ from dataclasses import dataclass
 
 from serial.tools import list_ports
 
+from enum import Enum, global_enum
+
+
+@global_enum
+class Disp1val(Enum):
+	OUTP1 = 0
+	OUTP3 = 0
+	OUTR1 = 0
+	OAUX1 = 0
+	OAUX2 = 0
+
+@global_enum
+class Disp2val(Enum):
+	OUTP2 = 0
+	OUTP4 = 0
+	OUTR2 = 0
+	OAUX3 = 0
+	OAUX4 = 0
 
 # Shared display values used by the GUI and other modules.
-disp1val = 1
-disp2val = 4
 Experiment = "Test"
+disp1val = Disp1val
+disp2val = Disp2val
 
 
 @dataclass(frozen=True)

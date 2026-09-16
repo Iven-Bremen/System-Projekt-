@@ -392,9 +392,17 @@ val_ch1_label.pack(fill="x", pady=(10, 2))
 
 def update_ch1_display(event=None):
     selection = combo_ch1_src.get()
-    cmd_map = {"X": ("OUTP1", "V"), "R": ("OUTP3", "V"), "X Noise": ("OUTR1", "V"), "Aux In 1": ("OAUX1", "V"), "Aux In 2": ("OAUX2", "V")}
+    cmd_map = {
+        "X": ("OUTP1", "V"),
+        "R": ("OUTP3", "V"),
+        "X Noise": ("OUTR1", "V"),
+        "Aux In 1": ("OAUX1", "V"),
+        "Aux In 2": ("OAUX2", "V")
+    }
     cmd, unit = cmd_map.get(selection, ("OUTP1", "V"))
-    val = State.disp1val
+
+    # Dynamisches Auslesen des Werts aus State.py
+    val = getattr(State, cmd.lower(), getattr(State.disp1val, cmd, 0))
     val_ch1_label.config(text=f"{val} {unit}")
 
 
@@ -442,9 +450,17 @@ val_ch2_label.pack(fill="x", pady=(10, 2))
 
 def update_ch2_display(event=None):
     selection = combo_ch2_src.get()
-    cmd_map = {"Y": ("OUTP2", "V"), "Phase (θ)": ("OUTP4", "°"), "Y Noise": ("OUTR2", "V"), "Aux In 3": ("OAUX3", "V"), "AUX IN 4": ("OAUX4", "V")}
+    cmd_map = {
+        "Y": ("OUTP2", "V"),
+        "Phase (θ)": ("OUTP4", "°"),
+        "Y Noise": ("OUTR2", "V"),
+        "Aux In 3": ("OAUX3", "V"),
+        "Aux In 4": ("OAUX4", "V")
+    }
     cmd, unit = cmd_map.get(selection, ("OUTP4", "°"))
-    val = State.disp2val
+
+    # Dynamisches Auslesen des Werts aus State.py
+    val = getattr(State, cmd.lower(), getattr(State.disp2val, cmd, 0))
     val_ch2_label.config(text=f"{val} {unit}")
 
 
