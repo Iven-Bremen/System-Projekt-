@@ -13,3 +13,4 @@ Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalV
 2026-09-17,17:15:19,415,Error,OSTECH,FAILED,COM connection failed,FAILED,,,,COM4, 
 2026-09-17,17:15:22,585,Info,GUI,CLICK,Button clicked,CLICK,,,,Disconnect, 
 2026-09-17,17:15:26,160,Info,GUI,CLICK,Button clicked,CLICK,,,,🔑, 
+2026-09-17,17:49:47,688,Info,SYSTEM,Benutzerabbruch,Programm beendet,Benutzerabbruch,,,, , 

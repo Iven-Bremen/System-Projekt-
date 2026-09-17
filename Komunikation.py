@@ -569,8 +569,8 @@ def start_threaded_measurement(
 
     def log_handler(message: ThreadMessage):
         payload = message.value if isinstance(message.value, dict) else {"value": message.value}
-        level = {"result": "T", "status": "I", "error": "E"}[message.kind]
-        Log.Log("KOM_Test", message.source, level, str(payload.get("step", message.kind)),
+        level = {"result": "End", "status": "Info", "error": "Error"}[message.kind]
+        Log.Log("Comm", message.source, level, str(payload.get("step", message.kind)),
             str(payload.get("value", "")), message.kind, TEST_TAG)
 
     def default_gui_handler(message: ThreadMessage):

@@ -35,7 +35,7 @@ ERWARTETE_HEADER = [
 ]
 def pruefe_csv(dateipfad):
     Log.Log(
-        Category="CSV",
+        Category="Log",
         TAG="IMPORT",
         State=State.VALIDATION,
         Message="File Path",
@@ -68,7 +68,7 @@ def Check_CVS_Import(dateipfad):
         ergebnis = File_Validation.Is_Invalid
 
     Log.Log(
-        Category="CVS",
+        Category="Log",
         TAG="IMPORT",
         State=State.VALIDATION,
         Message="CVS Check",

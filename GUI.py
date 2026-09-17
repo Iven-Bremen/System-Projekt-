@@ -82,14 +82,14 @@ def read_numeric_entry(entry_widget, field_name, minimum=None, maximum=None):
         value = float(normalized_value)
     except (TypeError, ValueError):
         message = f"Ungültige Eingabe für {field_name}: {raw_value!r}"
-        Log.LogMassage("GUI", "Error", "Input Error", message, field_name)
+        Log.Log("Gui", field_name, "Error", "Input Error", message, field_name)
         messagebox.showerror("Input Error", message)
         entry_widget.focus_set()
         return None
     if ((minimum is not None and value < minimum)
             or (maximum is not None and value > maximum)):
         message = f"Wert für {field_name} muss zwischen {minimum} und {maximum} liegen."
-        Log.LogMassage("GUI", "Error", "Input Error", message, field_name)
+        Log.Log("Gui", field_name, "Error", "Input Error", message, field_name)
         messagebox.showerror("Input Error", message)
         entry_widget.focus_set()
         return None
@@ -102,7 +102,7 @@ def read_integer_entry(entry_widget, field_name, minimum=None, maximum=None):
     if value is None or value.is_integer():
         return None if value is None else int(value)
     message = f"Für {field_name} wird eine ganze Zahl erwartet."
-    Log.LogMassage("GUI", "Error", "Input Error", message, field_name)
+    Log.Log("Gui", field_name, "Error", "Input Error", message, field_name)
     messagebox.showerror("Input Error", message)
     entry_widget.focus_set()
     return None
@@ -282,7 +282,7 @@ def on_closing():
         refresh_job = None
 
     SimGuiUpdatet.stop(root)
-    Log.LogMassage("SYSTEM", "Info", "Foreground Shutdown", "GUI closed", " ")
+    Log.Log("Sys", "GUI", "Info", "Foreground Shutdown", "GUI closed")
     root.quit()
     root.destroy()
 
@@ -1112,7 +1112,7 @@ def apply_tec_settings():
         return
     if values[1] >= values[0]:
         message = "TLL muss kleiner als TLU sein."
-        Log.LogMassage("GUI", "Error", "Input Error", message, "TEC limits")
+        Log.Log("Gui", "TEC", "Error", "Input Error", message, "TEC limits")
         messagebox.showerror("Input Error", message)
         return
     if messagebox.askyesno("Bestätigung", "Neue TEC-Limits, PID-Werte und Sensorparameter anwenden?"):
@@ -1256,7 +1256,7 @@ def apply_com_settings():
     if any(not port or not port.startswith("COM") or not port[3:].isdigit()
            for port in (lockin_port, laser_port)):
         message = "COM-Port muss im Format COM3, COM4 usw. angegeben werden."
-        Log.LogMassage("GUI", "Error", "Input Error", message, "COM settings")
+        Log.Log("Gui", "COM", "Error", "Input Error", message, "COM settings")
         messagebox.showerror("Input Error", message)
         return
     LOCK_IN_AMPLIFIER_PORT = lockin_port
@@ -1275,7 +1275,7 @@ def connect_all_hardware():
     if any(not port or not port.startswith("COM") or not port[3:].isdigit()
            for port in (LOCK_IN_AMPLIFIER_PORT, LASER_PORT)):
         message = "COM-Port muss im Format COM3, COM4 usw. angegeben werden."
-        Log.LogMassage("GUI", "Error", "Input Error", message, "Connect")
+        Log.Log("Gui", "Connect", "Error", "Input Error", message, "COM settings")
         messagebox.showerror("Input Error", message)
         return
 
@@ -1291,13 +1291,13 @@ def connect_all_hardware():
     laser_result = "SUCCESS" if is_laser_connected else "FAILED"
     print(f"[CONNECT] SR830 on {LOCK_IN_AMPLIFIER_PORT}: {lockin_result}")
     print(f"[CONNECT] OSTECH on {LASER_PORT}: {laser_result}")
-    Log.LogMassage(
-        "SR830", "Info" if is_lockin_connected else "Error",
+    Log.Log(
+        "Comm", "SR830", "Info" if is_lockin_connected else "Error",
         "COM connection successful" if is_lockin_connected else "COM connection failed",
         lockin_result, LOCK_IN_AMPLIFIER_PORT,
     )
-    Log.LogMassage(
-        "OSTECH", "Info" if is_laser_connected else "Error",
+    Log.Log(
+        "Comm", "OSTECH", "Info" if is_laser_connected else "Error",
         "COM connection successful" if is_laser_connected else "COM connection failed",
         laser_result, LASER_PORT,
     )
@@ -1825,7 +1825,7 @@ def log_gui_click(event):
         label = widget.winfo_class()
     if not label:
         label = widget.winfo_class()
-    Log.LogMassage("GUI", "Info", "Button clicked", "CLICK", label)
+    Log.Log("Gui", "Button", "Info", "Button clicked", label)
 
 
 def register_button_logging(widget):

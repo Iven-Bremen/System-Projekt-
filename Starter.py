@@ -55,7 +55,7 @@ def start_calculation_thread():
         calculation_thread = CalculationThread(
             _calculation_runner,
             lambda source, value: Log.Log(
-                "CALCULATION", source, "I", str(value.get("step", "status")),
+                "Calc", source, "Info", str(value.get("step", "status")),
                 str(value.get("value", "")), "STARTER",
             ),
         )
@@ -93,10 +93,10 @@ def init_hardware():
     names first and prevents an incorrect default port from being opened.
     """
     Log.start_terminal_logging()
-    Log.LogMassage("SYSTEM", "START", "Programm gestartet", "Version 1.0")
+    Log.Log("Sys", "START", "Start", "Programm gestartet", "Version 1.0")
     ports = get_available_com_ports()
     State.update_values({"AVAILABLE_COM_PORTS": ports})
-    Log.LogMassage("SYSTEM", "Info", "COM-Port Scan", str(ports), "Startup")
+    Log.Log("Sys", "SYSTEM", "Info", "COM-Port Scan", str(ports), "Startup")
 
 
 def _run_gui():
@@ -110,7 +110,7 @@ def _run_gui():
     try:
         import GUI
 
-        Log.LogMassage("Gui", "Info", "Starting Gui", " ", " ")
+        Log.Log("Gui", "GUI", "Start", "Starting GUI", "")
 
         GUI.update_ch1_display()
         GUI.update_ch2_display()
@@ -120,8 +120,8 @@ def _run_gui():
         GUI.root.after(0, start_calculation_thread)
         GUI.root.mainloop()
     except Exception as error:
-        Log.LogMassage(
-            "SYSTEM", "Error", "GUI konnte nicht gestartet werden",
+        Log.Log(
+            "Sys", "GUI", "Error", "GUI konnte nicht gestartet werden",
             f"{type(error).__name__}: {error}", "GUI",
         )
 
@@ -136,7 +136,7 @@ def ConficPortsSR830(NameOfPort : str, BaudRate : int, Timeout : float):
     global SR830
     SR830 = serial.Serial(NameOfPort, BaudRate, timeout = Timeout)
     time.sleep (0.5)
-    Log.LogMassage(NameOfPort,"Info","Test","OpenPort",str(BaudRate))
+    Log.Log("Comm", "SR830", "Start", "OpenPort", str(BaudRate), NameOfPort)
     ValidatedPort(NameOfPort,BaudRate,Timeout)
 
 def ConficPortsOSTech(NameOfPort : str, BaudRate : int, Timeout : float):
@@ -144,7 +144,7 @@ def ConficPortsOSTech(NameOfPort : str, BaudRate : int, Timeout : float):
     global OSTech
     OSTech = serial.Serial(NameOfPort, BaudRate, timeout = Timeout)
     time.sleep (0.5)
-    Log.LogMassage(NameOfPort,"Info","Test","OpenPort",str(BaudRate))
+    Log.Log("Comm", "OSTECH", "Start", "OpenPort", str(BaudRate), NameOfPort)
     ValidatedPort(NameOfPort,BaudRate,Timeout)
 
 
@@ -160,28 +160,28 @@ def ValidatedPort(NameOfPort : str, BaudRate : int, Timeout : float, SR830=None)
     if(NameOfPort == GUI.getPortOf(OSTech)):
         OSTech = serial.Serial(NameOfPort, BaudRate, timeout = Timeout)
         time.sleep (1)
-        Log.LogMassage("StartKom", "OSTECH", "Try to open Port with BaudRate of "+ str(BaudRate), "Check OpenPort", "validation needed" )
+        Log.Log("Comm", "OSTECH", "Start", "OpenPort", str(BaudRate), f"{NameOfPort}; validation needed")
         OSTech.write(b"GVN")
         OSTechID = OSTech.read_until(b"\r")
         OSTechID = OSTechID.decode("ascii", errors="replace").strip()
         if(OSTechID != "264981"):
-            Log.LogMassage("Startkom","OSTech","OSTech ID is False", "validation failed", "Port will be closed")
+            Log.Log("Comm", "OSTECH", "Error", "Received ID", OSTechID, "Expected 264981; port will be closed")
             OSTech.close()
             return False
-        Log.LogMassage("Startkom","OSTech","OSTech ID is Right", "validation passed", "Port will be open at OSTech with Port" +str(NameOfPort))
+        Log.Log("Comm", "OSTECH", "Info", "Received ID", OSTechID, f"Expected 264981; port {NameOfPort} stays open")
         return True
     if(NameOfPort == GUI.getPortOf(SR830)):
         SR830 = serial.Serial(NameOfPort, BaudRate, timeout = Timeout)
         time.sleep (1)
-        Log.LogMassage("StartKom", "SR830", "Try to open Port with BaudRate of "+ str(BaudRate), "Check OpenPort", "validation needed" )
+        Log.Log("Comm", "SR830", "Start", "OpenPort", str(BaudRate), f"{NameOfPort}; validation needed")
         SR830.write(b"*IDN?\r")
         SR830ID = SR830.read_until(b"\r")
         SR830ID = SR830ID.decode("ascii", errors="replace").strip()
         if(SR830ID != "264981"):
-            Log.LogMassage("Startkom","SR830","SR830 ID is False", "validation failed", "Port will be closed")
+            Log.Log("Comm", "SR830", "Error", "Received ID", SR830ID, "Expected 264981; port will be closed")
             OSTech.close()
             return False
-        Log.LogMassage("Startkom","SR830","SR830 ID is Right", "validation passed", "Port will be open at OSTech with Port" +str(NameOfPort))
+        Log.Log("Comm", "SR830", "Info", "Received ID", SR830ID, f"Expected 264981; port {NameOfPort} stays open")
         return True
 
 
@@ -191,10 +191,10 @@ if __name__ == "__main__":
         start_calculation_thread()
         StartGui()
     except KeyboardInterrupt:
-        Log.LogMassage("SYSTEM", "Info", "Programm beendet", "Benutzerabbruch", " ")
+        Log.Log("Sys", "SYSTEM", "End", "Programm beendet", "Benutzerabbruch")
     except Exception as error:
-        Log.LogMassage(
-            "SYSTEM", "Error", "Unerwarteter Programmfehler",
+        Log.Log(
+            "Sys", "Starter", "Error", "Unerwarteter Programmfehler",
             f"{type(error).__name__}: {error}", "Starter",
         )
     finally:
