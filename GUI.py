@@ -65,13 +65,7 @@ APP_SETTINGS = load_settings()
 
 
 def read_numeric_entry(entry_widget, field_name, minimum=None, maximum=None):
-    """Reads and validates one numeric Entry before applying a setting.
-
-    The GUI receives text, while the device APIs require numbers. This helper
-    is the conversion boundary between both layers. Decimal commas and common
-    trailing units such as ``V`` or ``degC`` are accepted. Invalid or out of
-    range values are shown to the user and recorded as ``Input Error``.
-    """
+    """Reads and validates one numeric Entry before applying a setting."""
     raw_value = entry_widget.get().strip()
     normalized_value = raw_value.replace(",", ".")
     for unit in ("°C", "degC", "mA", "V", "A", "ms", "Hz"):
@@ -139,7 +133,8 @@ MANUAL_OVERRIDES = {
         "Sine Out": "Sine-Out Signal",
         "Data Cleansing & Fit": "Datenbereinigung & Fit",
         "Phase vs. Frequency Analysis": "Phase-vs-Frequenz Analyse",
-        "Logs": "Protokolle / Logs"
+        "Logs": "Protokolle / Logs",
+        "Overview": "Übersicht"
     }
 }
 
@@ -261,14 +256,6 @@ is_closing = False
 
 
 def on_closing():
-    """Shut the application down in the correct Tkinter order.
-
-    ``after`` callbacks belong to the Tcl interpreter. Destroying the root
-    window while one of those callbacks is still queued causes messages such
-    as ``invalid command name ...refresh_shared_values``. We therefore mark
-    the GUI as closing, cancel our own recurring jobs, stop the simulation, log
-    the intentional foreground shutdown, and only then destroy the window.
-    """
     global refresh_job, is_closing
     if is_closing:
         return
@@ -315,55 +302,76 @@ reg_ui((main_notebook, tab_home), "Home", "tab_text")
 
 lbl_welcome = tk.Label(tab_home, font=("Consolas", 12, "bold"), bg="#1e1e1e", fg="#00ffcc")
 lbl_welcome.pack(pady=(20, 5))
-reg_ui(lbl_welcome, "WELCOME TO LAB MEASUREMENT SYSTEM")
+reg_ui(lbl_welcome, "WELCOME TO THE PHOTOTHERMAL ANALYSIS & MONITORING OVERVIEW")
 
 lbl_info = tk.Label(tab_home, font=("Segoe UI", 10), bg="#1e1e1e", fg="#aaaaaa", justify="center")
 lbl_info.pack(pady=5)
 reg_ui(lbl_info, "Select a tab above to control hardware or run data analysis.")
 
-# ------------------------------------------
-# 2. TAB: CONNECTIONS
-# ------------------------------------------
-tab_connections = tk.Frame(main_notebook, bg="#1e1e1e")
-main_notebook.add(tab_connections, text="")
-reg_ui((main_notebook, tab_connections), "Connections", "tab_text")
+# ==========================================
+# HELPER FOR EXPLORER TREEVIEW (PYCHARM STYLE)
+# ==========================================
+def build_file_tree(tree_widget, root_dir):
+    tree_widget.delete(*tree_widget.get_children())
+    root_node = tree_widget.insert("", "end", text=f" 📂 {os.path.basename(os.path.abspath(root_dir))}", open=True,
+                                   values=[os.path.abspath(root_dir)])
 
-frame_coms = tk.LabelFrame(tab_connections, text=" Hardware COM Interfaces & System Tools ",
+    def populate(parent_node, path):
+        try:
+            entries = sorted(os.listdir(path))
+            for entry in entries:
+                if entry.startswith('.'):
+                    continue
+                full_path = os.path.join(path, entry)
+                if os.path.isdir(full_path):
+                    node = tree_widget.insert(parent_node, "end", text=f" 📁 {entry}", open=False, values=[full_path])
+                    populate(node, full_path)
+                else:
+                    ext = os.path.splitext(entry)[1].lower()
+                    icon = "📄"
+                    if ext in ['.py', '.pyw']:
+                        icon = "🐍"
+                    elif ext in ['.txt', '.log', '.csv']:
+                        icon = "📝"
+                    elif ext in ['.json']:
+                        icon = "⚙️"
+                    tree_widget.insert(parent_node, "end", text=f" {icon} {entry}", values=[full_path])
+        except PermissionError:
+            pass
+
+    populate(root_node, os.path.abspath(root_dir))
+
+# ------------------------------------------
+# 2. TAB: OVERVIEW (Enthält Connections & Logs)
+# ------------------------------------------
+tab_overview = tk.Frame(main_notebook, bg="#1e1e1e")
+main_notebook.add(tab_overview, text="")
+reg_ui((main_notebook, tab_overview), "Overview", "tab_text")
+
+# Frame oben: Hardware Connections
+frame_coms = tk.LabelFrame(tab_overview, text=" Hardware COM Interfaces & System Tools ",
                            font=("Consolas", 10, "bold"),
-                           bg="#1e1e1e", fg="#00ffcc", padx=15, pady=15)
-frame_coms.pack(pady=15, padx=20, fill="x")
+                           bg="#1e1e1e", fg="#00ffcc", padx=15, pady=10)
+frame_coms.pack(pady=10, padx=10, fill="x")
 
-tk.Label(frame_coms, text="Lock-In Amplifier Port:", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 9)).grid(row=0,
-                                                                                                            column=0,
-                                                                                                            sticky="w",
-                                                                                                            pady=5)
+tk.Label(frame_coms, text="Lock-In Amplifier Port:", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 9)).grid(row=0, column=0, sticky="w", pady=2)
 entry_com_lockin = ttk.Entry(frame_coms, width=20)
 entry_com_lockin.insert(0, LOCK_IN_AMPLIFIER_PORT)
-entry_com_lockin.grid(row=0, column=1, padx=10, pady=5)
+entry_com_lockin.grid(row=0, column=1, padx=10, pady=2)
 
-lbl_status_lockin = tk.Label(frame_coms, text="🔴 Nicht Verbunden", font=("Consolas", 9, "bold"), bg="#1e1e1e",
-                             fg="#ff4444")
-lbl_status_lockin.grid(row=0, column=2, padx=10, pady=5, sticky="w")
+lbl_status_lockin = tk.Label(frame_coms, text="🔴 Nicht Verbunden", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#ff4444")
+lbl_status_lockin.grid(row=0, column=2, padx=10, pady=2, sticky="w")
 
-tk.Label(frame_coms, text="OSTech Laser Port:", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 9)).grid(row=1, column=0,
-                                                                                                       sticky="w",
-                                                                                                       pady=5)
+tk.Label(frame_coms, text="OSTech Laser Port:", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 9)).grid(row=1, column=0, sticky="w", pady=2)
 entry_com_laser = ttk.Entry(frame_coms, width=20)
 entry_com_laser.insert(0, LASER_PORT)
-entry_com_laser.grid(row=1, column=1, padx=10, pady=5)
+entry_com_laser.grid(row=1, column=1, padx=10, pady=2)
 
-lbl_status_laser = tk.Label(frame_coms, text="🔴 Nicht Verbunden", font=("Consolas", 9, "bold"), bg="#1e1e1e",
-                            fg="#ff4444")
-lbl_status_laser.grid(row=1, column=2, padx=10, pady=5, sticky="w")
+lbl_status_laser = tk.Label(frame_coms, text="🔴 Nicht Verbunden", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#ff4444")
+lbl_status_laser.grid(row=1, column=2, padx=10, pady=2, sticky="w")
 
 
 def populate_initial_com_ports():
-    """Scan ports once and use the result as editable initial suggestions.
-
-    The scan never opens a device. If no suitable port is found, the existing
-    defaults remain in the Entry fields so the user can type a port manually
-    before pressing Connect.
-    """
     ports = State.AVAILABLE_COM_PORTS or scan_com_ports()
     if not ports:
         return
@@ -381,7 +389,93 @@ def populate_initial_com_ports():
 populate_initial_com_ports()
 
 frame_com_btns = tk.Frame(frame_coms, bg="#1e1e1e")
-frame_com_btns.grid(row=2, column=0, columnspan=3, pady=15, sticky="w")
+frame_com_btns.grid(row=2, column=0, columnspan=3, pady=10, sticky="w")
+
+# Frame unten: Logs & Console Display
+frame_logs_container = tk.LabelFrame(tab_overview, text=" System Logs & Console ",
+                                    font=("Consolas", 10, "bold"),
+                                    bg="#1e1e1e", fg="#00ffcc", padx=10, pady=10)
+frame_logs_container.pack(fill="both", expand=True, padx=10, pady=(0, 10))
+
+paned_logs = ttk.PanedWindow(frame_logs_container, orient="horizontal")
+paned_logs.pack(fill="both", expand=True)
+
+frame_tree_logs = tk.Frame(paned_logs, bg="#1e1e1e", width=240)
+paned_logs.add(frame_tree_logs, weight=1)
+
+lbl_tree_logs_title = tk.Label(frame_tree_logs, text="LOG DIRECTORY", font=("Consolas", 9, "bold"), bg="#3c3f41",
+                               fg="#ffffff", anchor="w", padx=5)
+lbl_tree_logs_title.pack(fill="x")
+
+tree_logs = ttk.Treeview(frame_tree_logs, show="tree")
+tree_logs.pack(fill="both", expand=True)
+build_file_tree(tree_logs, os.getcwd())
+
+frame_logs_work = tk.Frame(paned_logs, bg="#252526")
+paned_logs.add(frame_logs_work, weight=4)
+
+frame_log_ctrl = tk.Frame(frame_logs_work, bg="#252526")
+frame_log_ctrl.pack(fill="x", pady=2)
+
+
+def run_logs_script():
+    txt_log_terminal.config(state="normal")
+    txt_log_terminal.insert("end", "=== EXECUTING LOGS.TXT SCRIPT ABLAUF ===\n")
+
+    devices = ["SR830", "OsTech"]
+    modes = ["S", "F", "R", "W"]
+    commands = ["FREQ", "PHAS", "RSLP", "FMOD"]
+
+    for _ in range(12):
+        dev = random.choice(devices)
+        m = random.choice(modes)
+        cmd = random.choice(commands)
+        val = str(random.randint(0, 100))
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+
+        log_line = f"[{timestamp}] Serial Comm | Dev: {dev} | Mode: {m} | Cmd: {cmd} | Val: {val} | Status: Testing Log and Import\n"
+        txt_log_terminal.insert("end", log_line)
+        txt_log_terminal.see("end")
+
+    txt_log_terminal.insert("end", "=== LOG SCRIPT EXECUTION COMPLETED SUCCESSFULLY ===\n\n")
+    txt_log_terminal.config(state="disabled")
+
+
+btn_run_logs = tk.Button(frame_log_ctrl, text="▶ Run Logs Script (Log.txt)", font=("Consolas", 9, "bold"), bg="#2e7d32",
+                         fg="white", padx=10, pady=4, command=run_logs_script)
+btn_run_logs.pack(side="left", padx=5)
+
+btn_clear_logs = tk.Button(frame_log_ctrl, text="Clear Console", font=("Consolas", 8), bg="#3c3f41", fg="white", padx=8,
+                           pady=4,
+                           command=lambda: (txt_log_terminal.config(state="normal"),
+                                            txt_log_terminal.delete("1.0", "end"),
+                                            txt_log_terminal.config(state="disabled")))
+btn_clear_logs.pack(side="left", padx=5)
+
+txt_log_terminal = tk.Text(frame_logs_work, bg="#000000", fg="#00ff00", font=("Consolas", 9), state="disabled",
+                           wrap="word")
+txt_log_terminal.pack(fill="both", expand=True, padx=5, pady=5)
+
+
+def on_tree_logs_select(event):
+    selected = tree_logs.selection()
+    if selected:
+        val = tree_logs.item(selected[0], "values")
+        if val and os.path.isfile(val[0]):
+            try:
+                with open(val[0], "r", encoding="utf-8", errors="ignore") as f:
+                    content = f.read()
+                txt_log_terminal.config(state="normal")
+                txt_log_terminal.delete("1.0", "end")
+                txt_log_terminal.insert("end", f"=== FILE DISPLAY: {os.path.basename(val[0])} ===\n\n")
+                txt_log_terminal.insert("end", content)
+                txt_log_terminal.config(state="disabled")
+            except Exception as e:
+                pass
+
+
+tree_logs.bind("<<TreeviewSelect>>", on_tree_logs_select)
+
 
 # ------------------------------------------
 # 3. TAB: LOCK-IN AMPLIFIER
@@ -482,7 +576,6 @@ val_ch1_label.pack(fill="x", pady=(10, 2))
 
 
 def update_ch1_display(event=None):
-    """Show the latest State value selected for Lock-In channel 1."""
     selection = combo_ch1_src.get()
     cmd_map = {
         "X": ("OUTP1", "V"),
@@ -492,8 +585,6 @@ def update_ch1_display(event=None):
         "Aux In 2": ("OAUX2", "V")
     }
     cmd, unit = cmd_map.get(selection, ("OUTP1", "V"))
-
-    # Dynamisches Auslesen des Werts aus State.py
     val = getattr(State, cmd, 0.0)
     val_ch1_label.config(text=f"{val} {unit}")
 
@@ -541,7 +632,6 @@ val_ch2_label.pack(fill="x", pady=(10, 2))
 
 
 def update_ch2_display(event=None):
-    """Show the latest State value selected for Lock-In channel 2."""
     selection = combo_ch2_src.get()
     cmd_map = {
         "Y": ("OUTP2", "V"),
@@ -551,8 +641,6 @@ def update_ch2_display(event=None):
         "Aux In 4": ("OAUX4", "V")
     }
     cmd, unit = cmd_map.get(selection, ("OUTP4", "°"))
-
-    # Dynamisches Auslesen des Werts aus State.py
     val = getattr(State, cmd, 0.0)
     val_ch2_label.config(text=f"{val} {unit}")
 
@@ -561,14 +649,6 @@ combo_ch2_src.bind("<<ComboboxSelected>>", update_ch2_display)
 
 
 def refresh_shared_values():
-    """Refresh all displays from the latest shared ``State`` snapshot.
-
-    Hardware workers and the emergency simulator never touch widgets. They
-    update ``State`` only. This callback is the GUI-side boundary: every 17 ms
-    it reads the newest values and updates Lock-In and OSTECH labels in the
-    Tkinter main thread. The closing flag prevents a new callback from being
-    scheduled while the window is being destroyed.
-    """
     global refresh_job
     if is_closing:
         refresh_job = None
@@ -662,12 +742,6 @@ def lockin_stop():
 
 
 def apply_ref_settings():
-    """Validate and optionally send the Lock-In reference settings.
-
-    Validation happens before the confirmation dialog and before any write to
-    the instrument. This prevents malformed text from reaching the serial or
-    VISA layer and keeps failed user input distinguishable from hardware errors.
-    """
     new_freq = read_numeric_entry(entry_freq, "Ref Frequency", 0.001, 102000)
     new_phase = read_numeric_entry(entry_ref_phase, "Ref Phase", -360, 360)
     new_ampl = read_numeric_entry(entry_ampl, "Sine Output Amplitude", 0, 5)
@@ -761,12 +835,6 @@ for idx, p in enumerate(params_list):
 
 
 def update_laser_display_mode(event=None):
-    """Render the selected OSTECH layout from the current shared state.
-
-    Communication workers and ``SimGuiUpdatet`` use the same State names.
-    This function performs no serial I/O and no simulation; it only translates
-    the latest values into labels and controls which layout fields are visible.
-    """
     mode_str = combo_layout.get()
     for k in lcd_vars:
         lcd_vars[k].grid_remove()
@@ -982,7 +1050,6 @@ chk_lg.grid(row=3, column=2, sticky="w", padx=5)
 
 
 def apply_laser_settings():
-    """Validate the laser parameter form before applying it."""
     values = (
         read_numeric_entry(entry_lcl, "LCL", 0, 100),
         read_numeric_entry(entry_lvc, "LVC", 0, 100),
@@ -1091,7 +1158,6 @@ combo_sens_model.pack(fill="x", pady=2)
 
 
 def apply_tec_settings():
-    """Validate TEC limits and PID parameters before applying them."""
     values = (
         read_numeric_entry(entry_tlu, "TLU", -273.15, 500),
         read_numeric_entry(entry_tll, "TLL", -273.15, 500),
@@ -1171,7 +1237,6 @@ entry_gfd.pack(side="left", padx=10)
 
 
 def apply_device_settings():
-    """Validate device-menu values before accepting the settings."""
     pilot_intensity = read_integer_entry(spin_pilot, "Pilot Laser Intensity", 0, 16)
     fan_voltage = read_numeric_entry(entry_gfd, "GFD", 0, 100)
     if pilot_intensity is None or fan_voltage is None:
@@ -1205,7 +1270,6 @@ btn_reset_def.pack(side="left", padx=5)
 
 # ==========================================
 # HARDWARE SAMMLUNGSFUNKTIONEN
-# (Nach Widget-Erstellung definiert)
 # ==========================================
 def update_tab_states():
     if is_emergency_bypass:
@@ -1345,57 +1409,15 @@ btn_emergency_bypass = tk.Button(frame_coms, text="🔑", font=("Consolas", 8), 
 btn_emergency_bypass.grid(row=2, column=2, sticky="e", padx=5)
 
 
-# ==========================================
-# HELPER FOR EXPLORER TREEVIEW (PYCHARM STYLE)
-# ==========================================
-def build_file_tree(tree_widget, root_dir):
-    tree_widget.delete(*tree_widget.get_children())
-    root_node = tree_widget.insert("", "end", text=f" 📂 {os.path.basename(os.path.abspath(root_dir))}", open=True,
-                                   values=[os.path.abspath(root_dir)])
-
-    def populate(parent_node, path):
-        try:
-            entries = sorted(os.listdir(path))
-            for entry in entries:
-                if entry.startswith('.'):
-                    continue
-                full_path = os.path.join(path, entry)
-                if os.path.isdir(full_path):
-                    node = tree_widget.insert(parent_node, "end", text=f" 📁 {entry}", open=False, values=[full_path])
-                    populate(node, full_path)
-                else:
-                    ext = os.path.splitext(entry)[1].lower()
-                    icon = "📄"
-                    if ext in ['.py', '.pyw']:
-                        icon = "🐍"
-                    elif ext in ['.txt', '.log', '.csv']:
-                        icon = "📝"
-                    elif ext in ['.json']:
-                        icon = "⚙️"
-                    tree_widget.insert(parent_node, "end", text=f" {icon} {entry}", values=[full_path])
-        except PermissionError:
-            pass
-
-    populate(root_node, os.path.abspath(root_dir))
-
-
-# ==========================================
-# 5. TAB: ANALYSIS
-# ==========================================
+# ------------------------------------------
+# 5. TAB: ANALYSIS (Nur rein statistische Fits/Plots)
+# ------------------------------------------
 tab_analysis = tk.Frame(main_notebook, bg="#1e1e1e")
 main_notebook.add(tab_analysis, text="")
 reg_ui((main_notebook, tab_analysis), "Analysis", "tab_text")
 
-analysis_notebook = ttk.Notebook(tab_analysis)
-analysis_notebook.pack(fill="both", expand=True, padx=10, pady=10)
-
-# --- SUB-TAB: STATISTICS ---
-sub_tab_stats = tk.Frame(analysis_notebook, bg="#252526")
-analysis_notebook.add(sub_tab_stats, text="")
-reg_ui((analysis_notebook, sub_tab_stats), "Statistics", "tab_text")
-
-paned_stats = ttk.PanedWindow(sub_tab_stats, orient="horizontal")
-paned_stats.pack(fill="both", expand=True, padx=5, pady=5)
+paned_stats = ttk.PanedWindow(tab_analysis, orient="horizontal")
+paned_stats.pack(fill="both", expand=True, padx=10, pady=10)
 
 frame_tree_stats = tk.Frame(paned_stats, bg="#1e1e1e", width=260)
 paned_stats.add(frame_tree_stats, weight=1)
@@ -1432,11 +1454,6 @@ canvas_pvf = None
 
 
 def initialize_pvf_plot():
-    """Load Matplotlib and create the analysis plot only when needed.
-
-    Matplotlib and NumPy are expensive imports. Delaying them keeps the main
-    GUI visible quickly; the analysis tab pays the cost only on first use.
-    """
     global fig_pvf, ax_pvf, canvas_pvf
     if fig_pvf is not None:
         return
@@ -1517,87 +1534,6 @@ def on_tree_stats_select(event):
 
 tree_stats.bind("<<TreeviewSelect>>", on_tree_stats_select)
 
-# --- SUB-TAB: LOGS ---
-sub_tab_logs = tk.Frame(analysis_notebook, bg="#252526")
-analysis_notebook.add(sub_tab_logs, text="")
-reg_ui((analysis_notebook, sub_tab_logs), "Logs", "tab_text")
-
-paned_logs = ttk.PanedWindow(sub_tab_logs, orient="horizontal")
-paned_logs.pack(fill="both", expand=True, padx=5, pady=5)
-
-frame_tree_logs = tk.Frame(paned_logs, bg="#1e1e1e", width=260)
-paned_logs.add(frame_tree_logs, weight=1)
-
-lbl_tree_logs_title = tk.Label(frame_tree_logs, text="LOG DIRECTORY", font=("Consolas", 9, "bold"), bg="#3c3f41",
-                               fg="#ffffff", anchor="w", padx=5)
-lbl_tree_logs_title.pack(fill="x")
-
-tree_logs = ttk.Treeview(frame_tree_logs, show="tree")
-tree_logs.pack(fill="both", expand=True)
-build_file_tree(tree_logs, os.getcwd())
-
-frame_logs_work = tk.Frame(paned_logs, bg="#252526")
-paned_logs.add(frame_logs_work, weight=4)
-
-frame_log_ctrl = tk.Frame(frame_logs_work, bg="#252526")
-frame_log_ctrl.pack(fill="x", pady=5)
-
-def run_logs_script():
-    txt_log_terminal.config(state="normal")
-    txt_log_terminal.insert("end", "=== EXECUTING LOGS.TXT SCRIPT ABLAUF ===\n")
-
-    devices = ["SR830", "OsTech"]
-    modes = ["S", "F", "R", "W"]
-    commands = ["FREQ", "PHAS", "RSLP", "FMOD"]
-
-    for _ in range(12):
-        dev = random.choice(devices)
-        m = random.choice(modes)
-        cmd = random.choice(commands)
-        val = str(random.randint(0, 100))
-        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-
-        log_line = f"[{timestamp}] Serial Comm | Dev: {dev} | Mode: {m} | Cmd: {cmd} | Val: {val} | Status: Testing Log and Import\n"
-        txt_log_terminal.insert("end", log_line)
-        txt_log_terminal.see("end")
-
-    txt_log_terminal.insert("end", "=== LOG SCRIPT EXECUTION COMPLETED SUCCESSFULLY ===\n\n")
-    txt_log_terminal.config(state="disabled")
-
-
-btn_run_logs = tk.Button(frame_log_ctrl, text="▶ Run Logs Script (Log.txt)", font=("Consolas", 9, "bold"), bg="#2e7d32",
-                         fg="white", padx=10, pady=4, command=run_logs_script)
-btn_run_logs.pack(side="left", padx=5)
-
-btn_clear_logs = tk.Button(frame_log_ctrl, text="Clear Console", font=("Consolas", 8), bg="#3c3f41", fg="white", padx=8,
-                           pady=4,
-                           command=lambda: (txt_log_terminal.config(state="normal"),
-                                            txt_log_terminal.delete("1.0", "end"),
-                                            txt_log_terminal.config(state="disabled")))
-btn_clear_logs.pack(side="left", padx=5)
-
-txt_log_terminal = tk.Text(frame_logs_work, bg="#000000", fg="#00ff00", font=("Consolas", 9), state="disabled",
-                           wrap="word")
-txt_log_terminal.pack(fill="both", expand=True, padx=5, pady=5)
-
-def on_tree_logs_select(event):
-    selected = tree_logs.selection()
-    if selected:
-        val = tree_logs.item(selected[0], "values")
-        if val and os.path.isfile(val[0]):
-            try:
-                with open(val[0], "r", encoding="utf-8", errors="ignore") as f:
-                    content = f.read()
-                txt_log_terminal.config(state="normal")
-                txt_log_terminal.delete("1.0", "end")
-                txt_log_terminal.insert("end", f"=== FILE DISPLAY: {os.path.basename(val[0])} ===\n\n")
-                txt_log_terminal.insert("end", content)
-                txt_log_terminal.config(state="disabled")
-            except Exception as e:
-                pass
-
-
-tree_logs.bind("<<TreeviewSelect>>", on_tree_logs_select)
 
 # ------------------------------------------
 # 6. TAB: HELP
@@ -1793,13 +1729,6 @@ btn_change_pwd.pack(pady=5)
 
 
 def log_gui_click(event):
-    """Write a structured log entry for a user click.
-
-    The binding is attached to the widget event rather than replacing the
-    widget's command callback. Therefore existing button behavior remains
-    unchanged. ``add='+'`` also allows Tkinter's original bindings and command
-    handling to continue running normally.
-    """
     widget = event.widget
     try:
         label = widget.cget("text").strip()
@@ -1811,13 +1740,6 @@ def log_gui_click(event):
 
 
 def register_button_logging(widget):
-    """Recursively attach click logging to buttons below ``widget``.
-
-    The recursive walk covers buttons created in nested frames and notebooks,
-    including checkbuttons whose visible state changes when clicked. The log
-    stores the visible caption, which makes a CSV entry understandable without
-    knowing the Python variable name of the widget.
-    """
     for child in widget.winfo_children():
         if child.winfo_class() in ("Button", "Checkbutton"):
             child.bind("<ButtonRelease-1>", log_gui_click, add="+")
@@ -1829,5 +1751,6 @@ register_button_logging(root)
 # Initialisierung der Tab-Zustände beim Start
 update_tab_states()
 check_laser_safety()
+
 if __name__ == "__main__":
     root.mainloop()
