@@ -40,6 +40,9 @@ CSV_DELIMITER = ","
 REQUIRED_COLUMN_INDEXES = (3, 4, 5, 6)
 
 # Alle Log-Funktionen verwenden waehrend einer Sitzung denselben Dateipfad.
+# Der Lock ist notwendig, weil Geraete-, GUI- und Logging-Threads gleichzeitig
+# Meldungen erzeugen koennen. Jede komplette CSV-Zeile wird atomar gegen andere
+# Schreiber abgeschirmt, damit keine Zeilen ineinander geschrieben werden.
 _CURRENT_SESSION_LOG_PATH = None
 _LOG_LOCK = threading.RLock()
 # GUI-Funktionen, die bei jeder neuen Meldung mit dem formatierten Text
@@ -55,7 +58,8 @@ def register_gui_callback(callback_func):
     CSV-Dateien zu oeffnen.
 
     Die Funktion wird hier noch nicht aufgerufen, sondern nur fuer spaetere
-    Meldungen vorgemerkt.
+    Meldungen vorgemerkt. Der Logger kennt dadurch keine konkreten GUI-Widgets
+    und bleibt auch ohne gestartete GUI verwendbar.
     """
     _gui_callbacks.append(callback_func)
 
@@ -100,6 +104,11 @@ def _get_active_log_path():
     Messdatei an. Danach liefert sie immer denselben Pfad zurueck, damit eine
     laufende Sitzung nicht versehentlich auf mehrere Dateien verteilt wird.
     Diese Funktion ist intern und wird normalerweise nicht direkt aufgerufen.
+
+        The first caller creates the session file and its header. Later callers
+        receive the same path, which is important when messages arrive from
+        several worker threads: one application run must not silently split its
+        records across multiple CSV files.
     """
     global _CURRENT_SESSION_LOG_PATH
     if _CURRENT_SESSION_LOG_PATH is None:
@@ -126,6 +135,10 @@ def ensure_log_file(csv_path):
     `CSV_COLUMNS_NEW` geschrieben. Bereits vorhandene Logdaten werden nicht
     ueberschrieben. Der Rueckgabewert ist `True` bei einer neuen Datei,
     ansonsten `False`.
+
+        Header creation and the existence/size check are protected by the same
+        re-entrant lock as row writes. The re-entrant lock is intentional because
+        this helper is called from already locked write paths.
     """
     directory = os.path.dirname(csv_path)
     if directory:
@@ -173,6 +186,11 @@ def _append_row(csv_path, row):
 
     Diese zentrale Pruefung verhindert, dass einzelne Aufrufer versehentlich
     unbrauchbare oder teilweise leere Logzeilen in die CSV-Datei schreiben.
+
+        The whole open-write-close operation is one critical section. This is
+        preferable to keeping a file handle open because each worker can finish a
+        complete record without sharing mutable CSV-writer state with another
+        worker.
     """
     if any(not str(row[index]).strip() for index in REQUIRED_COLUMN_INDEXES):
         return False
@@ -252,7 +270,10 @@ def LogMassage(TAG: str, Category: str, Massage: str, INFO: str, AdditionalInfo:
     Die ungewoehnliche Reihenfolge der Parameter bleibt absichtlich erhalten,
     damit bestehende Aufrufer aus `Starter.py`, `Commands.py` und
     `Komunikation.py` weiter funktionieren. Fuer neuen Code ist `Log()` besser
-    geeignet, weil dessen Parameter die CSV-Struktur deutlicher abbilden.
+    geeignet, weil dessen Parameter die CSV-Struktur deutlicher abbildet.
+    Die Funktion ist bewusst synchron: Ein Log-Aufruf kehrt erst zurück, wenn
+    Terminal, Callbacks und CSV-Schreibvorgang angestoßen wurden. Der Dateiweg
+    ist durch `_LOG_LOCK` gegen parallele Worker geschützt.
     """
     dt = datetime.now()
     date_str = dt.strftime("%Y-%m-%d")
@@ -281,12 +302,19 @@ def LogMassage(TAG: str, Category: str, Massage: str, INFO: str, AdditionalInfo:
 
 
 class _Tee:
-    """Verteilt eine Standardausgabe auf mehrere Ziele.
+    """Verteilt eine Standardausgabe auf Terminal, CSV und GUI-Callbacks.
 
-    Die Klasse wird intern von `start_terminal_logging()` verwendet. Sie laesst
-    Ausgaben im echten Terminal sichtbar, schreibt gleichzeitig verwertbare
-    Zeilen in die CSV und informiert die GUI. Leere Zeilen und reine
-    Fortschrittszeichen werden nicht als Logzeilen gespeichert.
+    ``sys.stdout`` und ``sys.stderr`` werden nach dem Programmstart durch
+    Instanzen dieser Klasse ersetzt. Der originale Stream bleibt sichtbar,
+    während jede verwertbare Textzeile zusätzlich als strukturierte CSV-Zeile
+    und als GUI-Meldung weitergereicht wird. Dadurch müssen bestehende
+    ``print``-Aufrufe nicht einzeln umgebaut werden.
+
+    Leere Zeilen und reine Fortschrittszeichen werden absichtlich verworfen,
+    weil sie keine auswertbare Ereignisinformation enthalten. Die Klasse
+    schreibt niemals selbst in Tkinter-Widgets; sie ruft nur registrierte
+    Callbacks auf und überlässt diesen die Entscheidung, ob ein Queue-Transfer
+    in den GUI-Thread nötig ist.
     """
 
     def __init__(self, original, csv_path, device_tag="TERMINAL"):
@@ -342,6 +370,11 @@ def start_terminal_logging(prefix="M", csv_path=None, capture_input=True, insert
     Die Funktion sollte einmal beim Programmstart aufgerufen werden. Danach
     bleiben `print()` und Fehlermeldungen im Terminal sichtbar, werden aber
     zusaetzlich in der CSV-Datei und bei registrierten GUIs abgelegt.
+
+        Calling this function replaces ``sys.stdout`` and ``sys.stderr`` for the
+        current process. The original streams are retained inside ``_Tee`` so
+        diagnostics remain visible. It should therefore be called once, before
+        startup messages are emitted, and not repeatedly from worker threads.
     """
     global _CURRENT_SESSION_LOG_PATH
     if csv_path is None:
@@ -397,6 +430,13 @@ def Log(Category: str, TAG: str, State: str, Message: str, Value: str, Info: str
     zeigt den Eintrag sofort im Terminal, informiert alle GUI-Callbacks und
     schreibt anschliessend eine CSV-Zeile. Ist eines der Pflichtfelder leer,
     verhindert `_append_row()` das Speichern dieser Zeile.
+
+        This is the preferred structured API. The five mandatory fields identify
+        the event, while optional fields carry protocol details without changing
+        the CSV schema. The terminal representation is intentionally fixed-width
+        for manual reading; the CSV row remains the authoritative machine-readable
+        representation. Callback failures are not allowed to corrupt the file
+        write path, so GUI callbacks should remain small and non-blocking.
     """
     now = datetime.now()
     time_str = now.strftime("%H:%M:%S")
