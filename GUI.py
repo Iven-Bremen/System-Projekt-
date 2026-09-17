@@ -646,6 +646,8 @@ def lockin_start():
         try:
             if lockin_device:
                 lockin_device.write("SLVL 1.0")
+            elif not is_emergency_bypass:
+                Komunikation.send_SR830("SLVL", 1.0)
             messagebox.showinfo(auto_tr("Lock-In Amplifier"), auto_tr("Sine Out set to 1.0 V (ON)."))
         except Exception as e:
             messagebox.showerror("Fehler", f"{e}")
@@ -656,6 +658,8 @@ def lockin_stop():
         try:
             if lockin_device:
                 lockin_device.write("SLVL 0.0")
+            elif not is_emergency_bypass:
+                Komunikation.send_SR830("SLVL", 0.0)
             messagebox.showinfo(auto_tr("Lock-In Amplifier"), auto_tr("Sine Out set to 0.0 V (OFF)."))
         except Exception as e:
             messagebox.showerror("Fehler", f"{e}")
@@ -677,11 +681,16 @@ def apply_ref_settings():
     if messagebox.askyesno("Bestätigung",
                            f"Referenz-Parameter wirklich anpassen?\n\nFrequenz: {new_freq} Hz\nPhase: {new_phase}°\nAmplitude: {new_ampl} V"):
         val_ref_display.config(text=f"{new_freq} Hz")
-        if connect_lockin() and lockin_device:
+        if connect_lockin() and not is_emergency_bypass:
             try:
-                lockin_device.write(f"FREQ {new_freq}")
-                lockin_device.write(f"PHAS {new_phase}")
-                lockin_device.write(f"SLVL {new_ampl}")
+                if lockin_device:
+                    lockin_device.write(f"FREQ {new_freq}")
+                    lockin_device.write(f"PHAS {new_phase}")
+                    lockin_device.write(f"SLVL {new_ampl}")
+                else:
+                    Komunikation.send_SR830("FREQ", new_freq)
+                    Komunikation.send_SR830("PHAS", new_phase)
+                    Komunikation.send_SR830("SLVL", new_ampl)
             except Exception as e:
                 messagebox.showerror("Hardware Fehler", f"Fehler beim Senden: {e}")
                 return
@@ -1316,16 +1325,25 @@ def disconnect_all_hardware():
 
 def trigger_emergency_bypass():
     global is_emergency_bypass
+    if is_lockin_connected or is_laser_connected:
+        messagebox.showerror(
+            "Notfall-Zugriff nicht erforderlich",
+            "Der Notfall-Bypass ist nur ohne COM-Verbindung erlaubt.",
+        )
+        return
+
     pwd = simpledialog.askstring("Notfall-Zugriff", "Bitte Notfall-Passwort eingeben:", show='*')
-    if pwd is not None:
-        if pwd == APP_SETTINGS.get("emergency_password", "admin123"):
-            is_emergency_bypass = True
-            SimGuiUpdatet.start(root)
-            update_tab_states()
-            messagebox.showwarning("Notfall-Bypass Aktiviert",
-                                   "Notfall-Zugriff gewährt!\nHardware-Schnittstellen wurden manuell freigeschaltet.")
-        else:
-            messagebox.showerror("Zugriff Verweigert", "Falsches Passwort!")
+    if pwd is None:
+        return
+    if pwd != APP_SETTINGS.get("emergency_password", "admin123"):
+        messagebox.showerror("Zugriff Verweigert", "Falsches Passwort!")
+        return
+
+    is_emergency_bypass = True
+    SimGuiUpdatet.start(root)
+    update_tab_states()
+    messagebox.showwarning("Notfall-Bypass Aktiviert",
+                           "Notfall-Zugriff gewährt!\nHardware-Schnittstellen wurden manuell freigeschaltet.")
 
 
 btn_apply_com = tk.Button(frame_com_btns, text="Refresh", font=("Consolas", 9, "bold"), bg="#007acc", fg="white",
