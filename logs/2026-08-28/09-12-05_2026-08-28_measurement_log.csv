@@ -1,0 +1,7 @@
+Date,Time,Tag,Category,Message,Info,AdditionalInfo,Else
+2026-08-28,09:12:05.092,SYSTEM,START,Programm gestartet,Version 1.0, , 
+2026-08-28,09:12:05.092,Check Ports vor SR830,Info,Test,Check,SR830, 
+2026-08-28,09:12:05.100,COM3,Warning,Port konnte nicht geöffnet werden (Hardware fehlt),Fail,COM3, 
+2026-08-28,09:12:05.100,Check Ports vor OSTech,Info,Test,Check,OSTech, 
+2026-08-28,09:12:05.106,COM4,Warning,Port konnte nicht geöffnet werden (Hardware fehlt),Fail,COM4, 
+2026-08-28,09:12:05.109,Gui,Info,Starting Gui, , , 

@@ -1,0 +1,18 @@
+Date,Time,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+
+
+
+
+
+
+
+
+
+
+2026-09-09,07:21:46,SESSION,SYSTEM,HARDWARE,Session started, , , , , , 
+2026-09-09,07:21:46.386,START,SYSTEM, ,Programm gestartet,Version 1.0, , , , , 
+2026-09-09,07:21:46.386,Info,Check Ports vor SR830, ,Test,Check, , , ,SR830, 
+2026-09-09,07:21:46.387,Warning,COM3, ,Port konnte nicht geöffnet werden (Hardware fehlt),Fail, , , ,COM3, 
+2026-09-09,07:21:46.387,Info,Check Ports vor OSTech, ,Test,Check, , , ,OSTech, 
+2026-09-09,07:21:46.388,Warning,COM4, ,Port konnte nicht geöffnet werden (Hardware fehlt),Fail, , , ,COM4, 
+2026-09-09,07:21:46.389,Info,Gui, ,Starting Gui, , , , , , 

@@ -1,0 +1,32 @@
+Date,Time,Tag,Category,Message,Info,AdditionalInfo,Else
+
+
+
+
+
+
+
+
+
+
+2026-08-27,13:29:15,SESSION,START,HARDWARE, , , 
+2026-08-27,13:29:15.727,SYSTEM,START,Programm gestartet,Version 1.0, , 
+2026-08-27,13:29:15.729,Check Ports vor SR830,Info,Test,Check,SR830, 
+2026-08-27,13:29:15.730,COM3,Warning,Port konnte nicht geöffnet werden (Hardware fehlt),Fail,COM3, 
+2026-08-27,13:29:15.730,Check Ports vor OSTech,Info,Test,Check,OSTech, 
+2026-08-27,13:29:15.734,COM4,Warning,Port konnte nicht geöffnet werden (Hardware fehlt),Fail,COM4, 
+2026-08-27,13:29:15.734,Gui,Info,Starting Gui, , , 
+2026-08-27,13:29:15.751,ERROR,OUTPUT,Traceback (most recent call last):, , , 
+2026-08-27,13:29:15.751,ERROR,OUTPUT,"File ""c:\Users\ivenh\Coding\Projekte\Python\Softwear_Projekt\Starter.py"", line 92, in <module>", , , 
+2026-08-27,13:29:15.753,ERROR,OUTPUT,StartGui(), , , 
+2026-08-27,13:29:15.754,ERROR,OUTPUT,"File ""c:\Users\ivenh\Coding\Projekte\Python\Softwear_Projekt\Starter.py"", line 39, in StartGui", , , 
+2026-08-27,13:29:15.755,ERROR,OUTPUT,GUI.update_ch1_display(), , , 
+2026-08-27,13:29:15.755,ERROR,OUTPUT,"File ""c:\Users\ivenh\Coding\Projekte\Python\Softwear_Projekt\GUI.py"", line 296, in update_ch1_display", , , 
+2026-08-27,13:29:15.757,ERROR,OUTPUT,selection = combo_ch1_src.get(), , , 
+2026-08-27,13:29:15.759,ERROR,OUTPUT,"File ""C:\Users\ivenh\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py"", line 3145, in get", , , 
+2026-08-27,13:29:15.763,ERROR,OUTPUT,"return self.tk.call(self._w, 'get')", , , 
+2026-08-27,13:29:15.765,ERROR,OUTPUT,_tkinter, , , 
+2026-08-27,13:29:15.766,ERROR,OUTPUT,., , , 
+2026-08-27,13:29:15.767,ERROR,OUTPUT,TclError, , , 
+2026-08-27,13:29:15.767,ERROR,OUTPUT,:, , , 
+2026-08-27,13:29:15.768,ERROR,OUTPUT,"invalid command name "".!notebook.!frame2.!labelframe2.!combobox""", , , 
