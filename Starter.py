@@ -1,5 +1,6 @@
 import Log
 import serial
+import threading
 import time
 from Komunikation import (
     ask_OSTECH,
@@ -36,8 +37,8 @@ def init_hardware():
                    "OK" if OSTech is not None else "Fail", "OSTech")
 
 
-def StartGui():
-    """Startet erst die GUI, wenn die Hardware-Prüfung komplett abgeschlossen ist."""
+def _run_gui():
+    """Initialisiert und startet die GUI innerhalb ihres eigenen Threads."""
     import GUI
 
     Log.LogMassage("Gui", "Info", "Starting Gui", " ", " ")
@@ -46,6 +47,13 @@ def StartGui():
     GUI.update_ch2_display()
     GUI.update_laser_display_mode()
     GUI.root.mainloop()
+
+
+def StartGui():
+    """Startet die GUI in einem eigenen Thread und gibt diesen zurueck."""
+    gui_thread = threading.Thread(target=_run_gui, name="GUIThread")
+    gui_thread.start()
+    return gui_thread
 
 
 def ConficPortsSR830(NameOfPort : str, BaudRate : int, Timeout : float):
@@ -96,7 +104,7 @@ def ValidatedPort(NameOfPort : str, BaudRate : int, Timeout : float, SR830=None)
 
 if __name__ == "__main__":
     init_hardware()
-    StartGui()
+    StartGui().join()
 
     '''-Abgleich gleich zu true checkport apply +check
     -Apply mit lockin +check

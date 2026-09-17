@@ -1,0 +1,7 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-17,07:34:31,611,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-09-17,07:34:31,611,START,SYSTEM,Version 1.0,Programm gestartet,Version 1.0,,,,, 
+2026-09-17,07:34:31,613,Warning,COM3,Fail,Port nicht verbunden,Fail,,,,SR830, 
+2026-09-17,07:34:31,614,Warning,COM4,Fail,Port nicht verbunden,Fail,,,,OSTech, 
+2026-09-17,07:34:35,515,OUTPUT,ERROR,OUTPUT,c:\Users\ivenh\Coding\Projekte\Python\Softwear_Projekt\GUI.py:1216: UserWarning: Starting a Matplotlib GUI outside of the main thread will likely fail.,,,,,,
+2026-09-17,07:34:35,518,OUTPUT,ERROR,OUTPUT,"fig_pvf, ax_pvf = plt.subplots(figsize=(6, 4), facecolor=""#1e1e1e"")",,,,,,

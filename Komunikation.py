@@ -8,6 +8,7 @@ from typing import Callable
 import serial
 
 import Log
+import State
 from Threads import CommunicationThreads, ThreadMessage
 
 
@@ -286,15 +287,37 @@ def LabOSTECHCommand(port, command: OSTECHCommand):
     value = LabOSTECH(port, info.command, info.data_type)
     if command is OSTECHCommand.GS:
         value = decode_ostech_status(value)
+        State.update_values({"GS": value, "OSTECH_STATUS": value})
+    else:
+        State.update_values({command.name: value})
     return OSTECHResult(value, info)
 
 
 def _device_steps():
+    def read_snap(commands, names):
+        response = ask_SR830(f"SNAP? {commands}")
+        values = [float(value.strip()) for value in response.split(",")]
+        if len(values) != len(names):
+            raise ValueError(f"Unerwartete SNAP-Antwort fuer {commands}: {response!r}")
+        State.update_values(dict(zip(names, values)))
+        return response
+
+    def read_value(command, name):
+        value = float(ask_SR830(command))
+        State.update_values({name: value})
+        return value
+
     sr830_steps = (
-        ("SNAP 1,2,3,4,10,11", lambda: ask_SR830("SNAP? 1,2,3,4,10,11")),
-        ("SNAP 5,6,7,8,9", lambda: ask_SR830("SNAP? 5,6,7,8,9")),
-        ("PHAS", lambda: ask_SR830("PHAS?")),
-        ("FREQ", lambda: ask_SR830("FREQ?")),
+        ("SNAP 1,2,3,4,10,11", lambda: read_snap(
+            "1,2,3,4,10,11",
+            ("OUTP1", "OUTP2", "OUTP3", "OUTP4", "CH1_DISPLAY", "CH2_DISPLAY"),
+        )),
+        ("SNAP 5,6,7,8,9", lambda: read_snap(
+            "5,6,7,8,9",
+            ("OAUX1", "OAUX2", "OAUX3", "OAUX4", "REFERENCE_FREQUENCY"),
+        )),
+        ("PHAS", lambda: read_value("PHAS?", "PHAS")),
+        ("FREQ", lambda: read_value("FREQ?", "FREQ")),
     )
     ostech_periodic_steps = tuple(
         (command.name, lambda command=command: LabOSTECHCommand(OSTECH, command))

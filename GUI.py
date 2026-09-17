@@ -16,6 +16,7 @@ import random
 import Komunikation
 import Starter
 import State
+import SimGuiUpdatet
 from State import scan_com_ports
 import GUIErrorHandler
 
@@ -385,7 +386,7 @@ combo_ch1_src = ttk.Combobox(frame_ch1, values=["X", "R", "X Noise", "Aux In 1",
 combo_ch1_src.current(0)
 combo_ch1_src.pack(fill="x", pady=2)
 
-val_ch1_label = tk.Label(frame_ch1, text=str(State.disp1val)+" V", font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00",
+val_ch1_label = tk.Label(frame_ch1, text=f"{State.OUTP1} V", font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00",
                          relief="sunken", bd=3)
 val_ch1_label.pack(fill="x", pady=(10, 2))
 
@@ -402,7 +403,7 @@ def update_ch1_display(event=None):
     cmd, unit = cmd_map.get(selection, ("OUTP1", "V"))
 
     # Dynamisches Auslesen des Werts aus State.py
-    val = getattr(State, cmd.lower(), getattr(State.disp1val, cmd, 0))
+    val = getattr(State, cmd, 0.0)
     val_ch1_label.config(text=f"{val} {unit}")
 
 
@@ -443,7 +444,7 @@ combo_ch2_src = ttk.Combobox(frame_ch2, values=["Y", "Phase (θ)", "Y Noise", "A
 combo_ch2_src.current(1)
 combo_ch2_src.pack(fill="x", pady=2)
 
-val_ch2_label = tk.Label(frame_ch2, text=str(State.disp2val)+" °", font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00",
+val_ch2_label = tk.Label(frame_ch2, text=f"{State.OUTP4} °", font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00",
                          relief="sunken", bd=3)
 val_ch2_label.pack(fill="x", pady=(10, 2))
 
@@ -460,7 +461,7 @@ def update_ch2_display(event=None):
     cmd, unit = cmd_map.get(selection, ("OUTP4", "°"))
 
     # Dynamisches Auslesen des Werts aus State.py
-    val = getattr(State, cmd.lower(), getattr(State.disp2val, cmd, 0))
+    val = getattr(State, cmd, 0.0)
     val_ch2_label.config(text=f"{val} {unit}")
 
 
@@ -471,18 +472,10 @@ def refresh_shared_values():
     """Refreshes GUI labels after another module changes State.py values."""
     update_ch1_display()
     update_ch2_display()
-    root.after(100, refresh_shared_values)
+    root.after(17, refresh_shared_values)
 
 
-root.after(100, refresh_shared_values)
-
-
-def test_increment_disp1():
-    State.disp1val = random.randint(1, 5000)
-    root.after(5000, test_increment_disp1)
-
-
-root.after(1000, test_increment_disp1)
+root.after(17, refresh_shared_values)
 
 lbl_bar2 = tk.Label(frame_ch2, text="LEVEL BAR GRAPH", font=("Consolas", 7), bg="#1e1e1e", fg="#888888")
 lbl_bar2.pack(anchor="w", pady=(5, 0))
@@ -1082,6 +1075,7 @@ def apply_com_settings():
 def connect_all_hardware():
     global is_lockin_connected, is_laser_connected, is_emergency_bypass
     is_emergency_bypass = False
+    SimGuiUpdatet.stop(root)
 
     is_lockin_connected = connect_lockin()
     is_laser_connected = check_real_com_port(LASER_PORT)
@@ -1101,6 +1095,7 @@ def disconnect_all_hardware():
     is_lockin_connected = False
     is_laser_connected = False
     is_emergency_bypass = False
+    SimGuiUpdatet.stop(root)
     lockin_device = None
     update_tab_states()
     messagebox.showinfo("Hardware Status", "Alle Verbindungen getrennt.")
@@ -1112,6 +1107,7 @@ def trigger_emergency_bypass():
     if pwd is not None:
         if pwd == APP_SETTINGS.get("emergency_password", "admin123"):
             is_emergency_bypass = True
+            SimGuiUpdatet.start(root)
             update_tab_states()
             messagebox.showwarning("Notfall-Bypass Aktiviert",
                                    "Notfall-Zugriff gewährt!\nHardware-Schnittstellen wurden manuell freigeschaltet.")

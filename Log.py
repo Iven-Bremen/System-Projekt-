@@ -24,6 +24,7 @@ importiert und stellt seine Funktionen als gemeinsame Schnittstelle bereit.
 import csv
 import os
 import sys
+import threading
 from datetime import datetime
 
 import State
@@ -40,6 +41,7 @@ REQUIRED_COLUMN_INDEXES = (3, 4, 5, 6)
 
 # Alle Log-Funktionen verwenden waehrend einer Sitzung denselben Dateipfad.
 _CURRENT_SESSION_LOG_PATH = None
+_LOG_LOCK = threading.RLock()
 # GUI-Funktionen, die bei jeder neuen Meldung mit dem formatierten Text
 # aufgerufen werden.
 _gui_callbacks = []
@@ -84,9 +86,9 @@ def make_log_path(prefix="M", base_name=None):
     if base_name:
         filename = base_name
     elif prefix == "T":
-        filename = f"{time_str}_{date_folder}_simulation_log.csv"
+        filename = f"{time_str}_simulation_log.csv"
     else:
-        filename = f"{time_str}_{date_folder}_{State.Experiment}_log.csv"
+        filename = f"{time_str}_{State.Experiment}_log.csv"
 
     return os.path.join(log_dir, filename)
 
@@ -128,11 +130,12 @@ def ensure_log_file(csv_path):
     directory = os.path.dirname(csv_path)
     if directory:
         os.makedirs(directory, exist_ok=True)
-    if not os.path.exists(csv_path) or os.path.getsize(csv_path) == 0:
-        with open(csv_path, mode="a", newline="", encoding="utf-8") as f:
-            writer = get_csv_writer(f)
-            writer.writerow(CSV_COLUMNS_NEW)
-        return True
+    with _LOG_LOCK:
+        if not os.path.exists(csv_path) or os.path.getsize(csv_path) == 0:
+            with open(csv_path, mode="a", newline="", encoding="utf-8") as f:
+                writer = get_csv_writer(f)
+                writer.writerow(CSV_COLUMNS_NEW)
+            return True
     return False
 
 
@@ -147,15 +150,16 @@ def insert_session_separator(csv_path, mode="HARDWARE"):
     Frueher wurden hier mehrere leere Trennzeilen geschrieben. Das wurde
     bewusst entfernt, weil leere CSV-Zeilen die spaetere Auswertung stoeren.
     """
-    ensure_log_file(csv_path)
-    with open(csv_path, mode="a", newline="", encoding="utf-8") as f:
-        writer = get_csv_writer(f)
-        date_str = datetime.now().strftime("%Y-%m-%d")
-        time_str = datetime.now().strftime("%H:%M:%S")
-        ms_str = datetime.now().strftime("%f")[:3]
-        writer.writerow([
-            date_str, time_str, ms_str, "SESSION", "SYSTEM", mode, "Session started", "", "", "", "", "", "",
-        ])
+    with _LOG_LOCK:
+        ensure_log_file(csv_path)
+        with open(csv_path, mode="a", newline="", encoding="utf-8") as f:
+            writer = get_csv_writer(f)
+            date_str = datetime.now().strftime("%Y-%m-%d")
+            time_str = datetime.now().strftime("%H:%M:%S")
+            ms_str = datetime.now().strftime("%f")[:3]
+            writer.writerow([
+                date_str, time_str, ms_str, "SESSION", "SYSTEM", mode, "Session started", "", "", "", "", "", "",
+            ])
 
 
 def _append_row(csv_path, row):
@@ -172,9 +176,10 @@ def _append_row(csv_path, row):
     """
     if any(not str(row[index]).strip() for index in REQUIRED_COLUMN_INDEXES):
         return False
-    ensure_log_file(csv_path)
-    with open(csv_path, mode="a", newline="", encoding="utf-8") as f:
-        get_csv_writer(f).writerow(row)
+    with _LOG_LOCK:
+        ensure_log_file(csv_path)
+        with open(csv_path, mode="a", newline="", encoding="utf-8") as f:
+            get_csv_writer(f).writerow(row)
     return True
 
 
@@ -211,16 +216,17 @@ def append_terminal_row(csv_path, text, device_tag="TERMINAL"):
     State, damit auch automatisch abgefangene Ausgaben die Pflichtfelder
     besitzen.
     """
-    ensure_log_file(csv_path)
-    with open(csv_path, mode="a", newline="", encoding="utf-8") as f:
-        writer = get_csv_writer(f)
-        dt = datetime.now()
-        date_str = dt.strftime("%Y-%m-%d")
-        time_str = dt.strftime("%H:%M:%S")
-        ms_str = dt.strftime("%f")[:3]
-        writer.writerow([
-            date_str, time_str, ms_str, "OUTPUT", device_tag, "OUTPUT", text, "", "", "", "", "", "",
-        ])
+    with _LOG_LOCK:
+        ensure_log_file(csv_path)
+        with open(csv_path, mode="a", newline="", encoding="utf-8") as f:
+            writer = get_csv_writer(f)
+            dt = datetime.now()
+            date_str = dt.strftime("%Y-%m-%d")
+            time_str = dt.strftime("%H:%M:%S")
+            ms_str = dt.strftime("%f")[:3]
+            writer.writerow([
+                date_str, time_str, ms_str, "OUTPUT", device_tag, "OUTPUT", text, "", "", "", "", "", "",
+            ])
 
 
 def LogMassage(TAG: str, Category: str, Massage: str, INFO: str, AdditionalInfo: str = ""):
