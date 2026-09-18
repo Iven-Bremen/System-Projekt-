@@ -3,11 +3,10 @@ import sys
 import json
 import random
 import time
+import csv
 import tkinter as tk
 from tkinter import messagebox, ttk, filedialog, simpledialog
 from tkinter.constants import DISABLED
-
-import random
 
 import Log
 import Komunikation
@@ -32,6 +31,11 @@ try:
     import serial.tools.list_ports
 except ImportError:
     serial = None
+
+# Ordnerpfad für CSV-Dateien definieren
+CSV_DIR = os.path.join(os.getcwd(), "csv_files")
+if not os.path.exists(CSV_DIR):
+    os.makedirs(CSV_DIR)
 
 # ==========================================
 # KONFIGURATION & PASSWORT-MANAGEMENT
@@ -194,6 +198,7 @@ def change_language(lang_code):
 # ==========================================
 LOCK_IN_AMPLIFIER_PORT = "COM3"
 LASER_PORT = "COM4"
+comm_rate_ms = 17  # Standard-Kommunikationsrate in Millisekunden
 lockin_device = None
 current_file_path = None
 
@@ -348,27 +353,160 @@ tab_overview = tk.Frame(main_notebook, bg="#1e1e1e")
 main_notebook.add(tab_overview, text="")
 reg_ui((main_notebook, tab_overview), "Overview", "tab_text")
 
-# Frame oben: Hardware Connections
-frame_coms = tk.LabelFrame(tab_overview, text=" Hardware COM Interfaces & System Tools ",
+# --- FRAME OBEN LINKS: EXPERIMENT SETTINGS ---
+frame_top_container = tk.Frame(tab_overview, bg="#1e1e1e")
+frame_top_container.pack(fill="x", padx=10, pady=5)
+
+frame_experiment = tk.LabelFrame(frame_top_container, text=" Experiment Configuration ",
+                                font=("Consolas", 10, "bold"), bg="#1e1e1e", fg="#00ffcc", padx=15, pady=10)
+frame_experiment.pack(side="left", fill="both", expand=True, padx=(0, 5))
+
+tk.Label(frame_experiment, text="Experiment Name:", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 9)).grid(row=0, column=0, sticky="w", pady=5)
+entry_exp_name = ttk.Entry(frame_experiment, width=25)
+entry_exp_name.insert(0, "Experiment_01")
+entry_exp_name.grid(row=0, column=1, padx=5, pady=5, sticky="w")
+
+
+def create_experiment_csv():
+    exp_name = entry_exp_name.get().strip()
+    if not exp_name:
+        messagebox.showerror("Input Error", "Bitte einen gültigen Namen für das Experiment eingeben!")
+        return
+
+    # Datei im CSV-Ordner erzeugen
+    sanitized_name = "".join(c for c in exp_name if c.isalnum() or c in ("_", "-"))
+    filename = f"{sanitized_name}_{int(time.time())}.csv"
+    full_path = os.path.join(CSV_DIR, filename)
+
+    try:
+        with open(full_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["Timestamp", "Device", "Mode", "Command", "Value", "Status"])
+            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+            writer.writerow([timestamp, "System", "Init", "CREATE_EXP", exp_name, "Initialized"])
+
+        # Explorer im Log-Bereich neu laden (nur CSV-Ordner)
+        build_file_tree(tree_logs, CSV_DIR)
+
+        # Datei im Terminal daneben öffnen
+        txt_log_terminal.config(state="normal")
+        txt_log_terminal.delete("1.0", "end")
+        txt_log_terminal.insert("end", f"=== NEW EXPERIMENT CREATED: {filename} ===\n\n")
+        with open(full_path, "r", encoding="utf-8") as f:
+            txt_log_terminal.insert("end", f.read())
+        txt_log_terminal.config(state="disabled")
+
+        messagebox.showinfo("Experiment Created", f"CSV-Datei erfolgreich erstellt:\n{filename}")
+    except Exception as e:
+        messagebox.showerror("File Error", f"Fehler beim Erstellen der CSV-Datei: {e}")
+
+
+btn_create_exp = tk.Button(frame_experiment, text="Create Experiment CSV", font=("Consolas", 8, "bold"),
+                           bg="#007acc", fg="white", command=create_experiment_csv)
+btn_create_exp.grid(row=0, column=2, padx=10, pady=5)
+
+
+# --- FRAME OBEN RECHTS: HARDWARE COM INTERFACES & RATE ---
+frame_coms = tk.LabelFrame(frame_top_container, text=" Hardware COM Interfaces & System Tools ",
                            font=("Consolas", 10, "bold"),
                            bg="#1e1e1e", fg="#00ffcc", padx=15, pady=10)
-frame_coms.pack(pady=10, padx=10, fill="x")
+frame_coms.pack(side="right", fill="both", expand=True, padx=(5, 0))
 
-tk.Label(frame_coms, text="Lock-In Amplifier Port:", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 9)).grid(row=0, column=0, sticky="w", pady=2)
-entry_com_lockin = ttk.Entry(frame_coms, width=20)
+# Lock-in Amplifier Interface
+tk.Label(frame_coms, text="Lock-In Amplifier Port:", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 9)).grid(row=0, column=0, sticky="w", pady=5)
+entry_com_lockin = ttk.Entry(frame_coms, width=12)
 entry_com_lockin.insert(0, LOCK_IN_AMPLIFIER_PORT)
-entry_com_lockin.grid(row=0, column=1, padx=10, pady=2)
+entry_com_lockin.grid(row=0, column=1, padx=5, pady=5)
 
 lbl_status_lockin = tk.Label(frame_coms, text="🔴 Nicht Verbunden", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#ff4444")
-lbl_status_lockin.grid(row=0, column=2, padx=10, pady=2, sticky="w")
+lbl_status_lockin.grid(row=0, column=2, padx=10, pady=5, sticky="w")
 
-tk.Label(frame_coms, text="OSTech Laser Port:", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 9)).grid(row=1, column=0, sticky="w", pady=2)
-entry_com_laser = ttk.Entry(frame_coms, width=20)
+# OSTech Laser Interface
+tk.Label(frame_coms, text="OSTech Laser Port:", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 9)).grid(row=1, column=0, sticky="w", pady=5)
+entry_com_laser = ttk.Entry(frame_coms, width=12)
 entry_com_laser.insert(0, LASER_PORT)
-entry_com_laser.grid(row=1, column=1, padx=10, pady=2)
+entry_com_laser.grid(row=1, column=1, padx=5, pady=5)
 
 lbl_status_laser = tk.Label(frame_coms, text="🔴 Nicht Verbunden", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#ff4444")
-lbl_status_laser.grid(row=1, column=2, padx=10, pady=2, sticky="w")
+lbl_status_laser.grid(row=1, column=2, padx=10, pady=5, sticky="w")
+
+# Kommunikationsrate (ms)
+tk.Label(frame_coms, text="Comm Rate (ms):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 9)).grid(row=2, column=0, sticky="w", pady=5)
+entry_comm_rate = ttk.Entry(frame_coms, width=12)
+entry_comm_rate.insert(0, str(comm_rate_ms))
+entry_comm_rate.grid(row=2, column=1, padx=5, pady=5)
+
+
+def apply_comm_rate():
+    global comm_rate_ms
+    val = read_integer_entry(entry_comm_rate, "Comm Rate", 1, 10000)
+    if val is not None:
+        comm_rate_ms = val
+        messagebox.showinfo("Status", f"Kommunikationsrate auf {comm_rate_ms} ms gesetzt.")
+
+
+btn_apply_rate = tk.Button(frame_coms, text="Apply Rate", font=("Consolas", 8), bg="#3c3f41", fg="white", command=apply_comm_rate)
+btn_apply_rate.grid(row=2, column=2, padx=5, pady=5, sticky="w")
+
+
+# --- Einzelne Verbindungsfunktionen für Knöpfe ---
+def connect_single_lockin():
+    global is_lockin_connected, LOCK_IN_AMPLIFIER_PORT
+    port = entry_com_lockin.get().strip().upper()
+    if not port or not port.startswith("COM") or not port[3:].isdigit():
+        messagebox.showerror("Input Error", "Ungültiger Port-Name für Lock-In!")
+        return
+    LOCK_IN_AMPLIFIER_PORT = port
+    dev, _ = Komunikation.open_devices(sr830_port=LOCK_IN_AMPLIFIER_PORT, ostech_port=None)
+    is_lockin_connected = dev is not None or is_emergency_bypass
+    update_tab_states()
+    if is_lockin_connected:
+        messagebox.showinfo("Status", f"Lock-In Amplifier erfolgreich verbunden ({LOCK_IN_AMPLIFIER_PORT}).")
+    else:
+        messagebox.showwarning("Status", f"Lock-In Amplifier auf {LOCK_IN_AMPLIFIER_PORT} nicht erreichbar!")
+
+def disconnect_single_lockin():
+    global is_lockin_connected, lockin_device
+    is_lockin_connected = False
+    lockin_device = None
+    update_tab_states()
+    messagebox.showinfo("Status", "Lock-In Amplifier getrennt.")
+
+def connect_single_laser():
+    global is_laser_connected, LASER_PORT
+    port = entry_com_laser.get().strip().upper()
+    if not port or not port.startswith("COM") or not port[3:].isdigit():
+        messagebox.showerror("Input Error", "Ungültiger Port-Name für Laser!")
+        return
+    LASER_PORT = port
+    _, dev = Komunikation.open_devices(sr830_port=None, ostech_port=LASER_PORT)
+    is_laser_connected = dev is not None or is_emergency_bypass
+    update_tab_states()
+    if is_laser_connected:
+        messagebox.showinfo("Status", f"Laser Controller erfolgreich verbunden ({LASER_PORT}).")
+    else:
+        messagebox.showwarning("Status", f"Laser Controller auf {LASER_PORT} nicht erreichbar!")
+
+def disconnect_single_laser():
+    global is_laser_connected
+    is_laser_connected = False
+    update_tab_states()
+    messagebox.showinfo("Status", "Laser Controller getrennt.")
+
+
+# Knöpfe Lock-In Amplifier
+btn_conn_lockin = tk.Button(frame_coms, text="Connect Lock-In", font=("Consolas", 8, "bold"), bg="#2e7d32", fg="white", command=connect_single_lockin)
+btn_conn_lockin.grid(row=0, column=3, padx=5, pady=5)
+
+btn_disc_lockin = tk.Button(frame_coms, text="Disconnect Lock-In", font=("Consolas", 8, "bold"), bg="#c62828", fg="white", command=disconnect_single_lockin)
+btn_disc_lockin.grid(row=0, column=4, padx=5, pady=5)
+
+# Knöpfe OSTech Laser
+btn_conn_laser = tk.Button(frame_coms, text="Connect Laser", font=("Consolas", 8, "bold"), bg="#2e7d32", fg="white", command=connect_single_laser)
+btn_conn_laser.grid(row=1, column=3, padx=5, pady=5)
+
+btn_disc_laser = tk.Button(frame_coms, text="Disconnect Laser", font=("Consolas", 8, "bold"), bg="#c62828", fg="white", command=disconnect_single_laser)
+btn_disc_laser.grid(row=1, column=4, padx=5, pady=5)
 
 
 def populate_initial_com_ports():
@@ -388,11 +526,8 @@ def populate_initial_com_ports():
 
 populate_initial_com_ports()
 
-frame_com_btns = tk.Frame(frame_coms, bg="#1e1e1e")
-frame_com_btns.grid(row=2, column=0, columnspan=3, pady=10, sticky="w")
-
 # Frame unten: Logs & Console Display
-frame_logs_container = tk.LabelFrame(tab_overview, text=" System Logs & Console ",
+frame_logs_container = tk.LabelFrame(tab_overview, text=" System Logs & CSV Console ",
                                     font=("Consolas", 10, "bold"),
                                     bg="#1e1e1e", fg="#00ffcc", padx=10, pady=10)
 frame_logs_container.pack(fill="both", expand=True, padx=10, pady=(0, 10))
@@ -403,13 +538,15 @@ paned_logs.pack(fill="both", expand=True)
 frame_tree_logs = tk.Frame(paned_logs, bg="#1e1e1e", width=240)
 paned_logs.add(frame_tree_logs, weight=1)
 
-lbl_tree_logs_title = tk.Label(frame_tree_logs, text="LOG DIRECTORY", font=("Consolas", 9, "bold"), bg="#3c3f41",
+lbl_tree_logs_title = tk.Label(frame_tree_logs, text="CSV DIRECTORY", font=("Consolas", 9, "bold"), bg="#3c3f41",
                                fg="#ffffff", anchor="w", padx=5)
 lbl_tree_logs_title.pack(fill="x")
 
 tree_logs = ttk.Treeview(frame_tree_logs, show="tree")
 tree_logs.pack(fill="both", expand=True)
-build_file_tree(tree_logs, os.getcwd())
+
+# Hier wird exklusiv der Ordner für CSV-Dateien im Explorer geladen:
+build_file_tree(tree_logs, CSV_DIR)
 
 frame_logs_work = tk.Frame(paned_logs, bg="#252526")
 paned_logs.add(frame_logs_work, weight=4)
@@ -420,7 +557,7 @@ frame_log_ctrl.pack(fill="x", pady=2)
 
 def run_logs_script():
     txt_log_terminal.config(state="normal")
-    txt_log_terminal.insert("end", "=== EXECUTING LOGS.TXT SCRIPT ABLAUF ===\n")
+    txt_log_terminal.insert("end", "=== EXECUTING LOGS SCRIPT ABLAUF ===\n")
 
     devices = ["SR830", "OsTech"]
     modes = ["S", "F", "R", "W"]
@@ -441,7 +578,7 @@ def run_logs_script():
     txt_log_terminal.config(state="disabled")
 
 
-btn_run_logs = tk.Button(frame_log_ctrl, text="▶ Run Logs Script (Log.txt)", font=("Consolas", 9, "bold"), bg="#2e7d32",
+btn_run_logs = tk.Button(frame_log_ctrl, text="▶ Run Logs Script", font=("Consolas", 9, "bold"), bg="#2e7d32",
                          fg="white", padx=10, pady=4, command=run_logs_script)
 btn_run_logs.pack(side="left", padx=5)
 
@@ -470,7 +607,7 @@ def on_tree_logs_select(event):
                 txt_log_terminal.insert("end", f"=== FILE DISPLAY: {os.path.basename(val[0])} ===\n\n")
                 txt_log_terminal.insert("end", content)
                 txt_log_terminal.config(state="disabled")
-            except Exception as e:
+            except Exception:
                 pass
 
 
@@ -612,7 +749,7 @@ canvas_bar1.bind("<Configure>", lambda e: draw_bargraph(canvas_bar1, 68))
 
 frame_off1 = tk.LabelFrame(frame_ch1, text=" Offset & Expand ", font=("Consolas", 8), bg="#1e1e1e", fg="#aaaaaa")
 frame_off1.pack(fill="x", pady=(15, 2))
-btn_auto_off1 = tk.Button(frame_off1, text="Auto Offset", font=("Consolas", 8), bg="#3c3f41", fg="white")
+btn_auto_off1 = tk.Button(frame_off1, text="Auto Offset - Ch1", font=("Consolas", 8), bg="#3c3f41", fg="white")
 btn_auto_off1.pack(fill="x", pady=2)
 
 # CH2
@@ -656,10 +793,11 @@ def refresh_shared_values():
     update_ch1_display()
     update_ch2_display()
     update_laser_display_mode()
-    refresh_job = root.after(17, refresh_shared_values)
+    # Nutzt dynamisch den Wert aus 'comm_rate_ms'
+    refresh_job = root.after(comm_rate_ms, refresh_shared_values)
 
 
-refresh_job = root.after(17, refresh_shared_values)
+refresh_job = root.after(comm_rate_ms, refresh_shared_values)
 
 lbl_bar2 = tk.Label(frame_ch2, text="LEVEL BAR GRAPH", font=("Consolas", 7), bg="#1e1e1e", fg="#888888")
 lbl_bar2.pack(anchor="w", pady=(5, 0))
@@ -669,7 +807,7 @@ canvas_bar2.bind("<Configure>", lambda e: draw_bargraph(canvas_bar2, 42))
 
 frame_off2 = tk.LabelFrame(frame_ch2, text=" Offset & Expand ", font=("Consolas", 8), bg="#1e1e1e", fg="#aaaaaa")
 frame_off2.pack(fill="x", pady=(15, 2))
-btn_auto_off2 = tk.Button(frame_off2, text="Auto Offset", font=("Consolas", 8), bg="#3c3f41", fg="white")
+btn_auto_off2 = tk.Button(frame_off2, text="Auto Offset - Ch2", font=("Consolas", 8), bg="#3c3f41", fg="white")
 btn_auto_off2.pack(fill="x", pady=2)
 
 # Ref Display & Controls
@@ -1048,6 +1186,18 @@ chk_lg = tk.Checkbutton(frame_lmenu, text="LG (Gate Option Enabled)", bg="#1e1e1
                         activebackground="#1e1e1e", activeforeground="#ffffff")
 chk_lg.grid(row=3, column=2, sticky="w", padx=5)
 
+frame_toggles = tk.Frame(frame_lmenu, bg="#1e1e1e")
+frame_toggles.grid(row=8, column=0, columnspan=3, pady=10, sticky="w")
+
+btn_laser_toggle = tk.Button(frame_toggles, text="Laser ON / OFF", font=("Consolas", 9, "bold"), bg="#d32f2f", fg="white")
+btn_laser_toggle.pack(side="left", padx=5)
+
+btn_tec1_toggle = tk.Button(frame_toggles, text="TEC 1 ON / OFF", font=("Consolas", 9, "bold"), bg="#0288d1", fg="white")
+btn_tec1_toggle.pack(side="left", padx=5)
+
+btn_tec2_toggle = tk.Button(frame_toggles, text="TEC 2 ON / OFF", font=("Consolas", 9, "bold"), bg="#0288d1", fg="white")
+btn_tec2_toggle.pack(side="left", padx=5)
+
 
 def apply_laser_settings():
     values = (
@@ -1086,13 +1236,13 @@ def reset_laser_defaults():
 
 
 frame_laser_btns = tk.Frame(frame_lmenu, bg="#1e1e1e")
-frame_laser_btns.grid(row=8, column=0, columnspan=3, pady=15, sticky="ew")
+frame_laser_btns.grid(row=9, column=0, columnspan=3, pady=10, sticky="ew")
 
 btn_apply_laser = tk.Button(frame_laser_btns, text="✔ Apply Laser Settings", font=("Consolas", 9, "bold"), bg="#007acc",
                             fg="white", command=apply_laser_settings)
 btn_apply_laser.pack(side="left", fill="x", expand=True, padx=5)
 
-btn_reset_laser = tk.Button(frame_laser_btns, text="Restore Default Settings", font=("Consolas", 8, "bold"),
+btn_reset_laser = tk.Button(frame_laser_btns, text="Laser - Restore Default Settings", font=("Consolas", 8, "bold"),
                             bg="#c62828", fg="white", command=reset_laser_defaults)
 btn_reset_laser.pack(side="right", padx=5)
 
@@ -1201,7 +1351,7 @@ btn_apply_tec = tk.Button(frame_tec_btns, text="✔ Apply TEC & PID Settings", f
                           fg="white", command=apply_tec_settings)
 btn_apply_tec.pack(side="left", fill="x", expand=True, padx=5)
 
-btn_reset_tec = tk.Button(frame_tec_btns, text="Restore Default Settings", font=("Consolas", 8, "bold"), bg="#c62828",
+btn_reset_tec = tk.Button(frame_tec_btns, text="TEC-Controller - Restore Default Settings", font=("Consolas", 8, "bold"), bg="#c62828",
                           fg="white", command=reset_tec_defaults)
 btn_reset_tec.pack(side="right", padx=5)
 
@@ -1263,7 +1413,7 @@ btn_apply_dev = tk.Button(frame_dev_btns, text="✔ Apply Device Settings", font
                           fg="white", command=apply_device_settings)
 btn_apply_dev.pack(side="left", padx=5)
 
-btn_reset_def = tk.Button(frame_dev_btns, text="Restore Default Settings", font=("Consolas", 8, "bold"), bg="#c62828",
+btn_reset_def = tk.Button(frame_dev_btns, text="Device - Restore Default Settings", font=("Consolas", 8, "bold"), bg="#c62828",
                           fg="white", command=reset_device_defaults)
 btn_reset_def.pack(side="left", padx=5)
 
@@ -1304,80 +1454,6 @@ def update_tab_states():
         lbl_status_laser.config(text="🔴 Nicht Verbunden", fg="#ff4444")
 
 
-def apply_com_settings():
-    global LOCK_IN_AMPLIFIER_PORT, LASER_PORT
-    lockin_port = entry_com_lockin.get().strip().upper()
-    laser_port = entry_com_laser.get().strip().upper()
-    if any(not port or not port.startswith("COM") or not port[3:].isdigit()
-           for port in (lockin_port, laser_port)):
-        message = "COM-Port muss im Format COM3, COM4 usw. angegeben werden."
-        Log.LogMassage("GUI", "Error", "Input Error", message, "COM settings")
-        messagebox.showerror("Input Error", message)
-        return
-    LOCK_IN_AMPLIFIER_PORT = lockin_port
-    LASER_PORT = laser_port
-    messagebox.showinfo("COM Config", f"Ports updated:\nLock-In: {LOCK_IN_AMPLIFIER_PORT}\nLaser: {LASER_PORT}")
-
-
-def connect_all_hardware():
-    global is_lockin_connected, is_laser_connected, is_emergency_bypass
-    global LOCK_IN_AMPLIFIER_PORT, LASER_PORT
-    is_emergency_bypass = False
-    SimGuiUpdatet.stop(root)
-
-    LOCK_IN_AMPLIFIER_PORT = entry_com_lockin.get().strip().upper()
-    LASER_PORT = entry_com_laser.get().strip().upper()
-    if any(not port or not port.startswith("COM") or not port[3:].isdigit()
-           for port in (LOCK_IN_AMPLIFIER_PORT, LASER_PORT)):
-        message = "COM-Port muss im Format COM3, COM4 usw. angegeben werden."
-        Log.LogMassage("GUI", "Error", "Input Error", message, "Connect")
-        messagebox.showerror("Input Error", message)
-        return
-
-    Komunikation.close_devices()
-    connected_sr830, connected_ostech = Komunikation.open_devices(
-        sr830_port=LOCK_IN_AMPLIFIER_PORT,
-        ostech_port=LASER_PORT,
-    )
-    is_lockin_connected = connected_sr830 is not None or is_emergency_bypass
-    is_laser_connected = connected_ostech is not None or is_emergency_bypass
-
-    lockin_result = "SUCCESS" if is_lockin_connected else "FAILED"
-    laser_result = "SUCCESS" if is_laser_connected else "FAILED"
-    print(f"[CONNECT] SR830 on {LOCK_IN_AMPLIFIER_PORT}: {lockin_result}")
-    print(f"[CONNECT] OSTECH on {LASER_PORT}: {laser_result}")
-    Log.LogMassage(
-        "SR830", "Info" if is_lockin_connected else "Error",
-        "COM connection successful" if is_lockin_connected else "COM connection failed",
-        lockin_result, LOCK_IN_AMPLIFIER_PORT,
-    )
-    Log.LogMassage(
-        "OSTECH", "Info" if is_laser_connected else "Error",
-        "COM connection successful" if is_laser_connected else "COM connection failed",
-        laser_result, LASER_PORT,
-    )
-
-    update_tab_states()
-
-    if is_lockin_connected or is_laser_connected:
-        messagebox.showinfo("Hardware Status",
-                            f"Verbindungsprüfung abgeschlossen:\nLock-In: {'Verbunden' if is_lockin_connected else 'Getrennt'}\nLaser: {'Verbunden' if is_laser_connected else 'Getrennt'}")
-    else:
-        messagebox.showwarning("Hardware Status",
-                               "Keine physikalische Verbindung zu den angegebenen COM-Ports gefunden!")
-
-
-def disconnect_all_hardware():
-    global is_lockin_connected, is_laser_connected, is_emergency_bypass, lockin_device
-    is_lockin_connected = False
-    is_laser_connected = False
-    is_emergency_bypass = False
-    SimGuiUpdatet.stop(root)
-    lockin_device = None
-    update_tab_states()
-    messagebox.showinfo("Hardware Status", "Alle Verbindungen getrennt.")
-
-
 def trigger_emergency_bypass():
     global is_emergency_bypass
     pwd = simpledialog.askstring("Notfall-Zugriff", "Bitte Notfall-Passwort eingeben:", show='*')
@@ -1392,21 +1468,9 @@ def trigger_emergency_bypass():
             messagebox.showerror("Zugriff Verweigert", "Falsches Passwort!")
 
 
-btn_apply_com = tk.Button(frame_com_btns, text="Refresh", font=("Consolas", 9, "bold"), bg="#007acc", fg="white",
-                          command=Starter.get_available_com_ports)
-btn_apply_com.pack(side="left", padx=5)
-
-btn_scan_com = tk.Button(frame_com_btns, text="Connect", font=("Consolas", 9, "bold"), bg="#2e7d32", fg="white",
-                         command=connect_all_hardware)
-btn_scan_com.pack(side="left", padx=5)
-
-btn_dev_manager = tk.Button(frame_com_btns, text="Disconnect", font=("Consolas", 9, "bold"), bg="#c62828", fg="white",
-                            command=disconnect_all_hardware)
-btn_dev_manager.pack(side="left", padx=5)
-
 btn_emergency_bypass = tk.Button(frame_coms, text="🔑", font=("Consolas", 8), bg="#2b2b2b", fg="#555555", bd=0,
                                  relief="flat", activebackground="#2b2b2b", command=trigger_emergency_bypass)
-btn_emergency_bypass.grid(row=2, column=2, sticky="e", padx=5)
+btn_emergency_bypass.grid(row=2, column=4, sticky="e", padx=5)
 
 
 # ------------------------------------------
@@ -1636,8 +1700,9 @@ def apply_theme(theme_name):
                 if widget in (val_ch1_label, val_ch2_label, val_ref_display, lbl_lcd_main) or widget in lcd_vars.values():
                     is_display = True
                 elif widget in (btn_start_lockin, btn_stop_lockin, btn_reset_def, btn_reset_laser, btn_reset_tec, btn_pvf,
-                                lbl_safety_status, btn_scan_com, btn_dev_manager, btn_apply_ref, btn_apply_input,
-                                btn_apply_laser, btn_apply_tec, btn_apply_dev, lbl_disabled_banner):
+                                lbl_safety_status, btn_apply_ref, btn_apply_input, btn_apply_laser, btn_apply_tec,
+                                btn_apply_dev, lbl_disabled_banner, btn_conn_lockin, btn_disc_lockin, btn_conn_laser, btn_disc_laser,
+                                btn_create_exp):
                     is_protected_signal = True
                 elif any(keyword in str(widget).lower() for keyword in ("start", "stop", "interlock", "laser_on", "laser_off")):
                     is_protected_signal = True
