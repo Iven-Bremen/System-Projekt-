@@ -276,20 +276,6 @@ class _Tee:
         self.original.flush()
 
 
-def set_active_log_path(csv_path):
-    """Set the active log file without changing the current session unexpectedly.
-
-    This is used when the GUI defines a concrete experiment name or CSV target.
-    The logger keeps the selected file active until the next explicit change.
-    """
-    if not csv_path:
-        return None
-    global _CURRENT_SESSION_LOG_PATH
-    _CURRENT_SESSION_LOG_PATH = os.path.abspath(csv_path)
-    ensure_log_file(_CURRENT_SESSION_LOG_PATH)
-    return _CURRENT_SESSION_LOG_PATH
-
-
 def start_terminal_logging(prefix="M", csv_path=None, capture_input=True, insert_separator=True):
     """Aktiviert die automatische Protokollierung von Terminalausgaben.
 
@@ -343,27 +329,6 @@ def start_terminal_logging(prefix="M", csv_path=None, capture_input=True, insert
         builtins.input = logged_input
 
     return csv_path
-
-def LogMassage(Category: str, State: str, Message: str, Value: str, Info: str = "", AdditionalMessage: str = "", AdditionalValue: str = "", AdditionalInfo: str = "", Else: str = ""):
-    """Compatibility wrapper for older GUI code that used a shorter log API.
-
-    The legacy callers pass ``Category, State, Message, Value, Info`` without an
-    explicit TAG. This wrapper preserves that behavior by reusing the category as
-    the tag and forwarding the record through the canonical ``Log()`` API.
-    """
-    return Log(
-        Category,
-        Category,
-        State,
-        Message,
-        Value,
-        Info,
-        AdditionalMessage,
-        AdditionalValue,
-        AdditionalInfo,
-        Else,
-    )
-
 
 def Log(Category: str, TAG: str, State: str, Message: str, Value: str, Info: str = "", AdditionalMessage: str = "", AdditionalValue: str = "", AdditionalInfo: str = "", Else: str = ""):
     """Schreibt einen vollstaendigen Logeintrag an alle drei Ausgabestellen.
