@@ -11,6 +11,7 @@ import random
 
 import Log
 import Komunikation
+import Send
 import Starter
 import State
 import SimGuiUpdatet
@@ -673,12 +674,12 @@ frame_auto.pack(fill="x", pady=5)
 frame_auto.columnconfigure((0, 1), weight=1)
 
 def send_lockin_command(command, value=None):
-    """Send one SR830 command through the central communication layer."""
+    """Send one SR830 command through the central command API so it is logged."""
     if is_emergency_bypass:
         return
     if not is_lockin_connected or Komunikation.SR830 is None:
         raise RuntimeError("SR830 ist nicht verbunden.")
-    Komunikation.send_SR830(command, value)
+    Send.send(command, value)
 
 
 def run_auto_command(command, values=None):

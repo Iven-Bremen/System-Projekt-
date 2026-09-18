@@ -228,8 +228,11 @@ def _normalize_command(command):
 def send(command, value=None):
     """Public API: send any SR830 command via the Send layer."""
     import Komunikation
+    import Log
 
     command_info = _normalize_command(command)
+    command_name = getattr(command_info, "command", str(command_info))
+    Log.Log("Send", "SR830", "Running", command_name, value, "set value")
     if hasattr(command_info, "command"):
         return Komunikation.send_SR830(command_info, value)
     return Komunikation.send_SR830(command, value)
@@ -238,8 +241,11 @@ def send(command, value=None):
 def read(command, return_type=None):
     """Public API: query any SR830 command via the Send layer."""
     import Komunikation
+    import Log
 
     command_info = _normalize_command(command)
+    command_name = getattr(command_info, "command", str(command_info))
+    Log.Log("Send", "SR830", "Running", command_name, "read request", "query")
     if hasattr(command_info, "command"):
         actual_type = command_info.type if return_type is None else return_type
         return Komunikation.ask_SR830(command_info, return_type=actual_type)
@@ -253,6 +259,11 @@ def set(command, value):
 
 def run(command):
     """Public API: execute an action command without a value."""
+    import Log
+
+    command_info = _normalize_command(command)
+    command_name = getattr(command_info, "command", str(command_info))
+    Log.Log("Send", "SR830", "Running", command_name, "execute", "action command")
     return send(command, None)
 
 
