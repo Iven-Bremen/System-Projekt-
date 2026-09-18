@@ -1,0 +1,461 @@
+"""
+SWP_Calculation_PhaseVsFrequenz_v5.py
+
+Berechnung der Nitrierschichtdicke aus photothermischen (PTR) Frequenz-Sweeps.
+
+WORKFLOW
+--------
+1. Referenz-Sweep (unnitrierte Probe) auswaehlen und einlesen.
+   -> wird als .npz-Cache neben der Quelldatei zwischengespeichert, damit
+      das (etwas aufwendige) Parsen beim naechsten Start nicht erneut
+      noetig ist.
+2. Proben-Sweep (zu vermessende / nitrierte Probe) auswaehlen und einlesen
+   -> ebenfalls gecacht.
+3. FREQ/PHAS-Spalten beider Sweeps werden geplottet (uebereinander,
+   unterschiedliche Farben).
+4. Bildung des photothermischen Phasensignals
+       Phi(w) = phi_Probe(w) - phi_Referenz(w)
+   und Bestimmung des Hochpunkts (Phasenmaximum) von Phi(w) als
+   qualitativer Kennwert.
+5. Kleinste-Quadrate-Fit der Modellfunktion (Gl. 2, Mikulewitsch et al.,
+   HTM 2022) an Phi(w) -> quantitative Schichtdicke d [µm] und
+   Waermeleitfaehigkeit k_L [W/(m*K)].
+
+DATEIFORMAT (Referenz- und Probendatei muessen dasselbe Format haben)
+-----------------------------------------------------------------------
+Zeile 1:      Kopfzeile "A(v)  f(hz)  sens  ctime  delay(ms)"
+Zeilen 2..N+1: Sweep-Parametertabelle, Spalte 2 = Frequenz in Hz
+Danach:       Kopfzeile "Amplitude in mV   Phase in Grad"
+Danach:       Wiederholungsbloecke, jeweils eingeleitet durch eine Zeile
+              mit nur einer Wiederholungs-Nummer (1, 2, 3, ...), gefolgt
+              von N Zeilen "Amplitude<TAB>Phase" (in derselben Frequenz-
+              Reihenfolge wie oben). Es wird ueber alle Wiederholungen
+              gemittelt.
+
+WICHTIGER HINWEIS ZUR MODELLFUNKTION
+-------------------------------------
+Die im Paper (Gl. 2) abgedruckte Formel enthaelt einen Kreuzterm
+"2*sin(x)*e^x*(b_S - b_L)". Mit den realen Effusivitaeten von Stahl
+(b in der Groessenordnung 1e4) fuehrt eine woertliche Umsetzung dieses
+Terms dazu, dass die Phase ueber den gesamten Frequenzbereich praktisch
+konstant bei -45 deg liegt (mathematisch nachweisbar: an beiden Grenzen
+x->0 und x->unendlich ergibt sich exakt -45 deg, und der Kreuzterm ist
+dazwischen um mehrere Groessenordnungen zu klein, um eine sichtbare
+Abweichung zu erzeugen -> siehe Testrechnung in der Projektdiskussion).
+Das widerspricht dem im Paper gezeigten deutlichen Phasenmaximum
+(Bild 4, Abweichung von mehreren Grad).
+
+Ersetzt man den Kreuzterm-Faktor durch (b_S**2 - b_L**2) statt
+(b_S - b_L), ergibt sich ein Verlauf, der die im Paper gezeigte
+Peak-Form (Phasenmaximum, das mit wachsender Schichtdicke zu kleineren
+Frequenzen wandert) korrekt reproduziert, und ein Kleinste-Quadrate-Fit
+kann eingespeiste (d, k_L)-Werte exakt zurueckrechnen (siehe Funktion
+'_selftest_model' unten).
+
+Da sich das Original-Bild der Formel nicht mit letzter Sicherheit exakt
+uebertragen laesst (kleine, dicht gesetzte Exponenten/Indizes), wird hier
+die numerisch sinnvolle Variante verwendet. BITTE GGF. GEGEN DAS PAPER
+(Mikulewitsch et al., HTM 2022, Gl. 2, S. 362) ODER EINE ANDERE
+UNSTRITTIGE QUELLE (z. B. Dissertation Kruse 2013 / Prekel 2016)
+GEGENPRUEFEN, falls exakte Uebereinstimmung mit dem Paper wichtig ist.
+Die Konstante CROSS_TERM_USES_DIFFERENCE_OF_SQUARES unten kann auf
+False gesetzt werden, um stattdessen die woertliche (aber praktisch
+"flache") Version zu verwenden.
+"""
+
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+
+# tkinter wird nur fuer die Datei-Dialoge / Fehler-Popups benoetigt.
+# Lazy-Import, damit das Modul auch auf Systemen ohne Tk (z. B. reine
+# Server-/CI-Umgebungen) importiert und die Kernfunktionen (Parsing,
+# Fit) programmatisch mit expliziten Pfaden genutzt werden koennen.
+def _get_tk():
+    import tkinter as tk
+    from tkinter import messagebox, filedialog
+    return tk, messagebox, filedialog
+
+
+# ---------------------------------------------------------------------------
+# THERMISCHE MATERIALPARAMETER
+# ---------------------------------------------------------------------------
+# Substrat: Armco-Reineisen
+K_SUBSTRAT = 73.0        # Waermeleitfaehigkeit Substrat [W/(m*K)]
+RHO_SUBSTRAT = 7870.0    # Dichte Substrat [kg/m3]
+C_SUBSTRAT = 460.0       # spez. Waermekapazitaet Substrat [J/(kg*K)]
+
+# Nitrierschicht (Verbindungsschicht)
+RHO_LAYER = 7870.0       # Dichte Schicht [kg/m3]
+C_LAYER = 460.0          # spez. Waermekapazitaet Schicht [J/(kg*K)]
+K_LAYER_DEFAULT = 14.4   # Start-Waermeleitfaehigkeit Schicht [W/(m*K)]
+
+# siehe Hinweis oben im Modul-Docstring
+CROSS_TERM_USES_DIFFERENCE_OF_SQUARES = True
+
+
+# ---------------------------------------------------------------------------
+# PHYSIKALISCHES MODELL (Formel 2 nach Mikulewitsch et al.)
+# ---------------------------------------------------------------------------
+def get_effusivity(k, rho, c):
+    return np.sqrt(k * rho * c)
+
+
+def get_diffusivity(k, rho, c):
+    return k / (rho * c)
+
+
+def phase_model(f, d_um, k_L):
+    """
+    Modellfunktion phi(omega, k_L, d) fuer das photothermische Phasensignal.
+
+    Parameters
+    ----------
+    f : array-like
+        Anregungsfrequenz(en) in Hz.
+    d_um : float
+        Schichtdicke in Mikrometern (Fit-Parameter).
+    k_L : float
+        Waermeleitfaehigkeit der Schicht in W/(m*K) (Fit-Parameter).
+
+    Returns
+    -------
+    phi : ndarray
+        Modellierte Phase in Grad.
+    """
+    omega = 2.0 * np.pi * np.asarray(f, dtype=float)
+    d = d_um * 1e-6
+
+    b_L = get_effusivity(k_L, RHO_LAYER, C_LAYER)
+    b_S = get_effusivity(K_SUBSTRAT, RHO_SUBSTRAT, C_SUBSTRAT)
+    alpha_L = get_diffusivity(k_L, RHO_LAYER, C_LAYER)
+
+    # x = 2d / mu_L = d * sqrt(2*omega/alpha_L)  (mu_L = thermische Diffusionslaenge)
+    x = d * np.sqrt(2.0 * omega / alpha_L)
+
+    exp_x = np.exp(x)
+    exp_2x = np.exp(2.0 * x)
+    sin_x = np.sin(x)
+
+    diff2 = (b_S - b_L) ** 2
+    sum2 = (b_S + b_L) ** 2
+
+    if CROSS_TERM_USES_DIFFERENCE_OF_SQUARES:
+        cross = b_S ** 2 - b_L ** 2
+    else:
+        cross = b_S - b_L
+
+    numerator = diff2 - sum2 * exp_2x + 2.0 * sin_x * exp_x * cross
+    denominator = -diff2 + sum2 * exp_2x + 2.0 * sin_x * exp_x * cross
+
+    return np.degrees(np.arctan2(numerator, denominator))
+
+
+def _selftest_model():
+    """Prueft, dass der Fit eingespeiste (d, k_L)-Werte zurueckgewinnt."""
+    f_test = np.logspace(0, 4.5, 40)
+    phi_true = phase_model(f_test, 6.1, 11.9)
+    popt, _ = curve_fit(phase_model, f_test, phi_true, p0=[10.0, 14.4],
+                         bounds=([0.1, 1.0], [500.0, 50.0]))
+    assert abs(popt[0] - 6.1) < 0.05 and abs(popt[1] - 11.9) < 0.05, popt
+
+
+# ---------------------------------------------------------------------------
+# POPUP-HILFSFUNKTIONEN
+# ---------------------------------------------------------------------------
+def show_error_popup(title, message):
+    try:
+        tk, messagebox, _ = _get_tk()
+    except ModuleNotFoundError:
+        print(f"[FEHLER] {title}: {message}")
+        return
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes('-topmost', True)
+    messagebox.showerror(title, message)
+    root.destroy()
+
+
+# ---------------------------------------------------------------------------
+# DATEI-IMPORT: PTR-SWEEP-FORMAT MIT CACHE
+# ---------------------------------------------------------------------------
+def _parse_ptr_sweep_file(path):
+    """
+    Liest eine PTR-Sweep-Datei im projektspezifischen Format ein
+    (siehe Modul-Docstring) und mittelt ueber alle Wiederholungen.
+
+    Returns
+    -------
+    freqs : ndarray, Frequenzen in Hz (aufsteigend sortiert wie in Datei)
+    phase_mean : ndarray, ueber alle Wiederholungen gemittelte Phase [deg]
+    amp_mean : ndarray, ueber alle Wiederholungen gemittelte Amplitude [mV]
+    """
+    with open(path, encoding='utf-8') as f:
+        lines = [l.rstrip('\n') for l in f]
+
+    # --- 1) Frequenztabelle einlesen ---
+    i = 1  # Zeile 0 = Kopfzeile "A(v) f(hz) sens ctime delay(ms)"
+    freqs = []
+    while i < len(lines) and lines[i].strip() != '' and 'Amplitude' not in lines[i]:
+        parts = lines[i].split()
+        if len(parts) < 2:
+            raise ValueError(f"Unerwartetes Zeilenformat in Frequenztabelle: '{lines[i]}'")
+        freqs.append(float(parts[1]))
+        i += 1
+    n_freq = len(freqs)
+    if n_freq == 0:
+        raise ValueError("Keine Frequenzen in der Sweep-Tabelle gefunden.")
+
+    # --- 2) Block "Amplitude in mV / Phase in Grad" suchen ---
+    while i < len(lines) and 'Amplitude' not in lines[i]:
+        i += 1
+    if i >= len(lines):
+        raise ValueError("Abschnitt 'Amplitude in mV / Phase in Grad' nicht gefunden.")
+    i += 1  # Kopfzeile ueberspringen
+
+    # --- 3) Wiederholungsbloecke einlesen ---
+    amp_reps, phase_reps = [], []
+    while i < len(lines):
+        line = lines[i].strip()
+        if line == '':
+            i += 1
+            continue
+        parts = line.split()
+        if len(parts) == 1:
+            # Zeile mit alleinstehender Wiederholungs-Nummer -> neuer Block
+            i += 1
+            amp_block, phase_block = [], []
+            for _ in range(n_freq):
+                if i >= len(lines):
+                    raise ValueError("Datei endet innerhalb eines Wiederholungsblocks.")
+                vals = lines[i].split()
+                if len(vals) < 2:
+                    raise ValueError(f"Unerwartetes Zeilenformat in Datenblock: '{lines[i]}'")
+                amp_block.append(float(vals[0]))
+                phase_block.append(float(vals[1]))
+                i += 1
+            amp_reps.append(amp_block)
+            phase_reps.append(phase_block)
+        else:
+            i += 1
+
+    if not phase_reps:
+        raise ValueError("Keine Wiederholungsbloecke mit Messdaten gefunden.")
+
+    freqs = np.array(freqs, dtype=float)
+    amp_reps = np.array(amp_reps, dtype=float)
+    phase_reps = np.array(phase_reps, dtype=float)
+
+    return freqs, phase_reps.mean(axis=0), amp_reps.mean(axis=0)
+
+
+def load_sweep_cached(path):
+    """
+    Liest eine PTR-Sweep-Datei ein und legt einen .npz-Cache neben der
+    Quelldatei an. Ist der Cache vorhanden und neuer als die Quelldatei,
+    wird direkt aus dem Cache geladen (spart erneutes Parsen).
+    """
+    cache_path = path + '.cache.npz'
+
+    if os.path.exists(cache_path) and \
+       os.path.getmtime(cache_path) >= os.path.getmtime(path):
+        data = np.load(cache_path)
+        return data['freqs'], data['phase'], data['amp']
+
+    try:
+        freqs, phase_mean, amp_mean = _parse_ptr_sweep_file(path)
+    except Exception as e:
+        show_error_popup("Datei-Import-Fehler",
+                          f"Fehler beim Einlesen von\n{path}:\n{e}")
+        raise
+
+    np.savez(cache_path, freqs=freqs, phase=phase_mean, amp=amp_mean)
+    print(f"Eingelesen und zwischengespeichert: {os.path.basename(path)} "
+          f"({len(freqs)} Frequenzpunkte) -> {os.path.basename(cache_path)}")
+    return freqs, phase_mean, amp_mean
+
+
+def select_sweep_file(title):
+    tk, _, filedialog = _get_tk()
+    root = tk.Tk()
+    root.withdraw()
+    file_path = filedialog.askopenfilename(
+        title=title,
+        filetypes=[("Sweep-Dateien", "*.csv *.txt"), ("Alle Dateien", "*.*")]
+    )
+    root.destroy()
+    return file_path or None
+
+
+# ---------------------------------------------------------------------------
+# AUSWERTUNG
+# ---------------------------------------------------------------------------
+def find_phase_maximum(freqs, phi):
+    """
+    Bestimmt den Hochpunkt (Frequenz des Phasenmaximums) von phi(freqs)
+    mittels quadratischer Interpolation um das diskrete Maximum herum
+    fuer eine subpixel-genaue Schaetzung.
+    """
+    idx = int(np.argmax(phi))
+    if idx == 0 or idx == len(phi) - 1:
+        return freqs[idx], phi[idx]
+
+    f0, f1, f2 = freqs[idx - 1], freqs[idx], freqs[idx + 1]
+    p0, p1, p2 = phi[idx - 1], phi[idx], phi[idx + 1]
+
+    denom = (f0 - f1) * (f0 - f2) * (f1 - f2)
+    if denom == 0:
+        return f1, p1
+
+    a = (f2 * (p1 - p0) + f1 * (p0 - p2) + f0 * (p2 - p1)) / denom
+    b = (f2 * f2 * (p0 - p1) + f1 * f1 * (p2 - p0) + f0 * f0 * (p1 - p2)) / denom
+    if a == 0:
+        return f1, p1
+    f_peak = -b / (2 * a)
+    phi_peak = np.interp(f_peak, freqs, phi)
+    return f_peak, phi_peak
+
+
+def compute_phase_difference(freqs_ref, phase_ref, freqs_probe, phase_probe):
+    """
+    Bildet Phi(w) = phi_Probe(w) - phi_Referenz(w). Falls die Frequenz-
+    stuetzstellen nicht identisch sind, wird die Referenzphase auf das
+    Frequenzraster der Probe interpoliert.
+    """
+    if len(freqs_ref) == len(freqs_probe) and np.allclose(freqs_ref, freqs_probe):
+        return freqs_probe, phase_probe - phase_ref
+
+    phase_ref_interp = np.interp(freqs_probe, freqs_ref, phase_ref)
+    return freqs_probe, phase_probe - phase_ref_interp
+
+
+def fit_layer_parameters(freqs, phi_diff, d_guess=10.0, kL_guess=K_LAYER_DEFAULT):
+    """
+    Kleinste-Quadrate-Fit von phase_model an das photothermische
+    Phasensignal Phi(w). Liefert d [µm], k_L [W/(m*K)], deren Standard-
+    fehler sowie das Bestimmtheitsmass R^2.
+    """
+    popt, pcov = curve_fit(
+        phase_model, freqs, phi_diff,
+        p0=[d_guess, kL_guess],
+        bounds=([0.1, 1.0], [500.0, 50.0])
+    )
+    d_fit, kL_fit = popt
+    d_err, kL_err = np.sqrt(np.diag(pcov))
+
+    phi_model_fit = phase_model(freqs, d_fit, kL_fit)
+    ss_res = np.sum((phi_diff - phi_model_fit) ** 2)
+    ss_tot = np.sum((phi_diff - np.mean(phi_diff)) ** 2)
+    r_squared = 1.0 - ss_res / ss_tot if ss_tot != 0 else 0.0
+
+    return d_fit, d_err, kL_fit, kL_err, r_squared, phi_model_fit
+
+
+# ---------------------------------------------------------------------------
+# HAUPTPROGRAMM
+# ---------------------------------------------------------------------------
+def run(reference_path=None, sample_path=None, show_plots=True):
+    # --- Dateien auswaehlen, falls nicht uebergeben ---
+    if reference_path is None:
+        reference_path = select_sweep_file("Referenz-Sweep (unnitrierte Probe) auswaehlen")
+    if reference_path is None:
+        print("Kein Referenz-Sweep ausgewaehlt. Abbruch.")
+        return None
+
+    if sample_path is None:
+        sample_path = select_sweep_file("Proben-Sweep (zu vermessende Probe) auswaehlen")
+    if sample_path is None:
+        print("Kein Proben-Sweep ausgewaehlt. Abbruch.")
+        return None
+
+    # --- Einlesen (mit Cache) ---
+    freqs_ref, phase_ref, amp_ref = load_sweep_cached(reference_path)
+    freqs_probe, phase_probe, amp_probe = load_sweep_cached(sample_path)
+
+    # --- Plot 1: Rohe Phasengaenge uebereinander ---
+    fig1, ax1 = plt.subplots(figsize=(8, 5))
+    ax1.plot(freqs_ref, phase_ref, 'o-', color='tab:blue',
+              label=f'Referenz ({os.path.basename(reference_path)})')
+    ax1.plot(freqs_probe, phase_probe, 's-', color='tab:red',
+              label=f'Probe ({os.path.basename(sample_path)})')
+    ax1.set_xscale('log')
+    ax1.set_xlabel('Frequenz f [Hz]')
+    ax1.set_ylabel('Phase [°]')
+    ax1.set_title('Rohe Phasengaenge: Referenz vs. Probe')
+    ax1.grid(True, which='both', linestyle=':', alpha=0.6)
+    ax1.legend()
+    fig1.tight_layout()
+
+    # --- Photothermisches Phasensignal Phi(w) ---
+    freqs_diff, phi_diff = compute_phase_difference(freqs_ref, phase_ref,
+                                                      freqs_probe, phase_probe)
+
+    f_peak, phi_peak = find_phase_maximum(freqs_diff, phi_diff)
+    print("=" * 60)
+    print("  PHASENVERSCHIEBUNG (HOCHPUNKT) DES DIFFERENZSIGNALS")
+    print("=" * 60)
+    print(f"  Frequenz des Phasenmaximums:  {f_peak:.2f} Hz")
+    print(f"  Hoehe des Phasenmaximums:     {phi_peak:.2f} deg")
+
+    # --- Kleinste-Quadrate-Fit fuer d und k_L ---
+    try:
+        # Peak-Frequenz liefert eine physikalisch motivierte Startschaetzung
+        # fuer die Schichtdicke ueber die thermische Diffusionslaenge.
+        omega_peak = 2 * np.pi * max(f_peak, 1.0)
+        alpha_L_guess = get_diffusivity(K_LAYER_DEFAULT, RHO_LAYER, C_LAYER)
+        d_guess_um = np.sqrt(2 * alpha_L_guess / omega_peak) * 1e6
+        d_guess_um = float(np.clip(d_guess_um, 1.0, 100.0))
+
+        d_fit, d_err, kL_fit, kL_err, r2, phi_model_fit = fit_layer_parameters(
+            freqs_diff, phi_diff, d_guess=d_guess_um)
+    except Exception as e:
+        show_error_popup("Fit-Fehler", f"Der Kleinste-Quadrate-Fit ist fehlgeschlagen:\n{e}")
+        return None
+
+    print("=" * 60)
+    print("  MODELLBASIERTE SCHICHTDICKENBESTIMMUNG")
+    print("=" * 60)
+    print(f"  --> Schichtdicke d:            {d_fit:.2f} +/- {d_err:.2f} µm")
+    print(f"  --> Waermeleitfaehigkeit k_L:  {kL_fit:.2f} +/- {kL_err:.2f} W/(m*K)")
+    print(f"  --> Bestimmtheitsmass R^2:     {r2:.4f}")
+    if r2 >= 0.95:
+        print("  --> STATUS: FIT VALIDE UND PRAEZISE")
+    else:
+        print("  --> WARNUNG: R^2 NIEDRIG! MESSDATEN / RAUSCHEN PRUEFEN.")
+    print("=" * 60)
+
+    # --- Plot 2: Differenzsignal Phi(w) + Fit ---
+    fig2, ax2 = plt.subplots(figsize=(8, 5))
+    sqrt_omega = np.sqrt(2 * np.pi * freqs_diff)
+    order = np.argsort(sqrt_omega)
+    ax2.plot(sqrt_omega, phi_diff, 'o', color='darkred', alpha=0.7,
+              label='Phi(w) = Probe - Referenz')
+    ax2.plot(sqrt_omega[order], phi_model_fit[order], '-', color='darkblue',
+              linewidth=2,
+              label=f'Fit: d={d_fit:.2f} µm, k_L={kL_fit:.1f} W/(m·K), R²={r2:.3f}')
+    ax2.axvline(np.sqrt(2 * np.pi * f_peak), color='gray', linestyle='--',
+                alpha=0.7, label=f'Hochpunkt bei f={f_peak:.0f} Hz')
+    ax2.set_xlabel(r'$\sqrt{\omega}$ [$\sqrt{\mathrm{Hz}}$]')
+    ax2.set_ylabel('Phasensignal Φ [°]')
+    ax2.set_title('Photothermisches Phasensignal mit Modellfit')
+    ax2.grid(True, linestyle=':', alpha=0.7)
+    ax2.legend(fontsize=9)
+    fig2.tight_layout()
+
+    if show_plots:
+        plt.show()
+
+    return {
+        'd_um': d_fit, 'd_err_um': d_err,
+        'kL': kL_fit, 'kL_err': kL_err,
+        'r_squared': r2,
+        'f_peak_hz': f_peak, 'phi_peak_deg': phi_peak,
+        'freqs_diff': freqs_diff, 'phi_diff': phi_diff,
+        'phi_model_fit': phi_model_fit,
+    }
+
+
+if __name__ == "__main__":
+    _selftest_model()
+    run()

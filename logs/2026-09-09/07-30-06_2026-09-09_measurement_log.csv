@@ -1,0 +1,7 @@
+Date,Time,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-09,07:30:06,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-09-09,07:30:06.337,START,SYSTEM,Version 1.0,Programm gestartet,Version 1.0,,,,, 
+2026-09-09,07:30:06.337,Info,Check Ports vor SR830,Check,Test,Check,,,,SR830, 
+2026-09-09,07:30:06.337,Warning,COM3,Fail,Port konnte nicht geöffnet werden (Hardware fehlt),Fail,,,,COM3, 
+2026-09-09,07:30:06.337,Info,Check Ports vor OSTech,Check,Test,Check,,,,OSTech, 
+2026-09-09,07:30:06.337,Warning,COM4,Fail,Port konnte nicht geöffnet werden (Hardware fehlt),Fail,,,,COM4, 
