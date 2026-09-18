@@ -12,7 +12,34 @@ command usage.
 
 from collections import namedtuple
 
+# =============================================================================
+# ARCHITEKTURERKLÄRUNG
+# =============================================================================
+# Diese Datei ist die öffentliche Befehls-Schnittstelle für die Geräte.
+# Sie enthält keine reale seriellen IO-Operationen.
+# Die eigentliche Kommunikation mit dem Hardware-Gerät passiert in Komunikation.py.
+#
+# Aufbau:
+# - SR830G: nur Lesebefehle
+# - SR830S: nur Schreibbefehle
+# - OSTechG: nur Lesebefehle für das OSTech-Gerät
+# - OSTechS: nur Schreibbefehle für das OSTech-Gerät
+# - send(), read(), set(), run(): allgemeine API für GUI, Threads und andere Module
+# - resolve_sr830_setting(): wandelt verständliche Werte wie "Normal" oder "1 s" in
+#   die Zahlenwerte um, die das SR830-Gerät erwartet.
+#
+# Warum diese Trennung wichtig ist:
+# - Das GUI oder die Threads sollen keine Kommandostring-Logik selbst bauen.
+# - Die Logik der Befehlsdefinition gehört in diese Datei.
+# - Die Logik des tatsächlichen Sendens an das Gerät gehört in Komunikation.py.
+# - Dadurch bleibt der Code klarer, testbarer und sauberer von der Hardware getrennt.
+
 # --- Data Structures ---
+# Jede Befehlsdefinition besteht aus vier Informationen:
+# 1. command: der genaue Befehlscode, z.B. "SENS" oder "OUTP? 1"
+# 2. type: Datentyp des Rückgabewerts oder erwarteten Werts
+# 3. unit: Einheit, z.B. "V", "Hz", "deg"
+# 4. description: verständliche Beschreibung für Menschen
 SR830CommandInfo = namedtuple("SR830CommandInfo", ["command", "type", "unit", "description"])
 OSTechCommandInfo = namedtuple("OSTechCommandInfo", ["command", "type", "unit", "description"])
 
@@ -20,6 +47,14 @@ OSTechCommandInfo = namedtuple("OSTechCommandInfo", ["command", "type", "unit", 
 # SR830 COMMANDS
 # =============================================================================
 
+# SR830G = Lesebefehle.
+# Diese Befehle fragen das Gerät nach Messwerten oder Statusinformationen.
+# Beispiele: X, Y, R, Theta, Statusbytes, Geräte-ID und Snapshot-Werte.
+# Mit diesen Befehlen liest man Informationen aus dem SR830 aus, aber man setzt nichts.
+# SR830G enthält alle Lesebefehle des SR830.
+# Man nutzt diese Befehle, wenn man Werte oder Zustände vom Lock-In Verstärker lesen will.
+# Beispiele: X-Wert, Y-Wert, R-Wert, Theta, Statusbytes, Geräte-ID und Snapshot-Messungen.
+# Diese Befehle ändern nichts am Gerät, sondern fragen nur Informationen ab.
 class SR830G:
     """Query-only SR830 commands: read-only / monitoring commands."""
 
@@ -68,6 +103,16 @@ class SR830G:
         ]
 
 
+# SR830S = Schreibbefehle.
+# Diese Befehle verändern das Verhalten des SR830.
+# Beispiele: Sensitivität, Reserve, Zeitkonstante, Filter, Eingang, Phase, Frequenz und Auto-Commands.
+# Wenn im GUI ein Wert gesetzt wird, ist das meist ein Befehl aus dieser Klasse.
+# SR830S enthält alle Schreibbefehle des SR830.
+# Das sind die Befehle, mit denen der Nutzer Einstellungen am Gerät verändert.
+# Beispiele: Sensitivität, Reserve, Zeitkonstante, Filter, Eingangskonfiguration, Phase,
+# Frequenz, interne Referenz und automatische Anpassungsfunktionen.
+# Die GUI und andere Module sollten in der Regel genau diese Befehle verwenden, wenn sie
+# Einstellungen an das SR830 senden wollen.
 class SR830S:
     """Set-only SR830 commands: configuration and action commands."""
 
@@ -129,6 +174,20 @@ class SR830S:
         ]
 
 
+# =============================================================================
+# WERT-ÜBERSETZUNG FÜR SR830
+# =============================================================================
+# Das SR830-Gerät arbeitet intern oft mit numerischen Indizes.
+# Der Mensch verwendet aber Bezeichnungen wie "1 s", "Normal" oder "A-B".
+# Diese Mapping-Tabellen übersetzen verständliche Texte in die Gerätewerte.
+#
+# Beispiel:
+#   "SENS" erwartet einen Numerischen Index, z.B. 10.
+#   Der Benutzer wählt aber vielleicht "100 nV/fA".
+#   Diese Tabelle macht daraus genau den richtigen Index.
+#
+# So bleibt die GUI benutzerfreundlich, während das Gerät trotzdem die erwarteten Zahlenwerte
+# erhält.
 # --- Mapping Constants for SR830 ---
 SENSITIVITY_VALUES = {
     "2 nV/fA": 0, "5 nV/fA": 1, "10 nV/fA": 2, "20 nV/fA": 3,
@@ -154,6 +213,21 @@ COUPLING_VALUES = {"AC": 0, "DC": 1}
 LINE_NOTCH_VALUES = {"Out": 0, "Line (50/60Hz)": 1, "2x Line": 2, "Both": 3}
 SYNCHRONOUS_FILTER_VALUES = {"Off": 0, "On": 1}
 
+# Diese Funktion übernimmt die Übersetzung von Benutzereingaben in das Format, das das
+# SR830 tatsächlich verstehen kann.
+#
+# Eingaben können sein:
+# - ein bereits numerischer Index, z.B. 5
+# - ein String wie "Normal"
+# - ein String wie "1 s"
+#
+# Die Funktion prüft, zu welchem Befehl die Einstellung gehört und holt dann die passende
+# Zuordnungstabelle. Danach liefert sie den gültigen Gerätwert zurück.
+#
+# Beispiel:
+#   resolve_sr830_setting("RMOD", "Normal") -> 1
+#   resolve_sr830_setting("OFLT", "1 s") -> 10
+#
 def resolve_sr830_setting(command_name, value_name_or_index):
     """Translate a human-readable SR830 setting into the numeric index expected by the instrument."""
     mapping = {
@@ -183,6 +257,10 @@ def resolve_sr830_setting(command_name, value_name_or_index):
 # OSTECH COMMANDS
 # =============================================================================
 
+# OSTechG enthält die Lesebefehle des OSTECH-Geräts.
+# Man verwendet diese Befehle, wenn man Messwerte oder Zustände auslesen möchte,
+# zum Beispiel Strom, Spannung, Temperatur, Status oder Firmware-Informationen.
+# Diese Befehle verändern das Gerät nicht, sondern lesen nur Daten.
 class OSTechG:
     """Query-only OSTech commands: read-only / monitoring commands[cite: 2]."""
 
@@ -223,6 +301,11 @@ class OSTechG:
         ]
 
 
+# OSTechS enthält die Schreibbefehle des OSTECH-Geräts.
+# Diese Befehle aktivieren oder konfigurieren Funktionen wie Laserbetrieb,
+# Temperatursteuerung, Stromgrenzen, Betriebspunkte und Modulationsparameter.
+# Einige Befehle brauchen einen Wert, andere sind reine Aktionsbefehle wie Start/Stop.
+# Das Muster entspricht dem SR830: Definition der Befehle hier, reale Serial-Kommunikation in Komunikation.py.
 class OSTechS:
     """Set-only OSTech commands: configuration and action commands[cite: 2]."""
 
@@ -302,6 +385,13 @@ class OSTechS:
 # UNIFIED HIGH-LEVEL API
 # =============================================================================
 
+# _normalize_command macht die öffentliche API robust.
+# Man kann einer Funktion entweder:
+# - ein Command-Objekt übergeben, z.B. SR830S.SENS
+# - oder einen reinen String, z.B. "SENS"
+#
+# Die Funktion erkennt dann, welcher Befehl gemeint ist und gibt das passende Metadatenobjekt zurück.
+# Wenn der String nicht gefunden wird, bleibt er unverändert und kann später als Fehler behandelt werden.
 def _normalize_command(command):
     """Accept either metadata or a raw command string and return the command metadata."""
     if hasattr(command, "command"):
@@ -315,6 +405,26 @@ def _normalize_command(command):
         return command
     raise TypeError(f"Unbekannter Befehl: {command!r}")
 
+
+# Allgemeine API-Funktionen:
+# send()  = etwas an das Gerät senden, meistens mit einem Wert
+# read()  = etwas vom Gerät lesen, ohne es zu verändern
+# set()   = kurze Schreibversion, praktisch wie send()
+# run()   = Aktion ausführen, ohne Zahlenwert, z.B. Auto Gain oder Laser starten
+# Diese Funktionen bilden die „sprechende“ Oberfläche für GUI, Threads und andere Module.
+# =============================================================================
+# ÖFFENTLICHE HIGH-LEVEL API-FUNKTIONEN
+# =============================================================================
+# Diese Funktionen sind die benutzerfreundliche Oberfläche für alle anderen Module.
+# GUI, Threads und andere Komponenten sollten nicht direkt mit den Hardware-Funktionen aus
+# Komunikation.py arbeiten, sondern über diese Funktionen.
+#
+# Dadurch bleibt die Anwendung sauber organisiert:
+# - GUI fragt: "Was soll ich setzen?"
+# - Send.py entscheidet: "Welcher Befehl passt dazu?"
+# - Komunikation.py schickt den tatsächlichen Text an das Gerät.
+#
+# So sind Befehlsdefinition und Übertragung sauber voneinander getrennt.
 
 def send(command, value=None):
     """Public API: send any SR830 or OSTech command via the Send layer."""
@@ -334,6 +444,10 @@ def send(command, value=None):
         return Komunikation.send_SR830(command_info, value)
 
 
+# read() fragt einen Wert ab.
+# Das ist der Gegenpart zu send(): kein Schreiben, sondern Lesen.
+# Beispiel: SR830G.OUTP_X oder "OUTP? 1".
+# Die Funktion wählt den passenden Kommunikationspfad aus und liefert den gelesenen Wert zurück.
 def read(command, return_type=None):
     """Public API: query any SR830 or OSTech command via the Send layer."""
     import Komunikation
@@ -355,11 +469,17 @@ def read(command, return_type=None):
         return Komunikation.ask_SR830(command, return_type=return_type)
 
 
+# set() ist die kurze Form für "einen Wert setzen".
+# Praktisch ist sie ein Alias für send().
+# Das ist bequem für ein einheitliches API, wenn der Code nur "setzen" und nicht "send" sagen will.
 def set(command, value):
     """Public API: set a value via the Send layer."""
     return send(command, value)
 
 
+# run() dient für Befehle, die keinen numerischen Wert benötigen.
+# Typische Beispiele: Start/Stop, Auto-Funktionen, Aktivieren/Deaktivieren.
+# Diese Befehle sind in der Regel reine Aktionen, keine Konfigurationswerte.
 def run(command):
     """Public API: execute an action command without a value."""
     import Log
@@ -375,6 +495,13 @@ def run(command):
     return send(command, None)
 
 
+# list_commands sammelt alle verfügbaren Befehle in einer übersichtlichen Menge.
+# Dabei kann man gezielt filtern:
+# - nur Lesen oder nur Schreiben
+# - nur SR830 oder nur OSTECH
+# - oder einfach alles zusammen
+#
+# Das ist sehr praktisch für GUI-Listen, Debug-Ausgaben oder automatische Kommandolisten.
 def list_commands(kind=None, device=None):
     """Return command metadata with optional filtering by get/set and device (sr830/ostech)."""
     commands = []
