@@ -1,0 +1,3 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-15,17:15:29,417,KOM_Test,SR830,I,startup,SR830 ist nicht verbunden.,status,Kommunikations-Test fuer SR830 und OSTECH,,,
+2026-09-15,17:15:29,419,KOM_Test,OSTECH,I,startup,OSTECH ist nicht verbunden.,status,Kommunikations-Test fuer SR830 und OSTECH,,,

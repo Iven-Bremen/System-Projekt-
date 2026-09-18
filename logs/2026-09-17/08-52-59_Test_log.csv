@@ -1,0 +1,9 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-17,08:52:59,545,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-09-17,08:52:59,547,START,SYSTEM,Version 1.0,Programm gestartet,Version 1.0,,,,, 
+2026-09-17,08:52:59,584,OUTPUT,TERMINAL,OUTPUT,No COM ports available,,,,,,
+2026-09-17,08:52:59,587,Info,SYSTEM,[],COM-Port Scan,[],,,,Startup, 
+2026-09-17,08:52:59,603,CALCULATION,CALCULATION,I,calculation ready,No calculations configured,STARTER,,,,
+2026-09-17,08:53:11,879,Info,GUI,CLICK,Button clicked,CLICK,,,,🔑, 
+2026-09-17,08:53:22,033,Info,GUI,CLICK,Button clicked,CLICK,,,,▶ Start Sine Out, 
+2026-09-17,08:53:28,347,Info,SYSTEM,GUI closed,Foreground Shutdown,GUI closed,,,, , 

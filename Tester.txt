@@ -39,6 +39,7 @@ import random
 
 #Commands.getValue(SR830,"OUTP1")
 
+#if __name__ == '__main__':
 
 
 Log.Log("Serial Communication", "SR830","S", "FREQ", str(random.randint(0, 100)), "Testing Log and Import", "Wir sind Geil", " Auf jeden", "Fall"," !!!")
