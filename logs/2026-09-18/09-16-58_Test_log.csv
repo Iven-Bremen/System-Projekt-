@@ -1,0 +1,5 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-18,09:16:58,843,Comm,COM3,Warning,Try connect,FAILED,"could not open port 'COM3': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)",SR830,,,
+2026-09-18,09:16:58,847,Comm,COM3,Warning,Try connect,FAILED,"could not open port 'COM3': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)",OSTECH,,,
+2026-09-18,09:16:58,847,Comm,COM4,Warning,Try connect,FAILED,"could not open port 'COM4': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)",SR830,,,
+2026-09-18,09:16:58,858,Comm,COM4,Warning,Try connect,FAILED,"could not open port 'COM4': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)",OSTECH,,,

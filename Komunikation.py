@@ -19,14 +19,17 @@ from enum import Enum
 from typing import Callable
 
 import serial
+from serial.tools import list_ports
 
 import Log
 import State
 from Threads import CommunicationThreads, ThreadMessage
 
 
-SR830_PORT = "COM3"
-OSTECH_PORT = "COM4"
+DEFAULT_SR830_PORT = "COM3"
+DEFAULT_OSTECH_PORT = "COM4"
+SR830_PORT = DEFAULT_SR830_PORT
+OSTECH_PORT = DEFAULT_OSTECH_PORT
 BAUDRATE = 9600
 TIMEOUT = 2
 DEFAULT_TICK_MS = 1
@@ -117,6 +120,9 @@ def CheckCOM(COM, ID, Command, returnvalue):
     wieder geschlossen.
     """
     port = None
+    if not COM:
+        Log.Log("Comm", ID, "Warning", f"Try connect: {COM}", "FAILED", Command)
+        return False
     try:
         port = serial.Serial(COM, BAUDRATE, timeout=TIMEOUT)
         port.write(f"{Command}\r".encode("ascii"))
@@ -124,17 +130,48 @@ def CheckCOM(COM, ID, Command, returnvalue):
         response = port.read_until(b"\r").decode("ascii", errors="replace").strip()
         if response.upper() == str(Command).upper():
             response = port.read_until(b"\r").decode("ascii", errors="replace").strip()
-        if not response:
-            return False
-        return returnvalue is None or response == str(returnvalue)
-    except (serial.SerialException, OSError, UnicodeError):
+        normalized = response.lower()
+        if ID == "SR830":
+            identified = "sr830" in normalized or "stanford" in normalized
+        else:
+            identified = bool(response) and normalized not in {"?", "error", "err", "-1"}
+        valid = identified and (returnvalue is None or response == str(returnvalue))
+        Log.Log(
+            "Comm", str(COM), "Info" if valid else "Warning", "Try connect",
+            "SUCCESS" if valid else "FAILED", f"{Command} -> {response}", ID,
+        )
+        return valid
+    except (serial.SerialException, OSError, UnicodeError, TypeError) as error:
+        Log.Log("Comm", str(COM), "Warning", "Try connect", "FAILED", str(error), ID)
         return False
     finally:
         if port is not None and port.is_open:
             port.close()
 
 
-def open_devices(sr830_port=SR830_PORT, ostech_port=OSTECH_PORT):
+def _available_ports():
+    """Return current COM ports, preferring the startup scan when available."""
+    ports = State.AVAILABLE_COM_PORTS or [
+        port.device for port in list_ports.comports()
+    ]
+    return list(dict.fromkeys(port for port in ports if port))
+
+
+def _find_device_ports(ports):
+    """Identify both instruments by their protocol responses."""
+    found = {}
+    for port in ports:
+        if len(found) == 2:
+            break
+        if "SR830" not in found and CheckCOM(port, "SR830", "*IDN?", None):
+            found["SR830"] = port
+            continue
+        if "OSTECH" not in found and CheckCOM(port, "OSTECH", "GVN", None):
+            found["OSTECH"] = port
+    return found
+
+
+def open_devices(sr830_port=None, ostech_port=None):
     """Probe and open both instruments independently.
 
     Each port is checked separately. A failed SR830 connection therefore does
@@ -142,28 +179,49 @@ def open_devices(sr830_port=SR830_PORT, ostech_port=OSTECH_PORT):
     left in binary mode after its text-mode startup handshake; the returned
     objects are later consumed by the dedicated communication threads.
     """
-    global SR830, SR830_ID, OSTECH, OSTECH_SERIAL_NUMBER
+    global SR830, SR830_ID, OSTECH, OSTECH_SERIAL_NUMBER, SR830_PORT, OSTECH_PORT
     SR830 = None
     SR830_ID = None
     OSTECH = None
     OSTECH_SERIAL_NUMBER = None
 
-    if CheckCOM(sr830_port, "SR830", "*IDN?", None):
+    scan_ports = _available_ports()
+    fallback_ports = [
+        port for port in (sr830_port, ostech_port, DEFAULT_SR830_PORT, DEFAULT_OSTECH_PORT)
+        if port
+    ]
+    candidates = list(dict.fromkeys(scan_ports + fallback_ports))
+    detected = _find_device_ports(candidates)
+    sr830_port = detected.get("SR830")
+    ostech_port = detected.get("OSTECH")
+    SR830_PORT = sr830_port
+    OSTECH_PORT = ostech_port
+
+    if sr830_port:
+        Log.Log("Comm", "SR830", "Info", "Device assigned", sr830_port, "*IDN? scan")
+    if ostech_port:
+        Log.Log("Comm", "OSTECH", "Info", "Device assigned", ostech_port, "GVN scan")
+
+    if sr830_port:
         try:
             SR830 = serial.Serial(sr830_port, BAUDRATE, timeout=TIMEOUT)
             SR830_ID = ask_SR830("*IDN?")
-        except (serial.SerialException, OSError, RuntimeError):
+            Log.Log("Comm", "SR830", "Info", "Device assigned", SR830_ID, SR830_PORT)
+        except (serial.SerialException, OSError, RuntimeError) as error:
             SR830 = None
+            Log.Log("Comm", str(sr830_port), "Warning", "Open identified device", "FAILED", str(error), "SR830")
 
-    if CheckCOM(ostech_port, "OSTECH", "GVN", None):
+    if ostech_port:
         try:
             OSTECH = serial.Serial(ostech_port, BAUDRATE, timeout=TIMEOUT)
             OSTECH_SERIAL_NUMBER = query_ostech_text("GVN")
             set_ostech_binary_mode()
-        except (serial.SerialException, OSError, RuntimeError):
+            Log.Log("Comm", "OSTECH", "Info", "Device assigned", OSTECH_SERIAL_NUMBER, OSTECH_PORT)
+        except (serial.SerialException, OSError, RuntimeError) as error:
             if OSTECH is not None and OSTECH.is_open:
                 OSTECH.close()
             OSTECH = None
+            Log.Log("Comm", str(ostech_port), "Warning", "Open identified device", "FAILED", str(error), "OSTECH")
 
     return SR830, OSTECH
 

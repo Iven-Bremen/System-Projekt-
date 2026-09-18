@@ -372,6 +372,7 @@ def Log(Category: str, TAG: str, State: str, Message: str, Value: str, Info: str
         Category, TAG, State, Message, Value, Info, AdditionalMessage,
         AdditionalValue, AdditionalInfo, Else,
     ]
+    row = ["" if value is None else str(value) for value in row]
     ausgabe = (
         f"{row[0]:<10.10} | "
         f"{time_str}.{ms_str:<7.7} | "
@@ -380,7 +381,7 @@ def Log(Category: str, TAG: str, State: str, Message: str, Value: str, Info: str
         f"{State:<20.20} | " 
         f"{Message:<50.50} | "
         f"{Value:<50.50} | "
-        f"{Info:<15.15} | "
+        f"{Info:<15.25} | "
         f"{AdditionalMessage:<15.15} | "
         f"{AdditionalValue:<15.15} | "
         f"{AdditionalInfo:<10.10} | "

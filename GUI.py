@@ -197,8 +197,8 @@ def change_language(lang_code):
 # ==========================================
 # HARDWARE VARIABLEN
 # ==========================================
-LOCK_IN_AMPLIFIER_PORT = "COM3"
-LASER_PORT = "COM4"
+LOCK_IN_AMPLIFIER_PORT = Komunikation.DEFAULT_SR830_PORT
+LASER_PORT = Komunikation.DEFAULT_OSTECH_PORT
 lockin_device = None
 current_file_path = None
 
@@ -338,7 +338,7 @@ tk.Label(frame_coms, text="Lock-In Amplifier Port:", bg="#1e1e1e", fg="#aaaaaa",
                                                                                                             sticky="w",
                                                                                                             pady=5)
 entry_com_lockin = ttk.Entry(frame_coms, width=20)
-entry_com_lockin.insert(0, LOCK_IN_AMPLIFIER_PORT)
+entry_com_lockin.insert(0, LOCK_IN_AMPLIFIER_PORT or "")
 entry_com_lockin.grid(row=0, column=1, padx=10, pady=5)
 
 lbl_status_lockin = tk.Label(frame_coms, text="🔴 Nicht Verbunden", font=("Consolas", 9, "bold"), bg="#1e1e1e",
@@ -349,7 +349,7 @@ tk.Label(frame_coms, text="OSTech Laser Port:", bg="#1e1e1e", fg="#aaaaaa", font
                                                                                                        sticky="w",
                                                                                                        pady=5)
 entry_com_laser = ttk.Entry(frame_coms, width=20)
-entry_com_laser.insert(0, LASER_PORT)
+entry_com_laser.insert(0, LASER_PORT or "")
 entry_com_laser.grid(row=1, column=1, padx=10, pady=5)
 
 lbl_status_laser = tk.Label(frame_coms, text="🔴 Nicht Verbunden", font=("Consolas", 9, "bold"), bg="#1e1e1e",
@@ -368,9 +368,9 @@ def populate_initial_com_ports():
     if not ports:
         return
 
-    lockin_port = "COM3" if "COM3" in ports else ports[0]
+    lockin_port = ports[0]
     remaining_ports = [port for port in ports if port != lockin_port]
-    laser_port = "COM4" if "COM4" in ports else (remaining_ports[0] if remaining_ports else lockin_port)
+    laser_port = remaining_ports[0] if remaining_ports else lockin_port
 
     entry_com_lockin.delete(0, tk.END)
     entry_com_lockin.insert(0, lockin_port)
@@ -1272,18 +1272,17 @@ def connect_all_hardware():
 
     LOCK_IN_AMPLIFIER_PORT = entry_com_lockin.get().strip().upper()
     LASER_PORT = entry_com_laser.get().strip().upper()
-    if any(not port or not port.startswith("COM") or not port[3:].isdigit()
-           for port in (LOCK_IN_AMPLIFIER_PORT, LASER_PORT)):
-        message = "COM-Port muss im Format COM3, COM4 usw. angegeben werden."
-        Log.Log("Gui", "Connect", "Error", "Input Error", message, "COM settings")
-        messagebox.showerror("Input Error", message)
-        return
-
     Komunikation.close_devices()
     connected_sr830, connected_ostech = Komunikation.open_devices(
-        sr830_port=LOCK_IN_AMPLIFIER_PORT,
-        ostech_port=LASER_PORT,
+        sr830_port=LOCK_IN_AMPLIFIER_PORT or None,
+        ostech_port=LASER_PORT or None,
     )
+    LOCK_IN_AMPLIFIER_PORT = Komunikation.SR830_PORT
+    LASER_PORT = Komunikation.OSTECH_PORT
+    entry_com_lockin.delete(0, tk.END)
+    entry_com_lockin.insert(0, LOCK_IN_AMPLIFIER_PORT or "")
+    entry_com_laser.delete(0, tk.END)
+    entry_com_laser.insert(0, LASER_PORT or "")
     is_lockin_connected = connected_sr830 is not None or is_emergency_bypass
     is_laser_connected = connected_ostech is not None or is_emergency_bypass
 
