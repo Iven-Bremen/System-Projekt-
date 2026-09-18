@@ -4,20 +4,7 @@ Nitrierschichtdicke aus Phasenverschiebungs-Frequenzsweeps.
 
 Basierend auf:
 M. Mikulewitsch et al.: "Influences on Quantitative Nitriding Layer
-Thickness Measurements using Model-Based Photothermal Radiometry",
-
---------------------------------------------------------------------
-Erweiterungen ggü. Basecode:
-  - Dateiauswahl akzeptiert nur .csv und .txt (sonst InvalidFileTypeError)
-  - Inhaltsprüfung: Datei muss Phasen- UND Frequenzwerte liefern
-    (sonst InvalidFileContentError)
-  - Zwei Einlese-Routinen je nach Dateityp:
-      .txt -> Spaltenbasiert (Lock-in-Rohformat "A(v) f(hz) ...",
-              Datenblöcke mit "Amplitude in mV / Phase in Grad")
-      .csv -> Auswertung über SNAP-Kommandos im Logger-Format
-              (Spalten "Message"/"Value"), Parameterindizes gemäß
-              SR830 SNAP?-Befehl (siehe Handbuch-Tabelle)
---------------------------------------------------------------------
+Thickness Measurements using Model-Based Photothermal Radiometry"
 """
 
 import os
@@ -32,9 +19,7 @@ import tkinter as tk
 from tkinter import filedialog
 
 
-# ---------------------------------------------------------------------
 # 0) Eigene Exceptions
-# ---------------------------------------------------------------------
 
 class InvalidFileTypeError(Exception):
     """Wird geworfen, wenn die ausgewählte Datei keine .csv- oder .txt-Datei ist."""
@@ -53,9 +38,7 @@ SNAP_PARAM_PHASE = 4   # Theta (Phase)
 SNAP_PARAM_FREQ = 9    # Reference Frequency
 
 
-# ---------------------------------------------------------------------
 # 1) Dateiauswahl über Explorerfenster (nur CSV/TXT)
-# ---------------------------------------------------------------------
 
 def select_file_via_explorer(title="Datei auswählen"):
     """
@@ -91,9 +74,7 @@ def validate_extension(path: str) -> None:
         )
 
 
-# ---------------------------------------------------------------------
 # 2a) Einlesen: TXT-Format (spaltenbasiert)
-# ---------------------------------------------------------------------
 
 def parse_lockin_txt(path):
     """
@@ -198,9 +179,7 @@ def parse_lockin_txt(path):
     return freq, phase_mean, phase_std, amp_mean, n_blocks
 
 
-# ---------------------------------------------------------------------
 # 2b) Einlesen: CSV-Format (SNAP-Kommando-Log)
-# ---------------------------------------------------------------------
 
 def parse_lockin_csv(path):
     """
@@ -282,9 +261,7 @@ def parse_lockin_csv(path):
     return freq, phase_mean, phase_std, amp_mean, n_blocks
 
 
-# ---------------------------------------------------------------------
 # 2c) Einheitlicher Dispatcher: Typ + Inhalt prüfen und einlesen
-# ---------------------------------------------------------------------
 
 def load_and_validate_measurement(path):
     """
@@ -387,9 +364,7 @@ def align_measurements(freq_ref, phase_ref, freq_probe, phase_probe, rtol=1e-6):
     return freq_common, phase_ref_common, phase_probe_common
 
 
-# ---------------------------------------------------------------------
 # 3) Physikalisches Modell
-# ---------------------------------------------------------------------
 def thermal_effusivity(k, rho, C):
     """b = sqrt(rho * k * C)   [Wärmeeindringkoeffizient / Effusivität]"""
     return np.sqrt(rho * k * C)
@@ -430,9 +405,7 @@ def make_phase_signal_model(b_S, rho_S, C_S, layer_rho=None, layer_C=None):
     return Phi_model
 
 
-# ---------------------------------------------------------------------
 # 4) Fit-Routine: Schichtdicke & Wärmeleitfähigkeit bestimmen
-# ---------------------------------------------------------------------
 def fit_layer_parameters(freq_hz, Phi_deg, b_S, rho_S, C_S,
                          d0=5e-6, kL0=10.0,
                          d_bounds=(0.1e-6, 100e-6),
@@ -454,9 +427,7 @@ def fit_layer_parameters(freq_hz, Phi_deg, b_S, rho_S, C_S,
     return d_fit, kL_fit, d_err, kL_err, model_func
 
 
-# ---------------------------------------------------------------------
 # 5) Gesamtablauf
-# ---------------------------------------------------------------------
 if __name__ == "__main__":
 
     # --- Materialparameter des Substrats (z.B. 42CrMo4) ---
