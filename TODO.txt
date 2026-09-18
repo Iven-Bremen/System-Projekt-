@@ -1,0 +1,18 @@
+GUI
+Home soll gefüllt werden
+Connenction Bracuht Experiment Tap und live Log(Terminal) 
++Coms müssen einzelnt verbunden werden können 
+IM laser muss man den Laser anmachen können 
+klar Farben Lesbarkeit 
+Statistiks mur externe ortener Impotoernern plus file check
++ Projekt Exporere nur auf log 
+logs run Log skript?
++ Log Directory nur Log keine andneren Files
+
+Coms
+Buuton befehle müssen interpetiert und ausgewertet und gesendet werden 
+Check ob die verbidnung steht und man alles erteichen kann 
+
+Calc
+Check ob calc mit log geht 
+Ploten 

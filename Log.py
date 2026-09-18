@@ -9,14 +9,15 @@ Eine Meldung kann gleichzeitig an drei Stellen erscheinen:
 2. in der GUI ueber registrierte Callbacks,
 3. in der aktiven CSV-Datei.
 
-Fuer neuen Code ist `Log()` die vollstaendige Schnittstelle. `LogMassage()`
-bleibt fuer bestehende Aufrufe erhalten und wandelt deren alte
-Parameterreihenfolge in das aktuelle CSV-Format um.
+`Log()` ist die einzige oeffentliche Schnittstelle. `Category` beschreibt den
+Bereich (`Sys`, `Comm`, `Gui`, `Calc`, `Log`), `TAG` die Quelle oder das
+Geraet, `State` den Zustand, `Message` das Ereignis oder den Befehl, `Value`
+den Mess- oder Antwortwert und `Info` den Zusatzkontext.
 
 Beispiel aus einer anderen Klasse:
 
     import Log
-    Log.Log("MEASUREMENT", "INFO", "RUNNING", "Messung gestartet", "0")
+    Log.Log("Calc", "MEASUREMENT", "Start", "Messung gestartet", "0")
 
 Das Modul ist keine Klasse, die zuerst instanziiert werden muss. Es wird direkt
 importiert und stellt seine Funktionen als gemeinsame Schnittstelle bereit.
@@ -36,6 +37,8 @@ CSV_COLUMNS_NEW = [
 ]
 CSV_COLUMNS = CSV_COLUMNS_NEW
 CSV_DELIMITER = ","
+LOG_CATEGORIES = ("Sys", "Comm", "Gui", "Calc", "Log")
+LOG_STATES = ("Start", "End", "Info", "Warning", "Error")
 # Category, Tag, State und Message sind fuer jede Datenzeile Pflichtfelder.
 REQUIRED_COLUMN_INDEXES = (3, 4, 5, 6)
 
@@ -201,30 +204,6 @@ def _append_row(csv_path, row):
     return True
 
 
-def append_csv_row(csv_path, tag, category, message, info, additional_info, else_val=" ", dt_obj=None):
-    """Uebersetzt einen alten LogMassage-Aufruf in eine CSV-Zeile.
-
-    Parameter:
-        csv_path: Ziel der CSV-Datei.
-        tag: Herkunft oder Kennzeichnung der Meldung, zum Beispiel `COM3`.
-        category: Gruppe der Meldung, zum Beispiel `Info` oder `Warning`.
-        message: Beschreibung des Ereignisses. Dieses Feld ist Pflicht.
-        info: Statuswert, der als `State` gespeichert wird. Fehlt er, wird
-            ersatzweise `INFO` verwendet.
-        additional_info: Optionaler Zusatzwert fuer `AdditionalInfo`.
-        else_val: Optionaler Wert fuer die letzte CSV-Spalte.
-        dt_obj: Optionaler Zeitpunkt. Ohne Angabe wird jetzt verwendet.
-
-    Die Funktion existiert vor allem fuer die alte `LogMassage`-Schnittstelle.
-    Neue Stellen sollten direkt `Log()` verwenden.
-    """
-    dt = dt_obj or datetime.now()
-    _append_row(csv_path, [
-        dt.strftime("%Y-%m-%d"), dt.strftime("%H:%M:%S"), dt.strftime("%f")[:3],
-        category, tag, info or "INFO", message, info or "", "", "", "", additional_info or "", else_val or "",
-    ])
-
-
 def append_terminal_row(csv_path, text, device_tag="TERMINAL"):
     """Schreibt eine Ausgabezeile aus Terminal, Fehlerstrom oder Eingabe.
 
@@ -245,60 +224,6 @@ def append_terminal_row(csv_path, text, device_tag="TERMINAL"):
             writer.writerow([
                 date_str, time_str, ms_str, "OUTPUT", device_tag, "OUTPUT", text, "", "", "", "", "", "",
             ])
-
-
-def LogMassage(TAG: str, Category: str, Massage: str, INFO: str, AdditionalInfo: str = ""):
-    """Verarbeitet einen Log-Aufruf im alten Projektformat.
-
-    Parameter:
-        TAG: Herkunft der Meldung, zum Beispiel `COM3`, `Gui` oder ein
-            Klassenname.
-        Category: Art der Meldung, zum Beispiel `Info` oder `Warning`.
-        Massage: Der eigentliche Beschreibungstext des Ereignisses. Der
-            historische Schreibfehler im Parameternamen bleibt aus
-            Kompatibilitaetsgruenden bestehen.
-        INFO: Zusatzstatus oder Ergebnis, zum Beispiel `Test`, `Fail` oder
-            `9600`.
-        AdditionalInfo: Optionaler weiterer Hinweis fuer die CSV-Datei.
-
-    Ablauf:
-        1. Die Meldung wird mit Datum, Uhrzeit und Millisekunden formatiert.
-        2. Sie wird sofort in das echte Terminal geschrieben.
-        3. Alle registrierten GUI-Callbacks erhalten denselben Text.
-        4. Die Meldung wird in der aktiven CSV-Datei gespeichert.
-
-    Die ungewoehnliche Reihenfolge der Parameter bleibt absichtlich erhalten,
-    damit bestehende Aufrufer aus `Starter.py`, `Commands.py` und
-    `Komunikation.py` weiter funktionieren. Fuer neuen Code ist `Log()` besser
-    geeignet, weil dessen Parameter die CSV-Struktur deutlicher abbildet.
-    Die Funktion ist bewusst synchron: Ein Log-Aufruf kehrt erst zurück, wenn
-    Terminal, Callbacks und CSV-Schreibvorgang angestoßen wurden. Der Dateiweg
-    ist durch `_LOG_LOCK` gegen parallele Worker geschützt.
-    """
-    dt = datetime.now()
-    date_str = dt.strftime("%Y-%m-%d")
-    time_str = dt.strftime("%H:%M:%S")
-    ms_str = dt.strftime("%f")[:3]
-    
-    console_line = f"{date_str} {time_str}.{ms_str}  |  {TAG}  |  {Category}  |  {Massage}  |  {INFO}  |  {AdditionalInfo}"
-
-    sys.__stdout__.write(console_line + "\n")
-    sys.__stdout__.flush()
-    
-    for cb in _gui_callbacks:
-        cb(console_line + "\n")
-
-    log_path = _get_active_log_path()
-    append_csv_row(
-        log_path,
-        tag=TAG,
-        category=Category,
-        message=Massage,
-        info=INFO,
-        additional_info=AdditionalInfo,
-        else_val=" ",
-        dt_obj=dt
-    )
 
 
 class _Tee:
@@ -442,11 +367,25 @@ def Log(Category: str, TAG: str, State: str, Message: str, Value: str, Info: str
     time_str = now.strftime("%H:%M:%S")
     ms_str = now.strftime("%f")[:3]
 
+    # CSV rows and terminal formatting both require text, while protocol
+    # responses may legitimately be dictionaries or other structured values.
+    Category = str(Category)
+    TAG = str(TAG)
+    State = str(State)
+    Message = str(Message)
+    Value = str(Value)
+    Info = str(Info)
+    AdditionalMessage = str(AdditionalMessage)
+    AdditionalValue = str(AdditionalValue)
+    AdditionalInfo = str(AdditionalInfo)
+    Else = str(Else)
+
     row = [
         now.strftime("%Y-%m-%d"), time_str, ms_str,
         Category, TAG, State, Message, Value, Info, AdditionalMessage,
         AdditionalValue, AdditionalInfo, Else,
     ]
+    row = ["" if value is None else str(value) for value in row]
     ausgabe = (
         f"{row[0]:<10.10} | "
         f"{time_str}.{ms_str:<7.7} | "
@@ -455,7 +394,7 @@ def Log(Category: str, TAG: str, State: str, Message: str, Value: str, Info: str
         f"{State:<20.20} | " 
         f"{Message:<50.50} | "
         f"{Value:<50.50} | "
-        f"{Info:<15.15} | "
+        f"{Info:<15.25} | "
         f"{AdditionalMessage:<15.15} | "
         f"{AdditionalValue:<15.15} | "
         f"{AdditionalInfo:<10.10} | "
@@ -569,7 +508,7 @@ def Test_Log():
     
     # Test 1: Pflichtfelder mit leer gelassenen optionalen Feldern.
     Log(
-        Category="SYSTEM", 
+        Category="Sys",
         TAG="INFO", 
         State="Start", 
         Message="Anwendung gestartet", 

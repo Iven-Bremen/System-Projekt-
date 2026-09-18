@@ -1,14 +1,16 @@
-﻿"""Typed communication layer for the SR830 and OSTECH instruments.
+﻿"""Low-level communication layer for SR830 and OSTECH instruments.
 
-This module owns serial ports, protocol framing, response decoding, and the
-polling steps used by ``Threads.CommunicationThreads``. It does not update GUI
-widgets. Successful decoded values are written to ``State`` so the GUI can
-read a consistent snapshot on its own 60 Hz refresh schedule.
+This module owns only the protocol-neutral hardware concerns:
+- serial-port opening/closing
+- lock-protected device access
+- wire encoding / decoding
+- command execution against the actual instrument
+- thread-driven polling and status handling
 
-There are two protocol families here. The SR830 returns line-oriented ASCII
-responses, while OSTECH switches to an echo plus binary payload protocol.
-Separate locks protect each serial port because command, status, and polling
-workers may access the same instrument concurrently.
+User-facing command metadata, convenience wrappers, and command selection live
+in ``Send.py``. The point of this split is that the rest of the application
+works with typed commands and metadata, while the communication layer stays
+responsible for the actual byte-level interaction with the hardware.
 """
 
 import struct
@@ -19,18 +21,21 @@ from enum import Enum
 from typing import Callable
 
 import serial
+from serial.tools import list_ports
 
 import Log
 import State
 from Threads import CommunicationThreads, ThreadMessage
 
 
-SR830_PORT = "COM3"
-OSTECH_PORT = "COM4"
+DEFAULT_SR830_PORT = "COM3"
+DEFAULT_OSTECH_PORT = "COM4"
+SR830_PORT = DEFAULT_SR830_PORT
+OSTECH_PORT = DEFAULT_OSTECH_PORT
 BAUDRATE = 9600
 TIMEOUT = 2
 DEFAULT_TICK_MS = 1
-DEFAULT_CYCLES = 5
+DEFAULT_CYCLES = None
 GUI_INTERVAL_MS = 12
 TEST_TAG = "Kommunikations-Test fuer SR830 und OSTECH"
 
@@ -104,10 +109,6 @@ class OSTECHCommand(Enum):
     GVN = OSTECHCommandInfo("GVN", int)
 
 
-    # send ones after Usere Intent 
-    LMDX = OSTECHCommandInfo("LMDX", bool)
-    L = OSTECHCommandInfo ("L", bool)
-
 def CheckCOM(COM, ID, Command, returnvalue):
     """Prueft einen COM-Port und gibt bei jedem Fehler ``False`` zurueck.
 
@@ -117,6 +118,9 @@ def CheckCOM(COM, ID, Command, returnvalue):
     wieder geschlossen.
     """
     port = None
+    if not COM:
+        Log.Log("Comm", ID, "Warning", f"Try connect: {COM}", "FAILED", Command)
+        return False
     try:
         port = serial.Serial(COM, BAUDRATE, timeout=TIMEOUT)
         port.write(f"{Command}\r".encode("ascii"))
@@ -124,17 +128,48 @@ def CheckCOM(COM, ID, Command, returnvalue):
         response = port.read_until(b"\r").decode("ascii", errors="replace").strip()
         if response.upper() == str(Command).upper():
             response = port.read_until(b"\r").decode("ascii", errors="replace").strip()
-        if not response:
-            return False
-        return returnvalue is None or response == str(returnvalue)
-    except (serial.SerialException, OSError, UnicodeError):
+        normalized = response.lower()
+        if ID == "SR830":
+            identified = "sr830" in normalized or "stanford" in normalized
+        else:
+            identified = bool(response) and normalized not in {"?", "error", "err", "-1"}
+        valid = identified and (returnvalue is None or response == str(returnvalue))
+        Log.Log(
+            "Comm", str(COM), "Info" if valid else "Warning", "Try connect",
+            "SUCCESS" if valid else "FAILED", f"{Command} -> {response}", ID,
+        )
+        return valid
+    except (serial.SerialException, OSError, UnicodeError, TypeError) as error:
+        Log.Log("Comm", str(COM), "Warning", "Try connect", "FAILED", str(error), ID)
         return False
     finally:
         if port is not None and port.is_open:
             port.close()
 
 
-def open_devices(sr830_port=SR830_PORT, ostech_port=OSTECH_PORT):
+def _available_ports():
+    """Return current COM ports, preferring the startup scan when available."""
+    ports = State.AVAILABLE_COM_PORTS or [
+        port.device for port in list_ports.comports()
+    ]
+    return list(dict.fromkeys(port for port in ports if port))
+
+
+def _find_device_ports(ports):
+    """Identify both instruments by their protocol responses."""
+    found = {}
+    for port in ports:
+        if len(found) == 2:
+            break
+        if "SR830" not in found and CheckCOM(port, "SR830", "*IDN?", None):
+            found["SR830"] = port
+            continue
+        if "OSTECH" not in found and CheckCOM(port, "OSTECH", "GVN", None):
+            found["OSTECH"] = port
+    return found
+
+
+def open_devices(sr830_port=None, ostech_port=None):
     """Probe and open both instruments independently.
 
     Each port is checked separately. A failed SR830 connection therefore does
@@ -142,28 +177,49 @@ def open_devices(sr830_port=SR830_PORT, ostech_port=OSTECH_PORT):
     left in binary mode after its text-mode startup handshake; the returned
     objects are later consumed by the dedicated communication threads.
     """
-    global SR830, SR830_ID, OSTECH, OSTECH_SERIAL_NUMBER
+    global SR830, SR830_ID, OSTECH, OSTECH_SERIAL_NUMBER, SR830_PORT, OSTECH_PORT
     SR830 = None
     SR830_ID = None
     OSTECH = None
     OSTECH_SERIAL_NUMBER = None
 
-    if CheckCOM(sr830_port, "SR830", "*IDN?", None):
+    scan_ports = _available_ports()
+    fallback_ports = [
+        port for port in (sr830_port, ostech_port, DEFAULT_SR830_PORT, DEFAULT_OSTECH_PORT)
+        if port
+    ]
+    candidates = list(dict.fromkeys(scan_ports + fallback_ports))
+    detected = _find_device_ports(candidates)
+    sr830_port = detected.get("SR830")
+    ostech_port = detected.get("OSTECH")
+    SR830_PORT = sr830_port
+    OSTECH_PORT = ostech_port
+
+    if sr830_port:
+        Log.Log("Comm", "SR830", "Info", "Device assigned", sr830_port, "*IDN? scan")
+    if ostech_port:
+        Log.Log("Comm", "OSTECH", "Info", "Device assigned", ostech_port, "GVN scan")
+
+    if sr830_port:
         try:
             SR830 = serial.Serial(sr830_port, BAUDRATE, timeout=TIMEOUT)
             SR830_ID = ask_SR830("*IDN?")
-        except (serial.SerialException, OSError, RuntimeError):
+            Log.Log("Comm", "SR830", "Info", "Device assigned", SR830_ID, SR830_PORT)
+        except (serial.SerialException, OSError, RuntimeError) as error:
             SR830 = None
+            Log.Log("Comm", str(sr830_port), "Warning", "Open identified device", "FAILED", str(error), "SR830")
 
-    if CheckCOM(ostech_port, "OSTECH", "GVN", None):
+    if ostech_port:
         try:
             OSTECH = serial.Serial(ostech_port, BAUDRATE, timeout=TIMEOUT)
             OSTECH_SERIAL_NUMBER = query_ostech_text("GVN")
             set_ostech_binary_mode()
-        except (serial.SerialException, OSError, RuntimeError):
+            Log.Log("Comm", "OSTECH", "Info", "Device assigned", OSTECH_SERIAL_NUMBER, OSTECH_PORT)
+        except (serial.SerialException, OSError, RuntimeError) as error:
             if OSTECH is not None and OSTECH.is_open:
                 OSTECH.close()
             OSTECH = None
+            Log.Log("Comm", str(ostech_port), "Warning", "Open identified device", "FAILED", str(error), "OSTECH")
 
     return SR830, OSTECH
 
@@ -200,46 +256,78 @@ def _convert_response(response: str, return_type):
     return return_type(response)
 
 
-def ask_SR830(command: str, value=None, return_type=str):
+def _resolve_sr830_command(command):
+    """Accept either a raw command string or a metadata object from Send.py."""
+    if hasattr(command, "command"):
+        return command.command
+    return str(command)
+
+
+def _resolve_sr830_return_type(command, return_type):
+    """Pick a return type from metadata when the caller did not provide one."""
+    if return_type is not None:
+        return return_type
+    if hasattr(command, "type"):
+        return command.type
+    return str
+
+
+def ask_SR830(command, value=None, return_type=None):
     """Send a line-oriented SR830 command and return a typed response.
 
-    Beispiele: ``ask_SR830("FREQ?", return_type=float)`` oder
-    ``ask_SR830("PHAS?", return_type=float)``. Fuer Setzbefehle kann der Wert
-    direkt mitgegeben werden, zum Beispiel ``ask_SR830("PHAS", 12.5)``.
+    ``command`` may be either a raw command string such as ``"FREQ?"`` or a
+    metadata object from ``Send.py`` (for example ``SR830G.FREQ``). This module
+    is responsible for the actual wire-level encoding and decoding. The public
+    command API in ``Send.py`` decides which command to use.
     """
     if SR830 is None:
         raise RuntimeError("SR830 ist nicht verbunden.")
+    resolved_command = _resolve_sr830_command(command)
+    resolved_type = _resolve_sr830_return_type(command, return_type)
     with SR830_LOCK:
-        SR830.write(f"{_format_command(command, value)}\r".encode("ascii"))
+        SR830.write(f"{_format_command(resolved_command, value)}\r".encode("ascii"))
         SR830.flush()
         response = SR830.read_until(b"\r").decode("ascii", errors="replace").strip()
-        return _convert_response(response, return_type)
+        return _convert_response(response, resolved_type)
 
 
-def send_SR830(command: str, value=None):
+def send_SR830(command, value=None):
     """Send an SR830 setting command without waiting for a response.
 
-    The same per-device lock as ``ask_SR830`` is used, so a write cannot be
-    interleaved with a polling query. This function is intentionally separate
-    from query functions because the instrument protocol and caller's intent
-    differ: no response is expected for a setter.
+    The communication layer handles the actual serial write. Public code should
+    reach this function through the command API in ``Send.py`` so all outgoing
+    commands follow the same structure and logging flow.
     """
     if SR830 is None:
         raise RuntimeError("SR830 ist nicht verbunden.")
+    resolved_command = _resolve_sr830_command(command)
     with SR830_LOCK:
-        SR830.write(f"{_format_command(command, value)}\r".encode("ascii"))
+        SR830.write(f"{_format_command(resolved_command, value)}\r".encode("ascii"))
         SR830.flush()
+
+
+def _resolve_ostech_command(command):
+    """Accept either a raw command string or metadata from Send.py."""
+    if hasattr(command, "command"):
+        return command.command
+    return str(command)
 
 
 def ask_OSTECH(command: str, value=None, return_type=str):
     """Send a text-mode OSTECH command and convert its response type."""
     if OSTECH is None:
         raise RuntimeError("OSTECH ist nicht verbunden.")
+    resolved_command = _resolve_ostech_command(command)
     with OSTECH_LOCK:
-        OSTECH.write(f"{_format_command(command, value)}\r".encode("ascii"))
+        OSTECH.write(f"{_format_command(resolved_command, value)}\r".encode("ascii"))
         OSTECH.flush()
         response = OSTECH.read_until(b"\r").decode("ascii", errors="replace").strip()
         return _convert_response(response, return_type)
+
+
+def ask_OSTech(command: str, value=None, return_type=str):
+    """Compatibility alias kept for the Send-layer metadata API."""
+    return ask_OSTECH(command, value=value, return_type=return_type)
 
 
 def send_ostech_command(command: str):
@@ -251,8 +339,9 @@ def send_ostech_command(command: str):
     """
     if OSTECH is None:
         raise RuntimeError("OSTECH ist nicht verbunden.")
+    resolved_command = _resolve_ostech_command(command)
     with OSTECH_LOCK:
-        OSTECH.write(f"{command}\r".encode("ascii"))
+        OSTECH.write(f"{resolved_command}\r".encode("ascii"))
         OSTECH.flush()
 
 
@@ -260,9 +349,15 @@ def send_OSTECH(command: str, value=None):
     """Send an OSTECH text-mode setter without waiting for a response."""
     if OSTECH is None:
         raise RuntimeError("OSTECH ist nicht verbunden.")
+    resolved_command = _resolve_ostech_command(command)
     with OSTECH_LOCK:
-        OSTECH.write(f"{_format_command(command, value)}\r".encode("ascii"))
+        OSTECH.write(f"{_format_command(resolved_command, value)}\r".encode("ascii"))
         OSTECH.flush()
+
+
+def send_OSTech(command: str, value=None):
+    """Compatibility alias kept for the Send-layer metadata API."""
+    return send_OSTECH(command, value=value)
 
 
 def query_ostech_text(command: str):
@@ -466,13 +561,33 @@ def _device_status_is_ready(publish):
         return False
     try:
         sr830_id = SR830_ID or ask_SR830("*IDN?")
+        publish({
+            "tag": "SR830",
+            "command": "*IDN?",
+            "value": sr830_id,
+            "info": "readiness check",
+        })
         status = LabOSTECHCommand(OSTECH, OSTECHCommand.GS).value
+        publish({
+            "tag": "OSTECH",
+            "command": OSTECHCommand.GS.value.command,
+            "value": status,
+            "info": "readiness check",
+        })
         serial_number = LabOSTECHCommand(OSTECH, OSTECHCommand.GVN).value
-        publish({"step": "status SR830", "value": sr830_id})
-        publish({"step": "status OSTECH", "value": {"status": status, "serial": serial_number}})
+        publish({
+            "tag": "OSTECH",
+            "command": OSTECHCommand.GVN.value.command,
+            "value": serial_number,
+            "info": "readiness check; serial number",
+        })
         return bool(sr830_id) and not status.get("lc_error", False)
     except Exception as error:
-        publish({"step": "status error", "value": f"{type(error).__name__}: {error}"})
+        publish({
+            "step": "error",
+            "value": f"{type(error).__name__}: {error}",
+            "info": "readiness check",
+        })
         return False
 
 
@@ -552,10 +667,7 @@ def start_threaded_measurement(
         raise ValueError("command_interval_seconds muss groesser als 0 sein.")
     sr830_steps, ostech_periodic_steps, _ = _device_steps()
     if command_queries is None:
-        command_queries = (
-            ("OSTECH LMDX", lambda: LabOSTECHCommand(OSTECH, OSTECHCommand.LMDX)),
-            ("OSTECH L", lambda: LabOSTECHCommand(OSTECH, OSTECHCommand.L)),
-        )
+        command_queries = ()
     else:
         command_queries = tuple(command_queries)
     if command_steps is None:
@@ -569,13 +681,29 @@ def start_threaded_measurement(
 
     def log_handler(message: ThreadMessage):
         payload = message.value if isinstance(message.value, dict) else {"value": message.value}
-        level = {"result": "T", "status": "I", "error": "E"}[message.kind]
-        Log.Log("KOM_Test", message.source, level, str(payload.get("step", message.kind)),
-            str(payload.get("value", "")), message.kind, TEST_TAG)
+        if message.kind == "error" or payload.get("step") == "error":
+            Log.Log(
+                "Comm",
+                payload.get("tag", message.source),
+                "Error",
+                payload.get("command", "error"),
+                payload.get("value", ""),
+                payload.get("info", "communication error"),
+            )
+            return
+
+        value = payload.get("value", "")
+        command = payload.get("command", payload.get("step", message.kind))
+        tag = payload.get("tag", message.source)
+        info = payload.get("info", "periodic query")
+        if isinstance(value, OSTECHResult):
+            command = value.command
+            info = value.unit or info
+            value = value.value
+        Log.Log("Comm", tag, "Running", command, value, info)
 
     def default_gui_handler(message: ThreadMessage):
-        payload = message.value if isinstance(message.value, dict) else {"value": message.value}
-        print(f"[{message.source}] {payload.get('step', message.kind)}: {payload.get('value', '')}")
+        return
 
     threads = CommunicationThreads(
         lambda stop, publish: _run_device(

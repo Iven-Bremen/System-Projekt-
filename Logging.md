@@ -11,8 +11,7 @@ und nachvollziehbar. Es gibt drei parallele Ausgabewege:
 
 Die drei Wege werden zentral in `Log.py` zusammengeführt. Die übrigen Module
 müssen keine CSV-Dateien öffnen und müssen die Spaltenstruktur nicht kennen.
-Sie rufen lediglich `Log.Log()` oder die ältere kompatible Funktion
-`Log.LogMassage()` auf.
+Sie rufen ausschließlich `Log.Log()` auf.
 
 ---
 
@@ -22,7 +21,7 @@ Sie rufen lediglich `Log.Log()` oder die ältere kompatible Funktion
 Starter / GUI / Kommunikation
 			  |
 			  v
-	   Log.Log() oder LogMassage()
+	   Log.Log()
 			  |
 	  +-------+--------+
 	  |       |        |
@@ -53,12 +52,12 @@ Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalV
 | `Date` | Datum des Ereignisses im Format `YYYY-MM-DD` |
 | `Time` | Uhrzeit des Ereignisses im Format `HH:MM:SS` |
 | `Ms` | Millisekundenanteil |
-| `Category` | Fachliche Gruppe, etwa `SYSTEM`, `GUI` oder `KOM_Test` |
-| `Tag` | Quelle, etwa `SR830`, `OSTECH`, `GUI` oder `SYSTEM` |
-| `State` | Zustand, etwa `START`, `T`, `I`, `E`, `Warning` oder `CLICK` |
-| `Message` | Menschenlesbare Ereignisbeschreibung |
-| `Value` | Zugehöriger Wert oder Antwortinhalt |
-| `Info` | Kurze Zusatzinformation |
+| `Category` | Bereich: `Sys`, `Comm`, `Gui`, `Calc`, `Log` |
+| `Tag` | Quelle oder Gerät, etwa `SR830`, `OSTECH`, `Button` oder `GUI` |
+| `State` | Zustand, etwa `Start`, `End`, `Info`, `Warning` oder `Error` |
+| `Message` | Ereignis oder gesendeter/empfangener Befehl, nicht der Messwert |
+| `Value` | Empfangener Wert, Messwert, Ergebnis oder `FAILED` |
+| `Info` | Weiterführender Kontext, etwa Port oder Befehlsbeschreibung |
 | `AdditionalMessage` | Weiterer beschreibender Text |
 | `AdditionalValue` | Weiterer Mess- oder Konfigurationswert |
 | `AdditionalInfo` | Zusatzinformationen wie Port oder Testname |
@@ -127,9 +126,9 @@ Der Ablauf ist:
 Der Sessioneintrag sieht logisch etwa so aus:
 
 ```text
-Category = SESSION
+Category = Sys
 Tag      = SYSTEM
-State    = HARDWARE
+State    = Start
 Message  = Session started
 ```
 
@@ -143,12 +142,12 @@ Die bevorzugte neue Schnittstelle ist:
 
 ```python
 Log.Log(
-	Category="COMMUNICATION",
+	Category="Comm",
 	TAG="SR830",
-	State="OK",
-	Message="Measurement received",
+	State="Info",
+	Message="SNAP received",
 	Value="1.25",
-	Info="SNAP",
+	Info="Measurement",
 )
 ```
 
@@ -171,39 +170,16 @@ dass die CSV-Daten verändert werden.
 
 ---
 
-## `LogMassage()` - Kompatibilitätsschicht
+## Einheitliche Log-Konvention
 
-Das Projekt enthält ältere Aufrufe mit der historischen Schreibweise
-`LogMassage` und der Parameterreihenfolge:
+Kommunikationsbefehle gehören in `Message`; empfangene Antworten und Messwerte
+gehören in `Value`. Beispielsweise wird eine `LCL`-Antwort mit
+`Message="LCL received"`, dem Antwortwert in `Value` und
+`Info="Current limit"` protokolliert. Ein fehlgeschlagener Vorgang verwendet
+`Value="FAILED"` und einen passenden Zustand wie `Error`.
 
-```python
-Log.LogMassage(
-	TAG,
-	Category,
-	Massage,
-	INFO,
-	AdditionalInfo,
-)
-```
-
-Diese Funktion bleibt erhalten, damit ältere Projektteile nicht sofort
-umgebaut werden müssen. Intern wird der Aufruf in die aktuelle CSV-Struktur
-übersetzt.
-
-Beispiel:
-
-```python
-Log.LogMassage(
-	"SR830",
-	"Info",
-	"OpenPort",
-	"OK",
-	"COM3",
-)
-```
-
-Die Meldung wird als gültige CSV-Zeile gespeichert, obwohl der Aufrufer die
-neue `Log()`-Struktur nicht direkt verwendet.
+Alle Aufrufer verwenden die vollständige Signatur von `Log()`; die frühere
+`LogMassage()`-Kompatibilitätsschicht wurde entfernt.
 
 ---
 

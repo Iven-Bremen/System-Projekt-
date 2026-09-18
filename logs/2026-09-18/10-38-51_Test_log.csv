@@ -1,0 +1,8 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-18,10:38:51,803,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-09-18,10:38:51,803,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-09-18,10:38:51,813,OUTPUT,TERMINAL,OUTPUT,"['COM3', 'COM4']",,,,,,
+2026-09-18,10:38:51,814,Sys,SYSTEM,Info,COM-Port Scan,"['COM3', 'COM4']",Startup,,,,
+2026-09-18,10:38:51,815,Calc,CALCULATION,Info,calculation ready,No calculations configured,STARTER,,,,
+2026-09-18,10:38:53,317,Gui,GUI,Start,Starting GUI,,,,,,
+2026-09-18,10:39:01,813,Sys,GUI,Info,Foreground Shutdown,GUI closed,,,,,
