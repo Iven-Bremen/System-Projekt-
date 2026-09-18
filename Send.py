@@ -309,8 +309,8 @@ class OSTechG:
 class OSTechS:
     """Set-only OSTech commands: configuration and action commands[cite: 2]."""
 
-    LR = OSTechCommandInfo("LR", None, "", "laser run")
-    LS = OSTechCommandInfo("LS", None, "", "laser stop")
+    #LR = OSTechCommandInfo("LR", None, "", "laser run")
+    #LS = OSTechCommandInfo("LS", None, "", "laser stop")
     LTM = OSTechCommandInfo("LTM", float, "°C", "laser temperature maximum (-99 to 200)")
     LGR = OSTechCommandInfo("LGR", None, "", "gate option run/enable")
     LGS = OSTechCommandInfo("LGS", None, "", "gate option stop/disable")

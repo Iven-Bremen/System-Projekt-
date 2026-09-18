@@ -45,6 +45,7 @@ OSTECH = None
 OSTECH_SERIAL_NUMBER = None
 SR830_LOCK = threading.Lock()
 OSTECH_LOCK = threading.Lock()
+_ACTIVE_COMMUNICATION_THREADS = None
 
 
 @dataclass(frozen=True)
@@ -224,11 +225,76 @@ def open_devices(sr830_port=None, ostech_port=None):
     return SR830, OSTECH
 
 
+def stop_communication_loop():
+    """Stop the active communication pipeline if one is running."""
+    global _ACTIVE_COMMUNICATION_THREADS
+    threads = _ACTIVE_COMMUNICATION_THREADS
+    _ACTIVE_COMMUNICATION_THREADS = None
+    if threads is not None:
+        threads.stop()
+        return True
+    return False
+
+
+def start_communication_loop(*, tick_ms=DEFAULT_TICK_MS, cycles=DEFAULT_CYCLES, gui_handler=None, **kwargs):
+    """Start or reuse the global communication pipeline for the currently open devices."""
+    global _ACTIVE_COMMUNICATION_THREADS
+    if _ACTIVE_COMMUNICATION_THREADS is not None:
+        running = []
+        if _ACTIVE_COMMUNICATION_THREADS.sr830 is not None:
+            running.append(_ACTIVE_COMMUNICATION_THREADS.sr830.thread.is_alive())
+        if _ACTIVE_COMMUNICATION_THREADS.ostech is not None:
+            running.append(_ACTIVE_COMMUNICATION_THREADS.ostech.thread.is_alive())
+        if any(running):
+            return _ACTIVE_COMMUNICATION_THREADS
+        stop_communication_loop()
+
+    if SR830 is None and OSTECH is None:
+        raise RuntimeError("Es gibt keine verbundenen Geraete fuer die Kommunikation.")
+
+    _ACTIVE_COMMUNICATION_THREADS = start_threaded_measurement(
+        tick_ms=tick_ms,
+        cycles=cycles,
+        gui_handler=gui_handler,
+        sr830_enabled=SR830 is not None,
+        ostech_enabled=OSTECH is not None,
+        **kwargs,
+    )
+    return _ACTIVE_COMMUNICATION_THREADS
+
+
+def close_device(device_name: str):
+    """Close exactly one instrument and stop the communication loop when no device remains."""
+    global SR830, OSTECH, SR830_ID, OSTECH_SERIAL_NUMBER, SR830_PORT, OSTECH_PORT
+    device_name = str(device_name).upper()
+
+    if device_name in {"SR830", "LOCKIN", "LOCK-IN"}:
+        if SR830 is not None and getattr(SR830, "is_open", False):
+            SR830.close()
+        SR830 = None
+        SR830_ID = None
+        SR830_PORT = None
+    elif device_name in {"OSTECH", "LASER", "OSTECH LASER"}:
+        if OSTECH is not None and getattr(OSTECH, "is_open", False):
+            OSTECH.close()
+        OSTECH = None
+        OSTECH_SERIAL_NUMBER = None
+        OSTECH_PORT = None
+    else:
+        raise ValueError(f"Unbekanntes Geraet: {device_name}")
+
+    if SR830 is None and OSTECH is None:
+        stop_communication_loop()
+    return True
+
+
 def close_devices():
     """Close every currently open instrument without raising on missing ports."""
-    for port in (SR830, OSTECH):
-        if port is not None and getattr(port, "is_open", True):
-            port.close()
+    for device_name in ("SR830", "OSTECH"):
+        try:
+            close_device(device_name)
+        except ValueError:
+            pass
 
 
 def _format_command(command: str, value=None):
@@ -639,6 +705,8 @@ def start_threaded_measurement(
     command_queries=None,
     command_steps=None,
     stop_commands=None,
+    sr830_enabled=True,
+    ostech_enabled=True,
 ):
     """Create and start the complete communication pipeline.
 
@@ -708,10 +776,10 @@ def start_threaded_measurement(
     threads = CommunicationThreads(
         lambda stop, publish: _run_device(
             "SR830", sr830_steps, sr830_tick_ms, sr830_cycles, stop, publish,
-        ),
+        ) if sr830_enabled else None,
         lambda stop, publish: _run_device(
             "OSTECH", ostech_periodic_steps, ostech_tick_ms, ostech_cycles, stop, publish,
-        ),
+        ) if ostech_enabled else None,
         log_handler,
         gui_handler or default_gui_handler,
         gui_interval_ms=GUI_INTERVAL_MS,
@@ -719,6 +787,8 @@ def start_threaded_measurement(
             command_queries, command_steps, stop_commands,
             command_interval_seconds, stop, publish,
         ),
+        sr830_enabled=sr830_enabled,
+        ostech_enabled=ostech_enabled,
     )
     threads.start()
     return threads

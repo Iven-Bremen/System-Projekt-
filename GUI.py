@@ -198,7 +198,7 @@ def change_language(lang_code):
 # ==========================================
 LOCK_IN_AMPLIFIER_PORT = "COM3"
 LASER_PORT = "COM4"
-comm_rate_ms = 17  # Standard-Kommunikationsrate in Millisekunden
+comm_rate_ms = 20  # Standard-Kommunikationsrate in Millisekunden
 lockin_device = None
 current_file_path = None
 
@@ -316,10 +316,15 @@ reg_ui(lbl_info, "Select a tab above to control hardware or run data analysis.")
 # ==========================================
 # HELPER FOR EXPLORER TREEVIEW (PYCHARM STYLE)
 # ==========================================
-def build_file_tree(tree_widget, root_dir):
+def build_file_tree(tree_widget, root_dir, show_root=True):
     tree_widget.delete(*tree_widget.get_children())
-    root_node = tree_widget.insert("", "end", text=f" 📂 {os.path.basename(os.path.abspath(root_dir))}", open=True,
-                                   values=[os.path.abspath(root_dir)])
+    abs_root = os.path.abspath(root_dir)
+    if show_root:
+        root_node = tree_widget.insert("", "end", text=f" 📂 {os.path.basename(abs_root)}", open=True,
+                                       values=[abs_root])
+        parent_node = root_node
+    else:
+        parent_node = ""
 
     def populate(parent_node, path):
         try:
@@ -344,7 +349,7 @@ def build_file_tree(tree_widget, root_dir):
         except PermissionError:
             pass
 
-    populate(root_node, os.path.abspath(root_dir))
+    populate(parent_node, abs_root)
 
 # ------------------------------------------
 # 2. TAB: OVERVIEW (Enthält Connections & Logs)
@@ -368,27 +373,36 @@ entry_exp_name.grid(row=0, column=1, padx=5, pady=5, sticky="w")
 
 
 def create_experiment_csv():
+    global experiment_name_locked
+    if entry_exp_name.cget("state") == "readonly":
+        messagebox.showinfo("Experiment", "Der Experimentname ist bereits festgesetzt und kann nicht mehr geändert werden.")
+        return
+
     exp_name = entry_exp_name.get().strip()
     if not exp_name:
         messagebox.showerror("Input Error", "Bitte einen gültigen Namen für das Experiment eingeben!")
         return
 
-    # Datei im CSV-Ordner erzeugen
     sanitized_name = "".join(c for c in exp_name if c.isalnum() or c in ("_", "-"))
-    filename = f"{sanitized_name}_{int(time.time())}.csv"
+    if not sanitized_name:
+        messagebox.showerror("Input Error", "Der Experimentname enthält keine gültigen Zeichen.")
+        return
+
+    date_prefix = time.strftime("%Y%m%d")
+    filename = f"{date_prefix}_{sanitized_name}.csv"
     full_path = os.path.join(CSV_DIR, filename)
 
     try:
+        State.Experiment = sanitized_name
+        Log.set_active_log_path(full_path)
         with open(full_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(["Timestamp", "Device", "Mode", "Command", "Value", "Status"])
             timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
             writer.writerow([timestamp, "System", "Init", "CREATE_EXP", exp_name, "Initialized"])
 
-        # Explorer im Log-Bereich neu laden (nur CSV-Ordner)
         build_file_tree(tree_logs, CSV_DIR)
 
-        # Datei im Terminal daneben öffnen
         txt_log_terminal.config(state="normal")
         txt_log_terminal.delete("1.0", "end")
         txt_log_terminal.insert("end", f"=== NEW EXPERIMENT CREATED: {filename} ===\n\n")
@@ -396,6 +410,8 @@ def create_experiment_csv():
             txt_log_terminal.insert("end", f.read())
         txt_log_terminal.config(state="disabled")
 
+        entry_exp_name.config(state="readonly")
+        btn_create_exp.config(state="disabled")
         messagebox.showinfo("Experiment Created", f"CSV-Datei erfolgreich erstellt:\n{filename}")
     except Exception as e:
         messagebox.showerror("File Error", f"Fehler beim Erstellen der CSV-Datei: {e}")
@@ -461,15 +477,22 @@ def connect_single_lockin():
     is_lockin_connected = dev is not None or is_emergency_bypass
     update_tab_states()
     if is_lockin_connected:
+        try:
+            Komunikation.start_communication_loop()
+            Log.Log("Comm", "SR830", "Info", "Connect", f"Port {LOCK_IN_AMPLIFIER_PORT} aktiv", "GUI")
+        except Exception as error:
+            Log.Log("Comm", "SR830", "Warning", "Connect", f"Kommunikationsstart fehlgeschlagen: {error}", "GUI")
         messagebox.showinfo("Status", f"Lock-In Amplifier erfolgreich verbunden ({LOCK_IN_AMPLIFIER_PORT}).")
     else:
         messagebox.showwarning("Status", f"Lock-In Amplifier auf {LOCK_IN_AMPLIFIER_PORT} nicht erreichbar!")
 
 def disconnect_single_lockin():
     global is_lockin_connected, lockin_device
+    Komunikation.close_device("SR830")
     is_lockin_connected = False
     lockin_device = None
     update_tab_states()
+    Log.Log("Comm", "SR830", "Info", "Disconnect", "Gerät getrennt", "GUI")
     messagebox.showinfo("Status", "Lock-In Amplifier getrennt.")
 
 def connect_single_laser():
@@ -483,14 +506,21 @@ def connect_single_laser():
     is_laser_connected = dev is not None or is_emergency_bypass
     update_tab_states()
     if is_laser_connected:
+        try:
+            Komunikation.start_communication_loop()
+            Log.Log("Comm", "OSTECH", "Info", "Connect", f"Port {LASER_PORT} aktiv", "GUI")
+        except Exception as error:
+            Log.Log("Comm", "OSTECH", "Warning", "Connect", f"Kommunikationsstart fehlgeschlagen: {error}", "GUI")
         messagebox.showinfo("Status", f"Laser Controller erfolgreich verbunden ({LASER_PORT}).")
     else:
         messagebox.showwarning("Status", f"Laser Controller auf {LASER_PORT} nicht erreichbar!")
 
 def disconnect_single_laser():
     global is_laser_connected
+    Komunikation.close_device("OSTECH")
     is_laser_connected = False
     update_tab_states()
+    Log.Log("Comm", "OSTECH", "Info", "Disconnect", "Gerät getrennt", "GUI")
     messagebox.showinfo("Status", "Laser Controller getrennt.")
 
 
@@ -510,18 +540,28 @@ btn_disc_laser.grid(row=1, column=4, padx=5, pady=5)
 
 
 def populate_initial_com_ports():
-    ports = State.AVAILABLE_COM_PORTS or scan_com_ports()
+    ports = sorted(scan_com_ports())
+    State.update_values({"AVAILABLE_COM_PORTS": ports})
+
     if not ports:
+        if 'entry_com_lockin' in globals():
+            entry_com_lockin.delete(0, tk.END)
+            entry_com_lockin.insert(0, "")
+        if 'entry_com_laser' in globals():
+            entry_com_laser.delete(0, tk.END)
+            entry_com_laser.insert(0, "")
         return
 
-    lockin_port = "COM3" if "COM3" in ports else ports[0]
-    remaining_ports = [port for port in ports if port != lockin_port]
-    laser_port = "COM4" if "COM4" in ports else (remaining_ports[0] if remaining_ports else lockin_port)
+    preferred_lockin = "COM3" if "COM3" in ports else ports[0]
+    remaining_ports = [port for port in ports if port != preferred_lockin]
+    preferred_laser = "COM4" if "COM4" in ports else (remaining_ports[0] if remaining_ports else preferred_lockin)
 
-    entry_com_lockin.delete(0, tk.END)
-    entry_com_lockin.insert(0, lockin_port)
-    entry_com_laser.delete(0, tk.END)
-    entry_com_laser.insert(0, laser_port)
+    if 'entry_com_lockin' in globals():
+        entry_com_lockin.delete(0, tk.END)
+        entry_com_lockin.insert(0, preferred_lockin)
+    if 'entry_com_laser' in globals():
+        entry_com_laser.delete(0, tk.END)
+        entry_com_laser.insert(0, preferred_laser)
 
 
 populate_initial_com_ports()
@@ -545,8 +585,12 @@ lbl_tree_logs_title.pack(fill="x")
 tree_logs = ttk.Treeview(frame_tree_logs, show="tree")
 tree_logs.pack(fill="both", expand=True)
 
-# Hier wird exklusiv der Ordner für CSV-Dateien im Explorer geladen:
-build_file_tree(tree_logs, CSV_DIR)
+# Die Log-Ansicht beginnt direkt im Log-Verzeichnis, nicht oberhalb davon.
+log_root_dir = os.path.join(os.getcwd(), "logs")
+if os.path.isdir(log_root_dir):
+    build_file_tree(tree_logs, log_root_dir, show_root=False)
+else:
+    build_file_tree(tree_logs, CSV_DIR, show_root=False)
 
 frame_logs_work = tk.Frame(paned_logs, bg="#252526")
 paned_logs.add(frame_logs_work, weight=4)
@@ -1492,7 +1536,11 @@ lbl_tree_stats_title.pack(fill="x")
 
 tree_stats = ttk.Treeview(frame_tree_stats, show="tree")
 tree_stats.pack(fill="both", expand=True)
-build_file_tree(tree_stats, os.getcwd())
+log_root_dir = os.path.join(os.getcwd(), "logs")
+if os.path.isdir(log_root_dir):
+    build_file_tree(tree_stats, log_root_dir, show_root=False)
+else:
+    build_file_tree(tree_stats, os.getcwd())
 
 frame_stats_work = tk.Frame(paned_stats, bg="#252526")
 paned_stats.add(frame_stats_work, weight=4)
