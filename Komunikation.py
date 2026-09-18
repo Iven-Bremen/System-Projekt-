@@ -33,7 +33,7 @@ OSTECH_PORT = DEFAULT_OSTECH_PORT
 BAUDRATE = 9600
 TIMEOUT = 2
 DEFAULT_TICK_MS = 1
-DEFAULT_CYCLES = 5
+DEFAULT_CYCLES = None
 GUI_INTERVAL_MS = 12
 TEST_TAG = "Kommunikations-Test fuer SR830 und OSTECH"
 
@@ -106,10 +106,6 @@ class OSTECHCommand(Enum):
     GS = OSTECHCommandInfo("GS", int)
     GVN = OSTECHCommandInfo("GVN", int)
 
-
-    # send ones after Usere Intent 
-    LMDX = OSTECHCommandInfo("LMDX", bool)
-    L = OSTECHCommandInfo ("L", bool)
 
 def CheckCOM(COM, ID, Command, returnvalue):
     """Prueft einen COM-Port und gibt bei jedem Fehler ``False`` zurueck.
@@ -524,13 +520,33 @@ def _device_status_is_ready(publish):
         return False
     try:
         sr830_id = SR830_ID or ask_SR830("*IDN?")
+        publish({
+            "tag": "SR830",
+            "command": "*IDN?",
+            "value": sr830_id,
+            "info": "readiness check",
+        })
         status = LabOSTECHCommand(OSTECH, OSTECHCommand.GS).value
+        publish({
+            "tag": "OSTECH",
+            "command": OSTECHCommand.GS.value.command,
+            "value": status,
+            "info": "readiness check",
+        })
         serial_number = LabOSTECHCommand(OSTECH, OSTECHCommand.GVN).value
-        publish({"step": "status SR830", "value": sr830_id})
-        publish({"step": "status OSTECH", "value": {"status": status, "serial": serial_number}})
+        publish({
+            "tag": "OSTECH",
+            "command": OSTECHCommand.GVN.value.command,
+            "value": serial_number,
+            "info": "readiness check; serial number",
+        })
         return bool(sr830_id) and not status.get("lc_error", False)
     except Exception as error:
-        publish({"step": "status error", "value": f"{type(error).__name__}: {error}"})
+        publish({
+            "step": "error",
+            "value": f"{type(error).__name__}: {error}",
+            "info": "readiness check",
+        })
         return False
 
 
@@ -610,10 +626,7 @@ def start_threaded_measurement(
         raise ValueError("command_interval_seconds muss groesser als 0 sein.")
     sr830_steps, ostech_periodic_steps, _ = _device_steps()
     if command_queries is None:
-        command_queries = (
-            ("OSTECH LMDX", lambda: LabOSTECHCommand(OSTECH, OSTECHCommand.LMDX)),
-            ("OSTECH L", lambda: LabOSTECHCommand(OSTECH, OSTECHCommand.L)),
-        )
+        command_queries = ()
     else:
         command_queries = tuple(command_queries)
     if command_steps is None:
@@ -627,13 +640,29 @@ def start_threaded_measurement(
 
     def log_handler(message: ThreadMessage):
         payload = message.value if isinstance(message.value, dict) else {"value": message.value}
-        level = {"result": "End", "status": "Info", "error": "Error"}[message.kind]
-        Log.Log("Comm", message.source, level, str(payload.get("step", message.kind)),
-            str(payload.get("value", "")), message.kind, TEST_TAG)
+        if message.kind == "error" or payload.get("step") == "error":
+            Log.Log(
+                "Comm",
+                payload.get("tag", message.source),
+                "Error",
+                payload.get("command", "error"),
+                payload.get("value", ""),
+                payload.get("info", "communication error"),
+            )
+            return
+
+        value = payload.get("value", "")
+        command = payload.get("command", payload.get("step", message.kind))
+        tag = payload.get("tag", message.source)
+        info = payload.get("info", "periodic query")
+        if isinstance(value, OSTECHResult):
+            command = value.command
+            info = value.unit or info
+            value = value.value
+        Log.Log("Comm", tag, "Running", command, value, info)
 
     def default_gui_handler(message: ThreadMessage):
-        payload = message.value if isinstance(message.value, dict) else {"value": message.value}
-        print(f"[{message.source}] {payload.get('step', message.kind)}: {payload.get('value', '')}")
+        return
 
     threads = CommunicationThreads(
         lambda stop, publish: _run_device(

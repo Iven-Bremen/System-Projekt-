@@ -161,14 +161,14 @@ def ValidatedPort(NameOfPort : str, BaudRate : int, Timeout : float, SR830=None)
         OSTech = serial.Serial(NameOfPort, BaudRate, timeout = Timeout)
         time.sleep (1)
         Log.Log("Comm", "OSTECH", "Start", "OpenPort", str(BaudRate), f"{NameOfPort}; validation needed")
-        OSTech.write(b"GVN")
+        OSTech.write(b"GVN\r")
         OSTechID = OSTech.read_until(b"\r")
         OSTechID = OSTechID.decode("ascii", errors="replace").strip()
-        if(OSTechID != "264981"):
-            Log.Log("Comm", "OSTECH", "Error", "Received ID", OSTechID, "Expected 264981; port will be closed")
+        if(OSTechID not in {"8661", "Serial Number: 8661"}):
+            Log.Log("Comm", "OSTECH", "Error", "Received ID", OSTechID, "Expected GVN -> 8661; port will be closed")
             OSTech.close()
             return False
-        Log.Log("Comm", "OSTECH", "Info", "Received ID", OSTechID, f"Expected 264981; port {NameOfPort} stays open")
+        Log.Log("Comm", "OSTECH", "Info", "Received ID", OSTechID, f"Expected GVN -> 8661; port {NameOfPort} stays open")
         return True
     if(NameOfPort == GUI.getPortOf(SR830)):
         SR830 = serial.Serial(NameOfPort, BaudRate, timeout = Timeout)
@@ -177,11 +177,11 @@ def ValidatedPort(NameOfPort : str, BaudRate : int, Timeout : float, SR830=None)
         SR830.write(b"*IDN?\r")
         SR830ID = SR830.read_until(b"\r")
         SR830ID = SR830ID.decode("ascii", errors="replace").strip()
-        if(SR830ID != "264981"):
-            Log.Log("Comm", "SR830", "Error", "Received ID", SR830ID, "Expected 264981; port will be closed")
-            OSTech.close()
+        if("sr830" not in SR830ID.lower() or "stanford_research_systems" not in SR830ID.lower()):
+            Log.Log("Comm", "SR830", "Error", "Received ID", SR830ID, "Expected *IDN? -> Stanford_Research_Systems,SR830; port will be closed")
+            SR830.close()
             return False
-        Log.Log("Comm", "SR830", "Info", "Received ID", SR830ID, f"Expected 264981; port {NameOfPort} stays open")
+        Log.Log("Comm", "SR830", "Info", "Received ID", SR830ID, f"Expected *IDN? -> Stanford_Research_Systems,SR830; port {NameOfPort} stays open")
         return True
 
 

@@ -205,6 +205,15 @@ current_file_path = None
 is_lockin_connected = False
 is_laser_connected = False
 is_emergency_bypass = False
+communication_threads = None
+
+
+def stop_communication_threads():
+    """Stop the active communication workers before hardware is closed."""
+    global communication_threads
+    if communication_threads is not None:
+        communication_threads.stop()
+        communication_threads = None
 
 
 def check_real_com_port(port_name):
@@ -273,6 +282,8 @@ def on_closing():
     if is_closing:
         return
     is_closing = True
+
+    stop_communication_threads()
 
     if refresh_job is not None:
         try:
@@ -606,18 +617,47 @@ frame_auto = tk.LabelFrame(frame_ref, text=" Auto Functions ", font=("Consolas",
 frame_auto.pack(fill="x", pady=5)
 frame_auto.columnconfigure((0, 1), weight=1)
 
-tk.Button(frame_auto, text="Auto Phase", font=("Consolas", 8, "bold"), bg="#3c3f41", fg="white").grid(row=0, column=0,
-                                                                                                      padx=2, pady=2,
-                                                                                                      sticky="ew")
-tk.Button(frame_auto, text="Auto Gain", font=("Consolas", 8, "bold"), bg="#3c3f41", fg="white").grid(row=0, column=1,
-                                                                                                     padx=2, pady=2,
-                                                                                                     sticky="ew")
-tk.Button(frame_auto, text="Auto Reserve", font=("Consolas", 8, "bold"), bg="#3c3f41", fg="white").grid(row=1, column=0,
-                                                                                                        padx=2, pady=2,
-                                                                                                        sticky="ew")
-tk.Button(frame_auto, text="Auto Offset", font=("Consolas", 8, "bold"), bg="#3c3f41", fg="white").grid(row=1, column=1,
-                                                                                                       padx=2, pady=2,
-                                                                                                       sticky="ew")
+def send_lockin_command(command, value=None):
+    """Send one SR830 command through the central communication layer."""
+    if is_emergency_bypass:
+        return
+    if not is_lockin_connected or Komunikation.SR830 is None:
+        raise RuntimeError("SR830 ist nicht verbunden.")
+    Komunikation.send_SR830(command, value)
+
+
+def run_auto_command(command, values=None):
+    """Execute an SR830 auto command, optionally once for each selector."""
+    try:
+        if values is None:
+            send_lockin_command(command)
+        else:
+            for value in values:
+                send_lockin_command(command, value)
+    except Exception as error:
+        messagebox.showerror("Lock-In Fehler", f"{command}: {error}")
+
+
+btn_auto_phase = tk.Button(
+    frame_auto, text="Auto Phase", font=("Consolas", 8, "bold"),
+    bg="#3c3f41", fg="white", command=lambda: run_auto_command("APHS"),
+)
+btn_auto_phase.grid(row=0, column=0, padx=2, pady=2, sticky="ew")
+btn_auto_gain = tk.Button(
+    frame_auto, text="Auto Gain", font=("Consolas", 8, "bold"),
+    bg="#3c3f41", fg="white", command=lambda: run_auto_command("AGAN"),
+)
+btn_auto_gain.grid(row=0, column=1, padx=2, pady=2, sticky="ew")
+btn_auto_reserve = tk.Button(
+    frame_auto, text="Auto Reserve", font=("Consolas", 8, "bold"),
+    bg="#3c3f41", fg="white", command=lambda: run_auto_command("ARSV"),
+)
+btn_auto_reserve.grid(row=1, column=0, padx=2, pady=2, sticky="ew")
+btn_auto_offset = tk.Button(
+    frame_auto, text="Auto Offset", font=("Consolas", 8, "bold"),
+    bg="#3c3f41", fg="white", command=lambda: run_auto_command("AOFF", (1, 2, 3)),
+)
+btn_auto_offset.grid(row=1, column=1, padx=2, pady=2, sticky="ew")
 
 lbl_freq = tk.Label(frame_ref, font=("Consolas", 8), bg="#1e1e1e", fg="#aaaaaa")
 lbl_freq.pack(anchor="w", pady=(4, 0))
@@ -642,27 +682,19 @@ entry_ampl.pack(fill="x", pady=1)
 
 
 def lockin_start():
-    if connect_lockin():
-        try:
-            if lockin_device:
-                lockin_device.write("SLVL 1.0")
-            elif not is_emergency_bypass:
-                Komunikation.send_SR830("SLVL", 1.0)
-            messagebox.showinfo(auto_tr("Lock-In Amplifier"), auto_tr("Sine Out set to 1.0 V (ON)."))
-        except Exception as e:
-            messagebox.showerror("Fehler", f"{e}")
+    try:
+        send_lockin_command("SLVL", 1.0)
+        messagebox.showinfo(auto_tr("Lock-In Amplifier"), auto_tr("Sine Out set to 1.0 V (ON)."))
+    except Exception as e:
+        messagebox.showerror("Fehler", f"{e}")
 
 
 def lockin_stop():
-    if connect_lockin():
-        try:
-            if lockin_device:
-                lockin_device.write("SLVL 0.0")
-            elif not is_emergency_bypass:
-                Komunikation.send_SR830("SLVL", 0.0)
-            messagebox.showinfo(auto_tr("Lock-In Amplifier"), auto_tr("Sine Out set to 0.0 V (OFF)."))
-        except Exception as e:
-            messagebox.showerror("Fehler", f"{e}")
+    try:
+        send_lockin_command("SLVL", 0.0)
+        messagebox.showinfo(auto_tr("Lock-In Amplifier"), auto_tr("Sine Out set to 0.0 V (OFF)."))
+    except Exception as e:
+        messagebox.showerror("Fehler", f"{e}")
 
 
 def apply_ref_settings():
@@ -673,7 +705,7 @@ def apply_ref_settings():
     VISA layer and keeps failed user input distinguishable from hardware errors.
     """
     new_freq = read_numeric_entry(entry_freq, "Ref Frequency", 0.001, 102000)
-    new_phase = read_numeric_entry(entry_ref_phase, "Ref Phase", -360, 360)
+    new_phase = read_numeric_entry(entry_ref_phase, "Ref Phase", -360, 729.99)
     new_ampl = read_numeric_entry(entry_ampl, "Sine Output Amplitude", 0, 5)
     if None in (new_freq, new_phase, new_ampl):
         return
@@ -681,16 +713,11 @@ def apply_ref_settings():
     if messagebox.askyesno("Bestätigung",
                            f"Referenz-Parameter wirklich anpassen?\n\nFrequenz: {new_freq} Hz\nPhase: {new_phase}°\nAmplitude: {new_ampl} V"):
         val_ref_display.config(text=f"{new_freq} Hz")
-        if connect_lockin() and not is_emergency_bypass:
+        if not is_emergency_bypass:
             try:
-                if lockin_device:
-                    lockin_device.write(f"FREQ {new_freq}")
-                    lockin_device.write(f"PHAS {new_phase}")
-                    lockin_device.write(f"SLVL {new_ampl}")
-                else:
-                    Komunikation.send_SR830("FREQ", new_freq)
-                    Komunikation.send_SR830("PHAS", new_phase)
-                    Komunikation.send_SR830("SLVL", new_ampl)
+                send_lockin_command("FREQ", new_freq)
+                send_lockin_command("PHAS", new_phase)
+                send_lockin_command("SLVL", new_ampl)
             except Exception as e:
                 messagebox.showerror("Hardware Fehler", f"Fehler beim Senden: {e}")
                 return
@@ -1267,8 +1294,10 @@ def apply_com_settings():
 def connect_all_hardware():
     global is_lockin_connected, is_laser_connected, is_emergency_bypass
     global LOCK_IN_AMPLIFIER_PORT, LASER_PORT
+    global communication_threads
     is_emergency_bypass = False
     SimGuiUpdatet.stop(root)
+    stop_communication_threads()
 
     LOCK_IN_AMPLIFIER_PORT = entry_com_lockin.get().strip().upper()
     LASER_PORT = entry_com_laser.get().strip().upper()
@@ -1285,6 +1314,9 @@ def connect_all_hardware():
     entry_com_laser.insert(0, LASER_PORT or "")
     is_lockin_connected = connected_sr830 is not None or is_emergency_bypass
     is_laser_connected = connected_ostech is not None or is_emergency_bypass
+
+    if is_lockin_connected or is_laser_connected:
+        communication_threads = Komunikation.start_threaded_measurement(cycles=None)
 
     lockin_result = "SUCCESS" if is_lockin_connected else "FAILED"
     laser_result = "SUCCESS" if is_laser_connected else "FAILED"
@@ -1317,6 +1349,8 @@ def disconnect_all_hardware():
     is_laser_connected = False
     is_emergency_bypass = False
     SimGuiUpdatet.stop(root)
+    stop_communication_threads()
+    Komunikation.close_devices()
     lockin_device = None
     update_tab_states()
     messagebox.showinfo("Hardware Status", "Alle Verbindungen getrennt.")

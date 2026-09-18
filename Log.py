@@ -367,6 +367,19 @@ def Log(Category: str, TAG: str, State: str, Message: str, Value: str, Info: str
     time_str = now.strftime("%H:%M:%S")
     ms_str = now.strftime("%f")[:3]
 
+    # CSV rows and terminal formatting both require text, while protocol
+    # responses may legitimately be dictionaries or other structured values.
+    Category = str(Category)
+    TAG = str(TAG)
+    State = str(State)
+    Message = str(Message)
+    Value = str(Value)
+    Info = str(Info)
+    AdditionalMessage = str(AdditionalMessage)
+    AdditionalValue = str(AdditionalValue)
+    AdditionalInfo = str(AdditionalInfo)
+    Else = str(Else)
+
     row = [
         now.strftime("%Y-%m-%d"), time_str, ms_str,
         Category, TAG, State, Message, Value, Info, AdditionalMessage,

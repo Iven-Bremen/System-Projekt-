@@ -1,0 +1,2 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-18,10:50:50,545,Comm,OSTECH,Running,GS,"{'status_word': 3085, 'lc_error': False}",readiness check,,,,
