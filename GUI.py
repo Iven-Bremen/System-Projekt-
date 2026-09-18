@@ -441,8 +441,14 @@ combo_notch.pack(fill="x", pady=2)
 lbl_sens = tk.Label(frame_input, font=("Consolas", 8), bg="#1e1e1e", fg="#aaaaaa")
 lbl_sens.pack(anchor="w", pady=(5, 0))
 reg_ui(lbl_sens, "Sensitivity:")
-combo_sens = ttk.Combobox(frame_input, values=["2 nV", "10 nV", "100 nV", "1 uV", "100 uV", "1 V"], state="readonly")
-combo_sens.current(5)
+combo_sens_values = [
+    "2 nV/fA", "5 nV/fA", "10 nV/fA", "20 nV/fA", "50 nV/fA", "100 nV/fA", "200 nV/fA", "500 nV/fA",
+    "1 uV/pA", "2 uV/pA", "5 uV/pA", "10 uV/pA", "20 uV/pA", "50 uV/pA", "100 uV/pA", "200 uV/pA",
+    "500 uV/pA", "1 mV/nA", "2 mV/nA", "5 mV/nA", "10 mV/nA", "20 mV/nA", "50 mV/nA", "100 mV/nA",
+    "200 mV/nA", "500 mV/nA", "1 V/uA",
+]
+combo_sens = ttk.Combobox(frame_input, values=combo_sens_values, state="readonly")
+combo_sens.current(len(combo_sens_values) - 1)
 combo_sens.pack(fill="x", pady=2)
 
 lbl_res = tk.Label(frame_input, font=("Consolas", 8), bg="#1e1e1e", fg="#aaaaaa")
@@ -455,8 +461,12 @@ combo_res.pack(fill="x", pady=2)
 lbl_tc = tk.Label(frame_input, font=("Consolas", 8), bg="#1e1e1e", fg="#aaaaaa")
 lbl_tc.pack(anchor="w", pady=(5, 0))
 reg_ui(lbl_tc, "Time Constant:")
-combo_tc = ttk.Combobox(frame_input, values=["10 us", "1 ms", "100 ms", "1 s", "30 ks"], state="readonly")
-combo_tc.current(2)
+combo_tc_values = [
+    "10 us", "30 us", "100 us", "300 us", "1 ms", "3 ms", "10 ms", "30 ms", "100 ms", "300 ms",
+    "1 s", "3 s", "10 s", "30 s", "100 s", "300 s", "1 ks", "3 ks", "10 ks", "30 ks",
+]
+combo_tc = ttk.Combobox(frame_input, values=combo_tc_values, state="readonly")
+combo_tc.current(9)
 combo_tc.pack(fill="x", pady=2)
 
 lbl_slope = tk.Label(frame_input, font=("Consolas", 8), bg="#1e1e1e", fg="#aaaaaa")
@@ -468,8 +478,53 @@ combo_slope.pack(fill="x", pady=2)
 
 
 def apply_lockin_filter_settings():
-    if messagebox.askyesno("Bestätigung", "Filter- und Eingangs-Einstellungen an den Lock-In Amplifier übermitteln?"):
+    if not messagebox.askyesno("Bestätigung", "Filter- und Eingangs-Einstellungen an den Lock-In Amplifier übermitteln?"):
+        return
+
+    try:
+        sensitivity_map = {
+            "2 nV/fA": 0, "5 nV/fA": 1, "10 nV/fA": 2, "20 nV/fA": 3, "50 nV/fA": 4, "100 nV/fA": 5,
+            "200 nV/fA": 6, "500 nV/fA": 7, "1 uV/pA": 8, "2 uV/pA": 9, "5 uV/pA": 10, "10 uV/pA": 11,
+            "20 uV/pA": 12, "50 uV/pA": 13, "100 uV/pA": 14, "200 uV/pA": 15, "500 uV/pA": 16,
+            "1 mV/nA": 17, "2 mV/nA": 18, "5 mV/nA": 19, "10 mV/nA": 20, "20 mV/nA": 21, "50 mV/nA": 22,
+            "100 mV/nA": 23, "200 mV/nA": 24, "500 mV/nA": 25, "1 V/uA": 26,
+        }
+
+        mapping = {
+            "ISRC": {"A": 0, "A-B": 1, "I (1M)": 2, "I (100M)": 3},
+            "ICPL": {"AC": 0, "DC": 1},
+            "IGND": {"Float": 0, "Ground": 1},
+            "ILIN": {"Out": 0, "Line (50/60Hz)": 1, "2x Line": 2, "Both": 3},
+            "SENS": sensitivity_map,
+            "RMOD": {"High Reserve": 0, "Normal": 1, "Low Noise": 2},
+            "OFLT": {
+                "10 us": 0, "30 us": 1, "100 us": 2, "300 us": 3, "1 ms": 4, "3 ms": 5,
+                "10 ms": 6, "30 ms": 7, "100 ms": 8, "300 ms": 9, "1 s": 10, "3 s": 11,
+                "10 s": 12, "30 s": 13, "100 s": 14, "300 s": 15, "1 ks": 16, "3 ks": 17,
+                "10 ks": 18, "30 ks": 19,
+            },
+            "OFSL": {"6 dB/oct": 0, "12 dB/oct": 1, "18 dB/oct": 2, "24 dB/oct": 3},
+        }
+
+        selected = {
+            "ISRC": combo_in_cfg.get(),
+            "ICPL": combo_coupling.get(),
+            "IGND": combo_grounding.get(),
+            "ILIN": combo_notch.get(),
+            "SENS": combo_sens.get(),
+            "RMOD": combo_res.get(),
+            "OFLT": combo_tc.get(),
+            "OFSL": combo_slope.get(),
+        }
+
+        for command, value in selected.items():
+            if value not in mapping[command]:
+                raise ValueError(f"Unbekannte Auswahl für {command}: {value!r}")
+            send_lockin_command(command, mapping[command][value])
+
         messagebox.showinfo("Lock-In Amplifier", "Signal- und Filter-Parameter erfolgreich angewendet.")
+    except Exception as error:
+        messagebox.showerror("Lock-In Fehler", str(error))
 
 
 btn_apply_input = tk.Button(frame_input, text="✔ Apply Input Settings", font=("Consolas", 8, "bold"), bg="#007acc",

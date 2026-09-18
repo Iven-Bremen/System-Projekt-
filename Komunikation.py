@@ -1,14 +1,16 @@
-﻿"""Typed communication layer for the SR830 and OSTECH instruments.
+﻿"""Low-level communication layer for SR830 and OSTECH instruments.
 
-This module owns serial ports, protocol framing, response decoding, and the
-polling steps used by ``Threads.CommunicationThreads``. It does not update GUI
-widgets. Successful decoded values are written to ``State`` so the GUI can
-read a consistent snapshot on its own 60 Hz refresh schedule.
+This module owns only the protocol-neutral hardware concerns:
+- serial-port opening/closing
+- lock-protected device access
+- wire encoding / decoding
+- command execution against the actual instrument
+- thread-driven polling and status handling
 
-There are two protocol families here. The SR830 returns line-oriented ASCII
-responses, while OSTECH switches to an echo plus binary payload protocol.
-Separate locks protect each serial port because command, status, and polling
-workers may access the same instrument concurrently.
+User-facing command metadata, convenience wrappers, and command selection live
+in ``Send.py``. The point of this split is that the rest of the application
+works with typed commands and metadata, while the communication layer stays
+responsible for the actual byte-level interaction with the hardware.
 """
 
 import struct
@@ -254,34 +256,53 @@ def _convert_response(response: str, return_type):
     return return_type(response)
 
 
-def ask_SR830(command: str, value=None, return_type=str):
+def _resolve_sr830_command(command):
+    """Accept either a raw command string or a metadata object from Send.py."""
+    if hasattr(command, "command"):
+        return command.command
+    return str(command)
+
+
+def _resolve_sr830_return_type(command, return_type):
+    """Pick a return type from metadata when the caller did not provide one."""
+    if return_type is not None:
+        return return_type
+    if hasattr(command, "type"):
+        return command.type
+    return str
+
+
+def ask_SR830(command, value=None, return_type=None):
     """Send a line-oriented SR830 command and return a typed response.
 
-    Beispiele: ``ask_SR830("FREQ?", return_type=float)`` oder
-    ``ask_SR830("PHAS?", return_type=float)``. Fuer Setzbefehle kann der Wert
-    direkt mitgegeben werden, zum Beispiel ``ask_SR830("PHAS", 12.5)``.
+    ``command`` may be either a raw command string such as ``"FREQ?"`` or a
+    metadata object from ``Send.py`` (for example ``SR830G.FREQ``). This module
+    is responsible for the actual wire-level encoding and decoding. The public
+    command API in ``Send.py`` decides which command to use.
     """
     if SR830 is None:
         raise RuntimeError("SR830 ist nicht verbunden.")
+    resolved_command = _resolve_sr830_command(command)
+    resolved_type = _resolve_sr830_return_type(command, return_type)
     with SR830_LOCK:
-        SR830.write(f"{_format_command(command, value)}\r".encode("ascii"))
+        SR830.write(f"{_format_command(resolved_command, value)}\r".encode("ascii"))
         SR830.flush()
         response = SR830.read_until(b"\r").decode("ascii", errors="replace").strip()
-        return _convert_response(response, return_type)
+        return _convert_response(response, resolved_type)
 
 
-def send_SR830(command: str, value=None):
+def send_SR830(command, value=None):
     """Send an SR830 setting command without waiting for a response.
 
-    The same per-device lock as ``ask_SR830`` is used, so a write cannot be
-    interleaved with a polling query. This function is intentionally separate
-    from query functions because the instrument protocol and caller's intent
-    differ: no response is expected for a setter.
+    The communication layer handles the actual serial write. Public code should
+    reach this function through the command API in ``Send.py`` so all outgoing
+    commands follow the same structure and logging flow.
     """
     if SR830 is None:
         raise RuntimeError("SR830 ist nicht verbunden.")
+    resolved_command = _resolve_sr830_command(command)
     with SR830_LOCK:
-        SR830.write(f"{_format_command(command, value)}\r".encode("ascii"))
+        SR830.write(f"{_format_command(resolved_command, value)}\r".encode("ascii"))
         SR830.flush()
 
 
