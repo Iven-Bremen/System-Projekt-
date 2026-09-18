@@ -76,6 +76,33 @@ def update_values(values: dict[str, object]) -> None:
 				globals()[name] = value
 
 
+def get_display_value_for_selection(channel: str, selection: str):
+	"""Resolve the live value and unit for a selected lock-in display source.
+
+	The phase display does not read the raw channel output. It must use the
+	actual ``State.PHAS`` value instead of ``State.OUTP4`` so the GUI stays in
+	sync with the instrument state.
+	"""
+	if channel == "CH1":
+		cmd_map = {
+			"X": ("OUTP1", "V"),
+			"R": ("OUTP3", "V"),
+			"X Noise": ("OUTR1", "V"),
+			"Aux In 1": ("OAUX1", "V"),
+			"Aux In 2": ("OAUX2", "V"),
+		}
+	else:
+		cmd_map = {
+			"Y": ("OUTP2", "V"),
+			"Phase (θ)": ("PHAS", "°"),
+			"Y Noise": ("OUTR2", "V"),
+			"Aux In 3": ("OAUX3", "V"),
+			"Aux In 4": ("OAUX4", "V"),
+		}
+	cmd, unit = cmd_map.get(selection, next(iter(cmd_map.values())))
+	return globals().get(cmd, 0.0), unit
+
+
 @dataclass(frozen=True)
 class COMPort:
 	"""Immutable description of one serial port visible to the OS.

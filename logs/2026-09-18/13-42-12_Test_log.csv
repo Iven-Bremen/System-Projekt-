@@ -1,0 +1,13 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-18,13:42:12,457,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-09-18,13:42:12,457,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-09-18,13:42:12,475,OUTPUT,TERMINAL,OUTPUT,"['COM3', 'COM4']",,,,,,
+2026-09-18,13:42:12,475,Sys,SYSTEM,Info,COM-Port Scan,"['COM3', 'COM4']",Startup,,,,
+2026-09-18,13:42:12,476,Calc,CALCULATION,Info,calculation ready,No calculations configured,STARTER,,,,
+2026-09-18,13:42:14,479,Gui,GUI,Start,Starting GUI,,,,,,
+2026-09-18,13:42:17,753,GUI,GUI,Info,Button clicked,CLICK,Connect Lock-In,,,,
+2026-09-18,13:42:19,812,Comm,COM3,Warning,Try connect,FAILED,*IDN? -> ,SR830,,,
+2026-09-18,13:42:21,873,Comm,COM3,Warning,Try connect,FAILED,GVN -> ,OSTECH,,,
+2026-09-18,13:42:23,974,Comm,COM4,Warning,Try connect,FAILED,*IDN? -> ,SR830,,,
+2026-09-18,13:42:26,037,Comm,COM4,Warning,Try connect,FAILED,GVN -> ,OSTECH,,,
+2026-09-18,13:42:31,707,SYSTEM,SYSTEM,Info,Foreground Shutdown,GUI closed, ,,,,
