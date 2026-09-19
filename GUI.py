@@ -326,20 +326,20 @@ reg_ui((main_notebook, tab_home), "Home", "tab_text")
 
 lbl_welcome = tk.Label(tab_home, font=("Consolas", 12, "bold"), bg="#1e1e1e", fg="#00ffcc")
 lbl_welcome.pack(pady=(20, 5))
-reg_ui(lbl_welcome, "WELCOME TO LAB MEASUREMENT SYSTEM")
+reg_ui(lbl_welcome, "WELCOME TO THE PHOTOTHERMAL ANALYSIS & MONITORING OVERVIEW")
 
 lbl_info = tk.Label(tab_home, font=("Segoe UI", 10), bg="#1e1e1e", fg="#aaaaaa", justify="center")
 lbl_info.pack(pady=5)
 reg_ui(lbl_info, "Select a tab above to control hardware or run data analysis.")
 
 # ------------------------------------------
-# 2. TAB: CONNECTIONS
+# 2. TAB: OVERVIEW
 # ------------------------------------------
-tab_connections = tk.Frame(main_notebook, bg="#1e1e1e")
-main_notebook.add(tab_connections, text="")
-reg_ui((main_notebook, tab_connections), "Connections", "tab_text")
+tab_overview = tk.Frame(main_notebook, bg="#1e1e1e")
+main_notebook.add(tab_overview, text="")
+reg_ui((main_notebook, tab_overview), "Overview", "tab_text")
 
-frame_coms = tk.LabelFrame(tab_connections, text=" Hardware COM Interfaces & System Tools ",
+frame_coms = tk.LabelFrame(tab_overview, text=" Hardware COM Interfaces & System Tools ",
                            font=("Consolas", 10, "bold"),
                            bg="#1e1e1e", fg="#00ffcc", padx=15, pady=15)
 frame_coms.pack(pady=15, padx=20, fill="x")
@@ -1374,29 +1374,6 @@ def disconnect_all_hardware():
     lockin_device = None
     messagebox.showinfo("Hardware Status", "Alle Verbindungen getrennt.")
 
-
-def trigger_emergency_bypass():
-    global is_emergency_bypass
-    if is_lockin_connected or is_laser_connected:
-        messagebox.showerror(
-            "Notfall-Zugriff nicht erforderlich",
-            "Der Notfall-Bypass ist nur ohne COM-Verbindung erlaubt.",
-        )
-        return
-
-    pwd = simpledialog.askstring("Notfall-Zugriff", "Bitte Notfall-Passwort eingeben:", show='*')
-    if pwd is None:
-        return
-    if pwd != APP_SETTINGS.get("emergency_password", "admin123"):
-        messagebox.showerror("Zugriff Verweigert", "Falsches Passwort!")
-        return
-
-    is_emergency_bypass = True
-    SimGuiUpdatet.start(root)
-    messagebox.showwarning("Notfall-Bypass Aktiviert",
-                           "Notfall-Zugriff gewährt!\nHardware-Schnittstellen wurden manuell freigeschaltet.")
-
-
 btn_apply_com = tk.Button(frame_com_btns, text="Refresh", font=("Consolas", 9, "bold"), bg="#007acc", fg="white",
                           command=Starter.get_available_com_ports)
 btn_apply_com.pack(side="left", padx=5)
@@ -1408,11 +1385,6 @@ btn_scan_com.pack(side="left", padx=5)
 btn_dev_manager = tk.Button(frame_com_btns, text="Disconnect", font=("Consolas", 9, "bold"), bg="#c62828", fg="white",
                             command=disconnect_all_hardware)
 btn_dev_manager.pack(side="left", padx=5)
-
-btn_emergency_bypass = tk.Button(frame_coms, text="🔑", font=("Consolas", 8), bg="#2b2b2b", fg="#555555", bd=0,
-                                 relief="flat", activebackground="#2b2b2b", command=trigger_emergency_bypass)
-btn_emergency_bypass.grid(row=2, column=2, sticky="e", padx=5)
-
 
 # ==========================================
 # HELPER FOR EXPLORER TREEVIEW (PYCHARM STYLE)
@@ -1835,31 +1807,6 @@ btn_dark.pack(pady=4)
 
 btn_light = tk.Button(sub_tab_theme, text="Light Mode", width=15, bg="#e0e0e0", fg="black", command=lambda: apply_theme("light"))
 btn_light.pack(pady=4)
-
-sub_tab_security = tk.Frame(settings_notebook, bg="#252526")
-settings_notebook.add(sub_tab_security, text=" Security ")
-
-lbl_sec_title = tk.Label(sub_tab_security, text="Emergency Password Settings", font=("Consolas", 10, "bold"),
-                         bg="#252526", fg="#ffffff")
-lbl_sec_title.pack(pady=15)
-
-
-def change_emergency_password():
-    old_pwd = simpledialog.askstring("Passwort Ändern", "Altes Passwort eingeben:", show='*')
-    if old_pwd == APP_SETTINGS.get("emergency_password", "admin123"):
-        new_pwd = simpledialog.askstring("Passwort Ändern", "Neues Passwort eingeben:", show='*')
-        if new_pwd:
-            APP_SETTINGS["emergency_password"] = new_pwd
-            save_settings(APP_SETTINGS)
-            messagebox.showinfo("Erfolg", "Notfall-Passwort wurde erfolgreich geändert!")
-    else:
-        messagebox.showerror("Fehler", "Altes Passwort nicht korrekt!")
-
-
-btn_change_pwd = tk.Button(sub_tab_security, text="Change Emergency Password", font=("Consolas", 9, "bold"),
-                           bg="#007acc", fg="white", command=change_emergency_password)
-btn_change_pwd.pack(pady=5)
-
 
 def log_gui_click(event):
     """Write a structured log entry for a user click.
