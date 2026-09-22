@@ -22,14 +22,12 @@ from tkinter import filedialog
 # 0) Eigene Exceptions
 
 class InvalidFileTypeError(Exception):
-    """Wird geworfen, wenn die ausgewählte Datei keine .csv- oder .txt-Datei ist."""
+# Wird geworfen, wenn die ausgewählte Datei keine .csv- oder .txt-Datei ist
     pass
-
 
 class InvalidFileContentError(Exception):
-    """Wird geworfen, wenn die Datei keine gültigen Phasen- und Frequenzwerte enthält."""
+# Wird geworfen, wenn die Datei keine gültigen Phasen- und Frequenzwerte enthält
     pass
-
 
 ALLOWED_EXTENSIONS = (".csv", ".txt")
 
@@ -41,9 +39,8 @@ SNAP_PARAM_FREQ = 9    # Reference Frequency
 # 1) Dateiauswahl über Explorerfenster (nur CSV/TXT)
 
 def select_file_via_explorer(title="Datei auswählen"):
-    """
-    Öffnet ein Datei-Explorer-Fenster, gefiltert auf .csv- und .txt-Dateien.
-    """
+# Öffnet ein Datei-Explorer-Fenster, gefiltert auf .csv- und .txt-Dateien.
+
     root = tk.Tk()
     root.withdraw()  # Versteckt das Hauptfenster von Tkinter
     root.attributes('-topmost', True)  # Bringt den Explorer in den Vordergrund
@@ -61,11 +58,9 @@ def select_file_via_explorer(title="Datei auswählen"):
 
 
 def validate_extension(path: str) -> None:
-    """
-    Prüft, ob die Datei die Endung .csv oder .txt besitzt.
+# Prüft, ob die Datei die Endung .csv oder .txt besitzt.
+# :raises InvalidFileTypeError: wenn die Endung nicht erlaubt ist
 
-    :raises InvalidFileTypeError: wenn die Endung nicht erlaubt ist
-    """
     _, ext = os.path.splitext(path)
     if ext.lower() not in ALLOWED_EXTENSIONS:
         raise InvalidFileTypeError(
@@ -74,7 +69,7 @@ def validate_extension(path: str) -> None:
         )
 
 
-# 2a) Einlesen: TXT-Format (spaltenbasiert)
+# Einlesen: TXT-Format (spaltenbasiert)
 
 def parse_lockin_txt(path):
     """
@@ -109,7 +104,7 @@ def parse_lockin_txt(path):
             f"keine Frequenzspalte (z.B. 'f(hz)') gefunden."
         )
 
-    # --- b) Frequenz-Tabelle am Dateianfang einlesen ---
+    # Frequenz-Tabelle am Dateianfang einlesen
     freqs = []
     i = 1  # Zeile 0 ist der Tabellenkopf "A(v) f(hz) ..."
     while i < len(lines):
@@ -129,7 +124,7 @@ def parse_lockin_txt(path):
     if n_freq == 0:
         raise InvalidFileContentError(f"Konnte keine Frequenz-Tabelle in '{path}' finden.")
 
-    # --- c) Phasen-Unterüberschrift prüfen ("Amplitude ... Phase ...") ---
+    # Phasen-Unterüberschrift prüfen ("Amplitude ... Phase ...")
     phase_keywords = ["phase", "phasenwinkel", "phi"]
     remaining_header_text = " ".join(lines[i:i + 3]).lower()
     if not any(kw in remaining_header_text for kw in phase_keywords):
@@ -137,7 +132,7 @@ def parse_lockin_txt(path):
             f"Datei '{path}': Es wurde keine Phasen-Spalte (z.B. 'Phase in Grad') gefunden."
         )
 
-    # --- d) Datenblöcke suchen (Zeilen, die NUR eine ganze Zahl enthalten) ---
+    # Datenblöcke suchen (Zeilen, die NUR eine ganze Zahl enthalten)
     block_start_idx = [idx for idx in range(i, len(lines))
                         if lines[idx].strip().isdigit()]
     if not block_start_idx:
@@ -169,7 +164,7 @@ def parse_lockin_txt(path):
     phase_blocks = np.array(phase_blocks)  # (n_blocks, n_freq)
     n_blocks = amp_blocks.shape[0]
 
-    # --- e) Zirkulare Mittelung der Phase über die Wiederholungen ---
+    # Zirkulare Mittelung der Phase über die Wiederholungen
     phase_rad = np.deg2rad(phase_blocks)
     mean_vec = np.mean(np.exp(1j * phase_rad), axis=0)
     phase_mean = np.rad2deg(np.angle(mean_vec)) % 360.0
@@ -179,8 +174,7 @@ def parse_lockin_txt(path):
     return freq, phase_mean, phase_std, amp_mean, n_blocks
 
 
-# 2b) Einlesen: CSV-Format (SNAP-Kommando-Log)
-
+    # CSV-Format (SNAP-Kommando-Log)
 def parse_lockin_csv(path):
     """
     Liest eine SNAP-Kommando-Logdatei (.csv) im Format ein:
