@@ -49,22 +49,99 @@ REQUIRED_COLUMN_INDEXES = (3, 4, 5, 6)
 _CURRENT_SESSION_LOG_PATH = None
 _LOG_LOCK = threading.RLock()
 # GUI-Funktionen, die bei jeder neuen Meldung mit dem formatierten Text
-# aufgerufen werden.
+# aufgerufen werden. Jede Callback kann optional einen eigenen Filter besitzen,
+# damit die GUI nur noch das relevante Live-Log auswählt, während die Logik
+# selbst zentral in dieser Datei bleibt.
 _gui_callbacks = []
+_GUI_LOG_BUFFER = []
+_MAX_GUI_LOG_BUFFER = 200
 
-def register_gui_callback(callback_func):
+LIVE_LOG_ALLOWED_RUNNING_TOKENS = (
+    "LR", "LS", "GVS", "GVN", "*IDN?", "ERRS?", "LIAS?",
+    "LCA", "LVA", "LPCA", "LPA", "T1A", "GT", "GS", "GM",
+    "1TA", "1TCA", "1TVA", "LCT", "LCL", "LVC",
+)
+
+
+def _compact_gui_entry(raw_message, fallback_tag="LOG"):
+    """Konvertiert rohe Logzeilen in die Kurzfassung fuer die GUI."""
+    text = (raw_message or "").strip()
+    if not text:
+        return ""
+    if " | " in text and "|" in text:
+        return text
+
+    try:
+        parsed = next(csv.reader([text]))
+    except Exception:
+        parsed = []
+
+    if len(parsed) >= 9:
+        fields = parsed[3:9]
+        compact = " | ".join((value or "").strip() for value in fields)
+        if compact:
+            return compact + "\n"
+
+    if text.startswith("[") and "]" in text:
+        return text.strip() + "\n"
+    return f"{fallback_tag} | {text}\n"
+
+
+def gui_live_log_filter(formatted_message):
+    """Zentrale Sichtbarkeitsregel fuer das GUI-Live-Log.
+
+    Alle Eintraege ausser ``Running`` werden immer angezeigt. Bei ``Running``
+    werden nur definierte relevante Befehle erlaubt, damit der Live-Log nicht
+    mit polling- und status-Noise ueberschwemm wird.
+    """
+    if not isinstance(formatted_message, str):
+        return True
+    if "| Running |" not in formatted_message:
+        return True
+    return any(token in formatted_message for token in LIVE_LOG_ALLOWED_RUNNING_TOKENS)
+
+
+def flush_gui_startup_buffer():
+    """Leert den Start-Buffer einmalig in alle registrierten GUI-Callbacks."""
+    if not _gui_callbacks:
+        return
+    pending_messages = list(_GUI_LOG_BUFFER)
+    _GUI_LOG_BUFFER.clear()
+    for message in pending_messages:
+        for callback, callback_filter in list(_gui_callbacks):
+            if not _should_emit_to_gui(message, callback_filter):
+                continue
+            try:
+                callback(message)
+            except Exception:
+                pass
+
+
+def register_gui_callback(callback_func, filter_func=None):
     """Registriert eine Funktion fuer neue Logzeilen.
 
     `callback_func` muss genau einen Parameter akzeptieren. Beim Auftreten
     einer neuen Meldung wird dieser Funktion der bereits formatierte Text
-    uebergeben. Die GUI kann damit ein Logfenster aktualisieren, ohne selbst
-    CSV-Dateien zu oeffnen.
+    uebergeben. Optional kann `filter_func` ebenfalls einen Parameter nutzen
+    und entscheidet, ob die Zeile an den Callback weitergereicht wird.
 
-    Die Funktion wird hier noch nicht aufgerufen, sondern nur fuer spaetere
-    Meldungen vorgemerkt. Der Logger kennt dadurch keine konkreten GUI-Widgets
-    und bleibt auch ohne gestartete GUI verwendbar.
+    Bereits vorhandene Eintraege aus dem Start-Buffer werden beim ersten
+    Registrieren genau einmal an den Callback weitergereicht, damit Logzeilen,
+    die vor dem GUI-Start entstanden sind, nicht verloren gehen.
     """
-    _gui_callbacks.append(callback_func)
+    _gui_callbacks.append((callback_func, filter_func))
+    if len(_gui_callbacks) == 1:
+        flush_gui_startup_buffer()
+
+
+def _should_emit_to_gui(formatted_message, filter_func=None):
+    """Entscheidet, ob ein formatierter Logeintrag an den GUI-Callback geht."""
+    if filter_func is None:
+        return True
+    try:
+        return bool(filter_func(formatted_message))
+    except Exception:
+        return True
 
 def make_log_path(prefix="M", base_name=None):
     """Erzeugt den Dateipfad fuer eine Logdatei.
@@ -268,8 +345,16 @@ class _Tee:
 
                 append_terminal_row(self.csv_path, clean_line, device_tag=self.device_tag)
 
-                for cb in _gui_callbacks:
-                    cb(f"[{self.device_tag}] {clean_line}\n")
+                compact_line = _compact_gui_entry(clean_line, fallback_tag=self.device_tag)
+                if not compact_line:
+                    continue
+                for callback, callback_filter in list(_gui_callbacks):
+                    if not _should_emit_to_gui(compact_line, callback_filter):
+                        continue
+                    try:
+                        callback(compact_line)
+                    except Exception:
+                        pass
 
     def flush(self):
         """Leert den urspruenglichen Ausgabestream."""
@@ -404,11 +489,27 @@ def Log(Category: str, TAG: str, State: str, Message: str, Value: str, Info: str
     sys.__stdout__.write(ausgabe + "\n")
     sys.__stdout__.flush()
 
+    gui_message = " | ".join(
+        field.strip() if isinstance(field, str) else str(field)
+        for field in (Category, TAG, State, Message, Value, Info)
+    ) + "\n"
+
     log_path = _get_active_log_path()
     _append_row(log_path, row)
-    
-    for cb in _gui_callbacks:
-        cb(ausgabe + "\n")
+
+    if not _gui_callbacks:
+        if len(_GUI_LOG_BUFFER) >= _MAX_GUI_LOG_BUFFER:
+            _GUI_LOG_BUFFER.pop(0)
+        _GUI_LOG_BUFFER.append(gui_message)
+        return
+
+    for callback, filter_func in _gui_callbacks:
+        if not _should_emit_to_gui(gui_message, filter_func):
+            continue
+        try:
+            callback(gui_message)
+        except Exception:
+            pass
 
 def Look_Up_CVS(Category: str, TAG: str, Message: str, State: str = " "):
     """Sucht passende Eintraege in der aktuell verwendeten CSV-Datei.

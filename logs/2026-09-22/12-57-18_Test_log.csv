@@ -1,0 +1,4 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-22,12:57:18,323,Sys,INFO,Start,Anwendung gestartet,0,,,,,
+2026-09-22,12:57:18,325,NETWORK,ERR,Verbindung verloren,FAILED,404,Retry in 3s,Timeout Error,5000ms,Port 80,Fatal
+2026-09-22,12:57:18,326,DATABASE_SYSTEM_LONG,WARNING_TAG,Dieser Status ist viel zu lang,Diese Nachricht überschreitet die erlaubten 50 Zeichen massiv und wird abgeschnitten.,Unendlicher Wert,,,,,

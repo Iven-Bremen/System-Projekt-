@@ -1,0 +1,10 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-22,12:45:54,545,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-09-22,12:45:54,545,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-09-22,12:45:54,547,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-09-22,12:45:54,547,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-09-22,12:45:54,555,OUTPUT,TERMINAL,OUTPUT,No COM ports available,,,,,,
+2026-09-22,12:45:54,555,Sys,SYSTEM,Info,COM-Port Scan,[],Startup,,,,
+2026-09-22,12:45:54,556,Calc,CALCULATION,Info,calculation ready,No calculations configured,STARTER,,,,
+2026-09-22,12:45:55,419,Gui,GUI,Start,Starting GUI,,,,,,
+2026-09-22,12:49:43,216,Sys,GUI,Info,Foreground Shutdown,GUI closed,,,,,

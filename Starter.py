@@ -33,6 +33,7 @@ from Threads import CalculationThread
 SR830 = None
 OSTech = None
 calculation_thread = None
+_startup_port_check_done = False
 
 
 def _calculation_runner(stop_requested, publish):
@@ -99,6 +100,31 @@ def init_hardware():
     Log.Log("Sys", "SYSTEM", "Info", "COM-Port Scan", str(ports), "Startup")
 
 
+def run_startup_port_check():
+    """Run exactly one COM-port scan after the GUI has started."""
+    global _startup_port_check_done
+    if _startup_port_check_done:
+        return
+    _startup_port_check_done = True
+
+    ports = get_available_com_ports()
+    State.update_values({"AVAILABLE_COM_PORTS": ports})
+
+    if ports:
+        Log.Log("Sys", "SYSTEM", "Info", "Port check after GUI startup", str(ports), "Active ports")
+    else:
+        Log.Log("Sys", "SYSTEM", "Warning", "Port check after GUI startup", "No COM ports detected", "Active ports")
+
+    try:
+        import GUI
+        if hasattr(GUI, "update_overview_log"):
+            GUI.update_overview_log(f"Port check after GUI startup: {ports if ports else 'No COM ports available'}")
+    except Exception:
+        pass
+
+    return ports
+
+
 def _run_gui():
     """Import, initialize, and run the GUI in the process main thread.
 
@@ -115,6 +141,7 @@ def _run_gui():
         GUI.update_ch1_display()
         GUI.update_ch2_display()
         GUI.update_laser_display_mode()
+        GUI.root.after(0, run_startup_port_check)
         # Start the idle calculation worker after Tk has created the window.
         # This keeps the first visible GUI frame independent of worker setup.
         GUI.root.after(0, start_calculation_thread)
@@ -187,6 +214,8 @@ def ValidatedPort(NameOfPort : str, BaudRate : int, Timeout : float, SR830=None)
 
 if __name__ == "__main__":
     try:
+        Log.start_terminal_logging()
+        Log.Log("Sys", "START", "Start", "Programm gestartet", "Version 1.0")
         init_hardware()
         start_calculation_thread()
         StartGui()

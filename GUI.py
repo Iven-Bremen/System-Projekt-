@@ -614,6 +614,27 @@ entry_log_name = ttk.Entry(frame_log_ctrl_main, width=30)
 entry_log_name.insert(0, default_log_filename)
 entry_log_name.pack(side="left", padx=5)
 
+entry_manual_note = ttk.Entry(frame_log_ctrl_main, width=40)
+entry_manual_note.insert(0, "Nachricht eingeben...")
+entry_manual_note.pack(side="left", padx=5)
+
+
+def add_manual_log_note():
+    # Einfache manuelle Notiz, die ebenfalls in der Log-Laufzeit und in der CSV erscheint.
+    note = entry_manual_note.get().strip()
+    if not note or note == "Nachricht eingeben...":
+        messagebox.showwarning("Hinweis", "Bitte zuerst eine Nachricht eingeben.")
+        return
+
+    Log.Log("Gui", "USER", "Info", "Manual note", note, "GUI input")
+    entry_manual_note.delete(0, "end")
+    entry_manual_note.insert(0, "Nachricht eingeben...")
+
+
+btn_add_note = tk.Button(frame_log_ctrl_main, text="📝 Note", font=("Consolas", 8, "bold"), bg="#388e3c",
+                         fg="white", padx=8, pady=3, command=add_manual_log_note)
+btn_add_note.pack(side="left", padx=5)
+
 
 def save_current_log():
     # Speichert den Inhalt des Log-Terminals als CSV-Datei im "logs"-Ordner.
@@ -671,6 +692,31 @@ btn_clear_logs_main.pack(side="right", padx=5)
 txt_log_terminal_main = tk.Text(frame_logs_work_main, bg="#000000", fg="#00ff00", font=("Consolas", 9),
                                 state="disabled", wrap="word")
 txt_log_terminal_main.pack(fill="both", expand=True, padx=5, pady=5)
+
+
+def append_gui_log_text(message):
+    """Nimmt Log-Callbacks entgegen und hängt sie im Laufzeit-Log an.
+
+    Manuelle Einträge aus dem Eingabefeld werden ebenfalls hier abgelegt, da sie
+    intern mit ``Log.Log(...)`` geschrieben werden. Dadurch bleibt ein einheitliches
+    Verhalten für regelmäßige Meldungen und für Benutzernachträge.
+    """
+    if not root.winfo_exists():
+        return
+
+    def _append_to_widget():
+        txt_log_terminal_main.config(state="normal")
+        txt_log_terminal_main.insert("end", message)
+        txt_log_terminal_main.see("end")
+        txt_log_terminal_main.config(state="disabled")
+
+    try:
+        root.after(0, _append_to_widget)
+    except Exception:
+        _append_to_widget()
+
+
+Log.register_gui_callback(append_gui_log_text, filter_func=Log.gui_live_log_filter)
 
 
 def on_tree_logs_main_select(event):
