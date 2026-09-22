@@ -36,6 +36,8 @@ except ImportError:
 # ==========================================
 # ORDNER INITIALISIERUNG
 # ==========================================
+# Diese beiden Ordner werden für alle Messdaten, Log-Dateien und Plots genutzt.
+# Dadurch bleiben sämtliche Auswertungen und Protokolle an einem zentralen Ort.
 LOG_DIR = os.path.join(os.getcwd(), "logs")
 if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR)
@@ -47,6 +49,9 @@ if not os.path.exists(PLOT_DIR):
 # ==========================================
 # KONFIGURATION & PASSWORT-MANAGEMENT
 # ==========================================
+# Diese Funktionen laden und speichern globale GUI-Einstellungen.
+# Wichtig: Einstellungen werden in einer lokalen JSON-Datei abgelegt, damit
+# Werte wie z. B. Sicherheitsparameter oder zuletzt verwendete Optionen nicht verloren gehen.
 SETTINGS_FILE = "settings.json"
 
 
@@ -76,6 +81,8 @@ APP_SETTINGS = load_settings()
 
 
 def read_numeric_entry(entry_widget, field_name, minimum=None, maximum=None):
+    # Diese Hilfsfunktion liest aus einem Tkinter-Eingabefeld einen Zahlenwert aus.
+    # Sie akzeptiert Einheiten wie V, mA, Hz, °C und prüft anschließend den erlaubten Bereich.
     raw_value = entry_widget.get().strip()
     normalized_value = raw_value.replace(",", ".")
     for unit in ("°C", "degC", "mA", "V", "A", "ms", "Hz"):
@@ -101,6 +108,8 @@ def read_numeric_entry(entry_widget, field_name, minimum=None, maximum=None):
 
 
 def read_integer_entry(entry_widget, field_name, minimum=None, maximum=None):
+    # Diese Funktion prüft, ob ein Feld eine ganze Zahl erwartet und
+    # verhindert dadurch Fehleingaben bei z. B. Portnummern oder Intensitätswerten.
     value = read_numeric_entry(entry_widget, field_name, minimum, maximum)
     if value is None or value.is_integer():
         return None if value is None else int(value)
@@ -114,6 +123,9 @@ def read_integer_entry(entry_widget, field_name, minimum=None, maximum=None):
 # ==========================================
 # AUTOMATISIERTES ÜBERSETZUNGS-SYSTEM
 # ==========================================
+# Das GUI-System kann automatisch zwischen Sprachen wechseln.
+# Angemeldete Widgets werden hier mit einer englischen Basis-Textvorlage registriert
+# und bei Sprachwechsel entsprechend übersetzt.
 CACHE_FILE = "translation_cache.json"
 current_lang = "en"
 
@@ -158,6 +170,9 @@ registered_widgets = []
 
 
 def auto_tr(english_text):
+    # Übersetzt einen englischen Text in die aktuell ausgewählte Sprache.
+    # Wenn der Text bereits gecached ist, wird er direkt geladen; andernfalls
+    # wird versucht, ihn mit GoogleTranslator zu übersetzen.
     if current_lang == "en":
         return english_text
 
@@ -182,6 +197,8 @@ def auto_tr(english_text):
 
 
 def reg_ui(widget, english_text, prop="text"):
+    # Registriert ein Widget für Sprachupdates.
+    # Dadurch kann das Label oder der Tab-Text beim Wechsel der Sprache automatisch aktualisiert werden.
     registered_widgets.append((widget, prop, english_text))
     update_single_widget(widget, prop, english_text)
 
@@ -208,6 +225,8 @@ def change_language(lang_code):
 # ==========================================
 # HARDWARE VARIABLEN & STEUERUNG
 # ==========================================
+# Hier werden globale Zustände für Geräteverbindungen und Messstatus verwaltet.
+# Diese Variablen werden von mehreren Tabs gleichzeitig genutzt, z. B. Overview, Lock-In und Laser.
 LOCK_IN_AMPLIFIER_PORT = Komunikation.DEFAULT_SR830_PORT
 LASER_PORT = Komunikation.DEFAULT_OSTECH_PORT
 lockin_device = None
@@ -220,6 +239,7 @@ communication_threads = None
 
 
 def stop_communication_threads():
+    # Stoppt laufende Kommunikations-Threads sauber, bevor Hardware getrennt oder GUI geschlossen wird.
     global communication_threads
     if communication_threads is not None:
         communication_threads.stop()
@@ -259,6 +279,8 @@ is_closing = False
 
 
 def on_closing():
+    # Wird beim Schließen des Fensters aufgerufen.
+    # Hier werden laufende Threads, refresh-Callbacks und GUI-Updates sauber beendet.
     global refresh_job, is_closing
     if is_closing:
         return
@@ -282,6 +304,8 @@ def on_closing():
 # ==========================================
 # GUI ANWENDUNG INITIALISIERUNG
 # ==========================================
+# Das Hauptfenster wird hier initialisiert und mit dem Theme sowie dem Schließen-Handler versehen.
+# Danach werden die Tabs erzeugt, die den kompletten Ablauf der Software darstellen.
 root = tk.Tk()
 root.title('PAMO - Photothermal Analysis & Monitoring Overview')
 root.state("zoomed")
@@ -296,11 +320,14 @@ style.configure("TNotebook.Tab", background="#3c3f41", foreground="#ffffff", pad
 style.map("TNotebook.Tab", background=[("selected", "#007acc")], foreground=[("selected", "#ffffff")])
 
 # Globale Widget-Listen für Status-Labels
+# Diese Listen enthalten alle Label, die den Verbindungsstatus der Hardware anzeigen.
 status_labels_lockin = []
 status_labels_laser = []
 
 
 def update_status_indicators():
+    # Aktualisiert alle Statusanzeigen für Lock-In und Laser.
+    # Wenn Gerät verbunden ist, erscheint grün; ansonsten rot.
     for lbl in status_labels_lockin:
         lbl.config(text="🟢 Verbunden" if is_lockin_connected else "🔴 Nicht Verbunden",
                    fg="#00ff00" if is_lockin_connected else "#ff4444")
@@ -313,6 +340,8 @@ def update_status_indicators():
 # HARDWARE SAMMLUNGSFUNKTIONEN
 # ==========================================
 def connect_all_hardware():
+    # Verbindet alle konfigurierten Hardware-Geräte mit der Software.
+    # Danach werden Statusflags gesetzt und ein Übersicht-Log aktualisiert.
     global is_lockin_connected, is_laser_connected, is_emergency_bypass
     global LOCK_IN_AMPLIFIER_PORT, LASER_PORT
     global communication_threads
@@ -343,6 +372,8 @@ def connect_all_hardware():
 
 
 def disconnect_all_hardware():
+    # Trennt alle Geräte sauber und setzt die Verbindungszustände zurück.
+    # Wichtig: Nach dem Trennen müssen Threads und Hardware-Handles beendet werden.
     global is_lockin_connected, is_laser_connected, is_emergency_bypass, lockin_device
     is_lockin_connected = False
     is_laser_connected = False
@@ -357,6 +388,7 @@ def disconnect_all_hardware():
 
 
 # Hilfsfunktionen für Lock-In und Laser Port-Steuerung
+# Diese Bar-Widgets erzeugen die COM-Port-Auswahl und die Connect/Disconnect-Buttons pro Gerät.
 def create_lockin_control_bar(parent):
     frame = tk.LabelFrame(parent, text=" Lock-In Connection Control ", font=("Consolas", 10, "bold"),
                           bg="#1e1e1e", fg="#00ffcc", padx=10, pady=8)
@@ -439,12 +471,27 @@ def create_laser_control_bar(parent):
     return frame
 
 
+# ==========================================================
+# HAUPTSTRUKTUR DER GUI: REGISTERKARTEN (TABS)
+# ==========================================================
+# Alle Hauptbereiche der Software werden als Tabs im Notebook organisiert.
+# Dadurch bleibt jede Funktion logisch getrennt:
+# - Status/Übersicht
+# - Logs
+# - Lock-In-Steuerung
+# - Laser/TEC-Steuerung
+# - Analyse
+# - Hilfe
+# - Einstellungen
 main_notebook = ttk.Notebook(root)
 main_notebook.pack(fill="both", expand=True, padx=10, pady=10)
 
 # ------------------------------------------
 # 1. TAB: OVERVIEW (PASSIVE DISPLAY- & HARDWARE-PREVIEW)
 # ------------------------------------------
+# Dieser Tab zeigt nur Status und Vorschau an.
+# Er ist keine Steueroberfläche für Messungen, sondern die Startseite.
+# Ziel: Sofort erkennen, ob Hardware verbunden ist und ob das System stabil läuft.
 tab_overview = tk.Frame(main_notebook, bg="#1e1e1e")
 main_notebook.add(tab_overview, text="")
 reg_ui((main_notebook, tab_overview), "Overview", "tab_text")
@@ -520,6 +567,8 @@ txt_overview_log.pack(fill="both", expand=True, padx=5, pady=5)
 
 
 def update_overview_log(message):
+    # Schreibt eine Zeile in das Live-Log des Overview-Tabs.
+    # Diese Funktion wird z. B. beim Verbinden/Trennen von Hardware aufgerufen.
     txt_overview_log.config(state="normal")
     txt_overview_log.insert("end", f"[{datetime.datetime.now().strftime('%H:%M:%S')}] {message}\n")
     txt_overview_log.see("end")
@@ -531,6 +580,8 @@ update_overview_log("System initialized. Monitoring active...")
 # ------------------------------------------
 # 2. TAB: LOGS
 # ------------------------------------------
+# In diesem Bereich werden gespeicherte Messprotokolle verwaltet und als Dateien angezeigt.
+# Der Nutzer kann neue Logs erzeugen, existierende importieren und historische Dateien aufrufen.
 tab_logs = tk.Frame(main_notebook, bg="#1e1e1e")
 main_notebook.add(tab_logs, text="")
 reg_ui((main_notebook, tab_logs), "Logs", "tab_text")
@@ -565,6 +616,7 @@ entry_log_name.pack(side="left", padx=5)
 
 
 def save_current_log():
+    # Speichert den Inhalt des Log-Terminals als CSV-Datei im "logs"-Ordner.
     filename = entry_log_name.get().strip()
     if not filename:
         messagebox.showerror("Error", "Please enter a valid log file name.")
@@ -589,6 +641,7 @@ btn_save_log.pack(side="left", padx=5)
 
 
 def import_external_csv():
+    # Lädt eine CSV-Datei von außerhalb in das Log-Verzeichnis der Anwendung.
     file_path = filedialog.askopenfilename(
         title="Import CSV Log File",
         filetypes=[("CSV Files", "*.csv"), ("All files", "*.*")]
@@ -621,6 +674,7 @@ txt_log_terminal_main.pack(fill="both", expand=True, padx=5, pady=5)
 
 
 def on_tree_logs_main_select(event):
+    # Wenn ein Eintrag im Log-Baum ausgewählt wird, wird der Inhalt direkt im Terminal angezeigt.
     selected = tree_logs_main.selection()
     if selected:
         val = tree_logs_main.item(selected[0], "values")
@@ -642,6 +696,8 @@ tree_logs_main.bind("<<TreeviewSelect>>", on_tree_logs_main_select)
 # ------------------------------------------
 # 3. TAB: LOCK-IN AMPLIFIER
 # ------------------------------------------
+# Hier werden die SR830-Einstellungen und Messkanäle konfiguriert.
+# Der Lock-In ist das Herzstück der Messdiagnostik und steuert die Signalverarbeitung.
 tab_lockin = tk.Frame(main_notebook, bg="#1e1e1e")
 main_notebook.add(tab_lockin, text="")
 reg_ui((main_notebook, tab_lockin), "Lock-In Amplifier", "tab_text")
@@ -727,6 +783,8 @@ combo_slope.pack(fill="x", pady=2)
 
 
 def apply_lockin_filter_settings():
+    # Überträgt die eingestellten Lock-In-Parameter an das Gerät.
+    # Die Mappe definiert die Hardware-Kommandos und deren Werte für SR830.
     if not messagebox.askyesno("Bestätigung",
                                "Filter- und Eingangs-Einstellungen an den Lock-In Amplifier übermitteln?"):
         return
@@ -783,6 +841,7 @@ btn_apply_input.pack(fill="x", pady=(10, 2))
 
 
 # --- Hilfsfunktion für Display-Geräteansicht nach Hardware-Muster ---
+# Diese Funktion erzeugt eine künstliche Hardware-Anzeige, die wie ein physischer Messgerät-Display aussieht.
 def create_hardware_display_box(parent, status_left=("AUTO", "SYNC")):
     disp_frame = tk.Frame(parent, bg="#000000", bd=2, relief="sunken")
     disp_frame.pack(fill="x", pady=2)
@@ -841,6 +900,16 @@ def create_hardware_display_box(parent, status_left=("AUTO", "SYNC")):
     return disp_frame, val_label, unit_label, canvas_bar
 
 
+# ==========================================================
+# LOCK-IN TAB: CH1 / CH2 / REFERENCE DISPLAY
+# ==========================================================
+# In diesem Bereich werden die angezeigten Messwerte der GUI definiert.
+# Wichtige Stelle: Die Live-Anzeige der Werte wird hier nicht direkt berechnet,
+# sondern mit den aktuellen State-Werten aus State.py aktualisiert.
+# CH1 = Signal- oder X-Wert
+# CH2 = Phase oder Y-Wert
+# Ref Display = Referenzfrequenz / Phase / Amplitude
+
 # CH1
 frame_ch1 = tk.LabelFrame(frame_lockin_content, font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#00ffcc", padx=8,
                           pady=5)
@@ -878,6 +947,9 @@ combo_expand1.pack(side="right", expand=True, fill="x")
 
 
 def update_ch1_display(event=None):
+    # LOCK-IN TAB: Aktualisiert die CH1-Anzeige mit dem aktuell ausgewählten Messwert.
+    # Der eigentliche Zahlenwert kommt aus State.py, z. B. State.OUTP1, State.OUTP3 etc.
+    # Die GUI bindet lediglich diese Werte an das Label, damit die Anzeige live aktualisiert wird.
     selection = combo_ch1_src.get()
     cmd_map = {
         "X": ("OUTP1", "V"),
@@ -889,6 +961,7 @@ def update_ch1_display(event=None):
     cmd, unit = cmd_map.get(selection, ("OUTP1", "V"))
     val = getattr(State, cmd, 0.0)
 
+    # Diese Labels sind die tatsächlichen sichtbaren Werte im GUI-Display.
     val_ch1_label.config(text=f"{val:+.4f}")
     val_ch1_unit_label.config(text=unit)
     lbl_ov_ch1_title.config(text=f"CH1 Display [{selection}]")
@@ -969,6 +1042,8 @@ combo_expand2.pack(side="right", expand=True, fill="x")
 
 
 def update_ch2_display(event=None):
+    # LOCK-IN TAB: Aktualisiert die CH2-Anzeige analog zu CH1.
+    # Der Unterschied ist nur die Auswahl der Quelle: bei CH2 kann Phase (θ) im Gradmaß dargestellt werden.
     selection = combo_ch2_src.get()
     cmd_map = {
         "Y": ("OUTP2", "V"),
@@ -980,6 +1055,7 @@ def update_ch2_display(event=None):
     cmd, unit = cmd_map.get(selection, ("OUTP4", "°"))
     val = getattr(State, cmd, 0.0)
 
+    # Diese Labels sind die sichtbaren Werte im CH2-Feld.
     val_ch2_label.config(text=f"{val:+.2f}")
     val_ch2_unit_label.config(text=unit)
     lbl_ov_ch2_title.config(text=f"CH2 Display [{selection}]")
@@ -995,6 +1071,9 @@ combo_ch2_src.bind("<<ComboboxSelected>>", update_ch2_display)
 
 
 def refresh_shared_values():
+    # LOCK-IN TAB + LASER TAB: Diese Funktion führt die regelmäßige Aktualisierung aller Live-Werte aus.
+    # Sie wird per root.after(...) in kurzen Intervallen aufgerufen, damit die GUI "live" wirkt.
+    # Wichtig: Hier werden die aktuellsten Werte aus State.py an die sichtbaren Labels gebunden.
     global refresh_job
     if is_closing:
         refresh_job = None
@@ -1037,6 +1116,8 @@ frame_auto.columnconfigure((0, 1), weight=1)
 
 
 def send_lockin_command(command, value=None):
+    # Sendet ein SR830-Kommando an das Gerät, falls angeschlossen.
+    # Wenn der Notfall-Bypass aktiviert ist, werden keine Hardware-Kommandos gesendet.
     if is_emergency_bypass:
         return
     if not is_lockin_connected or Komunikation.SR830 is None:
@@ -1045,6 +1126,7 @@ def send_lockin_command(command, value=None):
 
 
 def run_auto_command(command, values=None):
+    # Führt eine Automatik-Funktion des Lock-In aus, z. B. Auto Phase oder Auto Gain.
     try:
         if values is None:
             send_lockin_command(command)
@@ -1115,6 +1197,8 @@ def lockin_stop():
 
 
 def apply_ref_settings():
+    # LOCK-IN TAB: Setzt Frequenz, Phase und Ausgangsamplitude des Referenzsignals.
+    # Die sichtbaren Werte werden in val_ref_display übernommen und als GUI-Anzeige dargestellt.
     new_freq = read_numeric_entry(entry_freq, "Ref Frequency", 0.001, 102000)
     new_phase = read_numeric_entry(entry_ref_phase, "Ref Phase", -360, 729.99)
     new_ampl = read_numeric_entry(entry_ampl, "Sine Output Amplitude", 0, 5)
@@ -1152,6 +1236,8 @@ reg_ui(btn_stop_lockin, "⏹ Stop Sine Out")
 # ------------------------------------------
 # 4. TAB: OSTECH LASER / TEC CONTROLLER
 # ------------------------------------------
+# Hier werden Laserparameter, TEC-Regelung und Sicherheitslogik gesteuert.
+# Die Sicherheitsabfrage verhindert, dass der Laser ohne Prüfung bedient wird.
 tab_laser = tk.Frame(main_notebook, bg="#1e1e1e")
 main_notebook.add(tab_laser, text="")
 reg_ui((main_notebook, tab_laser), "Laser / TEC Controller", "tab_text")
@@ -1210,6 +1296,7 @@ for idx, p in enumerate(params_list):
 
 
 def update_laser_display_mode(event=None):
+    # Aktualisiert die Anzeige je nach ausgewählter Hardware-Layout-Konfiguration.
     mode_str = combo_layout.get()
     lbl_ov_laser_layout_val.config(text=mode_str)
 
@@ -1283,6 +1370,8 @@ var_warning = tk.BooleanVar(value=False)
 
 
 def check_laser_safety():
+    # Prüft, ob die Sicherheitscheckliste vollständig erfüllt wurde.
+    # Nur dann wird das Laser-Menü freigeschaltet.
     if var_goggles.get() and var_interlock.get() and var_beampath.get() and var_warning.get():
         ostech_notebook.tab(tab_ostech_laser, state="normal")
         reg_ui((ostech_notebook, tab_ostech_laser), "Laser Menu", "tab_text")
@@ -1432,6 +1521,7 @@ chk_lg.grid(row=3, column=2, sticky="w", padx=5)
 
 
 def apply_laser_settings():
+    # Validiert und akzeptiert die Laserparameter wie Stromlimit, Spannung und Temperaturgrenze.
     values = (
         read_numeric_entry(entry_lcl, "LCL", 0, 100),
         read_numeric_entry(entry_lvc, "LVC", 0, 100),
@@ -1540,6 +1630,7 @@ combo_sens_model.pack(fill="x", pady=2)
 
 
 def apply_tec_settings():
+    # Überträgt TEC-Limits und PID-Parameter auf das Temperaturregelgerät.
     values = (
         read_numeric_entry(entry_tlu, "TLU", -273.15, 500),
         read_numeric_entry(entry_tll, "TLL", -273.15, 500),
@@ -1619,6 +1710,7 @@ entry_gfd.pack(side="left", padx=10)
 
 
 def apply_device_settings():
+    # Verarbeitet Geräteeinstellungen wie Pilot-Laser-Stärke und Lüfterspannung.
     pilot_intensity = read_integer_entry(spin_pilot, "Pilot Laser Intensity", 0, 16)
     fan_voltage = read_numeric_entry(entry_gfd, "GFD", 0, 100)
     if pilot_intensity is None or fan_voltage is None:
@@ -1653,7 +1745,12 @@ btn_reset_def.pack(side="left", padx=5)
 # ==========================================
 # HELPER FOR EXPLORER TREEVIEW
 # ==========================================
+# Diese Funktionen bauen die Dateibaumstruktur für Logs und Plot-Ordner auf.
+# Dadurch kann der Benutzer gespeicherte Messdaten im GUI-Browser einfach auswählen.
 def build_file_tree(tree_widget, root_dir):
+    # Baut den Dateibaum für den Log-Explorer auf.
+    # Der Baum zeigt verzeichnisweise alle Dateien und Unterordner an.
+    # Damit kann der Benutzer gespeicherte Messdaten schnell auswählen und öffnen.
     tree_widget.delete(*tree_widget.get_children())
     root_node = tree_widget.insert("", "end", text=f" 📂 {os.path.basename(os.path.abspath(root_dir))}", open=True,
                                    values=[os.path.abspath(root_dir)])
@@ -1685,6 +1782,8 @@ def build_file_tree(tree_widget, root_dir):
 
 
 def build_analysis_explorer(tree_widget):
+    # Zeigt im Analyse-Tab ausschließlich die relevanten Datenordner an.
+    # Dadurch bleibt der Explorer übersichtlich und enthält nur Messdaten sowie gespeicherte Plots.
     tree_widget.delete(*tree_widget.get_children())
     root_node = tree_widget.insert("", "end", text=" 📂 Workspace", open=True, values=[os.getcwd()])
 
@@ -1707,6 +1806,8 @@ build_file_tree(tree_logs_main, LOG_DIR)
 # ------------------------------------------
 # 5. TAB: ANALYSIS
 # ------------------------------------------
+# Hier werden die Messdaten ausgewertet und graphisch dargestellt.
+# Der Nutzer kann Daten importieren, Plots berechnen und die Ergebnisse speichern.
 tab_analysis = tk.Frame(main_notebook, bg="#1e1e1e")
 main_notebook.add(tab_analysis, text="")
 reg_ui((main_notebook, tab_analysis), "Analysis", "tab_text")
@@ -1758,6 +1859,7 @@ canvas_pvf = None
 
 
 def initialize_pvf_plot():
+    # Initialisiert das Matplotlib-Plot-Fenster für die PVF-/Phasenanalyse.
     global fig_pvf, ax_pvf, canvas_pvf
     if fig_pvf is not None:
         return
@@ -1777,6 +1879,7 @@ def initialize_pvf_plot():
 
 
 def starte_pvf_analyse():
+    # Führt eine simulierte Phase-vs-Frequency-Analyse aus und zeichnet das Ergebnis.
     import numpy as np
 
     initialize_pvf_plot()
@@ -1823,6 +1926,7 @@ def starte_pvf_analyse():
 
 
 def save_pvf_plot():
+    # Speichert das aktuell erstellte Plot als PNG im plots-Ordner.
     if fig_pvf is None:
         messagebox.showerror("Error", "Kein Plot vorhanden, der gespeichert werden kann.")
         return
@@ -1860,6 +1964,7 @@ tree_stats.bind("<<TreeviewSelect>>", on_tree_stats_select)
 # ------------------------------------------
 # 6. TAB: HELP
 # ------------------------------------------
+# Dieser Bereich enthält die allgemeine Bedienhinweise und Informationsseiten für den Nutzer.
 tab_help = tk.Frame(main_notebook, bg="#1e1e1e")
 main_notebook.add(tab_help, text="")
 reg_ui((main_notebook, tab_help), "Help", "tab_text")
@@ -1913,6 +2018,8 @@ txt_guide.config(state="disabled")
 # ------------------------------------------
 # 7. TAB: SETTINGS & THEME ENGINE
 # ------------------------------------------
+# Hier können Sprache und Erscheinungsbild der Anwendung angepasst werden.
+# Das verbessert Benutzerkomfort und Lesbarkeit bei längerem Betrieb.
 tab_settings = tk.Frame(main_notebook, bg="#1e1e1e")
 main_notebook.add(tab_settings, text="")
 reg_ui((main_notebook, tab_settings), "Settings", "tab_text")
@@ -1942,6 +2049,7 @@ reg_ui((settings_notebook, sub_tab_theme), "Theme / Layout", "tab_text")
 
 
 def apply_theme(theme_name):
+    # Schaltet zwischen Dark- und Light-Theme um und passt die Farben aller Widgets an.
     try:
         if theme_name == "light":
             bg_main = "#f0f0f0"
@@ -2080,6 +2188,7 @@ btn_light.pack(pady=4)
 
 
 def log_gui_click(event):
+    # Protokolliert jeden Button- oder Checkbutton-Klick in das Log-System.
     widget = event.widget
     try:
         label = widget.cget("text").strip()
@@ -2091,6 +2200,7 @@ def log_gui_click(event):
 
 
 def register_button_logging(widget):
+    # Durchläuft rekursiv alle Widgets und registriert Klick-Handler für Buttons.
     for child in widget.winfo_children():
         if child.winfo_class() in ("Button", "Checkbutton"):
             child.bind("<ButtonRelease-1>", log_gui_click, add="+")
