@@ -2212,3 +2212,50 @@ register_button_logging(root)
 check_laser_safety()
 if __name__ == "__main__":
     root.mainloop()
+
+
+
+
+#   Beispiele wie man Abfagen machen 
+
+
+#   SR830
+
+#   Werte Lesen
+
+#import Send
+
+#x_value = Send.read(Send.SR830G.OUTP_X)
+#y_value = Send.read(Send.SR830G.OUTP_Y)
+#theta = Send.read(Send.SR830G.OUTP_THETA)
+
+#   Werte Setzen 
+
+#import Send
+
+#Send.set(Send.SR830S.FREQ, 1000.0)   # Frequenz
+#Send.set(Send.SR830S.PHAS, 30.0)     # Phase
+#Send.set(Send.SR830S.SLVL, 1.5)      # Amplitude
+
+
+
+
+
+#   OSTECH 
+
+#   Werte lesen
+
+#import Send
+
+#current = Send.read(Send.OSTechG.LCA)
+#voltage = Send.read(Send.OSTechG.LVA)
+#status = Send.read(Send.OSTechG.GS)
+
+
+#   Werte Setzen
+
+#import Send
+
+#Send.set(Send.OSTechS.LCL, 6.3)   # Laser Current Limit
+#Send.set(Send.OSTechS.LTM, 33.0) # Max Temperature
+#Send.set(Send.OSTechS.GFD, 12.0) # Fan voltage

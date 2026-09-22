@@ -306,15 +306,28 @@ def send_SR830(command, value=None):
         SR830.flush()
 
 
+def _resolve_ostech_command(command):
+    """Accept either a raw command string or metadata from Send.py."""
+    if hasattr(command, "command"):
+        return command.command
+    return str(command)
+
+
 def ask_OSTECH(command: str, value=None, return_type=str):
     """Send a text-mode OSTECH command and convert its response type."""
     if OSTECH is None:
         raise RuntimeError("OSTECH ist nicht verbunden.")
+    resolved_command = _resolve_ostech_command(command)
     with OSTECH_LOCK:
-        OSTECH.write(f"{_format_command(command, value)}\r".encode("ascii"))
+        OSTECH.write(f"{_format_command(resolved_command, value)}\r".encode("ascii"))
         OSTECH.flush()
         response = OSTECH.read_until(b"\r").decode("ascii", errors="replace").strip()
         return _convert_response(response, return_type)
+
+
+def ask_OSTech(command: str, value=None, return_type=str):
+    """Compatibility alias kept for the Send-layer metadata API."""
+    return ask_OSTECH(command, value=value, return_type=return_type)
 
 
 def send_ostech_command(command: str):
@@ -326,8 +339,9 @@ def send_ostech_command(command: str):
     """
     if OSTECH is None:
         raise RuntimeError("OSTECH ist nicht verbunden.")
+    resolved_command = _resolve_ostech_command(command)
     with OSTECH_LOCK:
-        OSTECH.write(f"{command}\r".encode("ascii"))
+        OSTECH.write(f"{resolved_command}\r".encode("ascii"))
         OSTECH.flush()
 
 
@@ -335,9 +349,15 @@ def send_OSTECH(command: str, value=None):
     """Send an OSTECH text-mode setter without waiting for a response."""
     if OSTECH is None:
         raise RuntimeError("OSTECH ist nicht verbunden.")
+    resolved_command = _resolve_ostech_command(command)
     with OSTECH_LOCK:
-        OSTECH.write(f"{_format_command(command, value)}\r".encode("ascii"))
+        OSTECH.write(f"{_format_command(resolved_command, value)}\r".encode("ascii"))
         OSTECH.flush()
+
+
+def send_OSTech(command: str, value=None):
+    """Compatibility alias kept for the Send-layer metadata API."""
+    return send_OSTECH(command, value=value)
 
 
 def query_ostech_text(command: str):

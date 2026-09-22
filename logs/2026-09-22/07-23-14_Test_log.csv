@@ -5,3 +5,4 @@ Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalV
 2026-09-22,07:23:14,044,Sys,SYSTEM,Info,COM-Port Scan,[],Startup,,,,
 2026-09-22,07:23:14,047,Calc,CALCULATION,Info,calculation ready,No calculations configured,STARTER,,,,
 2026-09-22,07:23:17,029,Gui,GUI,Start,Starting GUI,,,,,,
+2026-09-22,11:56:07,770,Sys,SYSTEM,End,Programm beendet,Benutzerabbruch,,,,,
