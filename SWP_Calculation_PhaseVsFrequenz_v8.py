@@ -521,3 +521,69 @@ if __name__ == "__main__":
         print(f"\n[Fehler bei der Probendatei] {e}")
     except Exception as e:
         print(f"\n[Fehler bei der Auswertung] {e}")
+
+
+def start_PhaseFreq(ref_path: str, probe_path: str,
+                    k_S: float = 42.0, rho_S: float = 7800.0, C_S: float = 460.0):
+    """
+    Führt die modellbasierte Auswertung der Nitrierschichtdicke aus zwei
+    Dateipfaden (Referenz und Probe) durch.
+
+    :param ref_path: Dateipfad zur Referenzmessung (.csv oder .txt)
+    :param probe_path: Dateipfad zur Probenmessung (.csv oder .txt)
+    :param k_S: Wärmeleitfähigkeit Substrat in W/(m*K)
+    :param rho_S: Dichte Substrat in kg/m^3
+    :param C_S: Spezifische Wärmekapazität Substrat in J/(kg*K)
+
+    :return: dict mit allen Ergebnissen und Plot-Daten für die GUI
+    """
+    if not ref_path or not os.path.exists(ref_path):
+        raise FileNotFoundError(f"Referenzdatei nicht gefunden: '{ref_path}'")
+    if not probe_path or not os.path.exists(probe_path):
+        raise FileNotFoundError(f"Probendatei nicht gefunden: '{probe_path}'")
+
+    # 1. Substrat-Effusivität
+    b_S = thermal_effusivity(k_S, rho_S, C_S)
+
+    # 2. Referenzmessung einlesen & entfalten
+    freq_ref, phase_ref, phase_ref_std, amp_ref, n_ref = load_and_validate_measurement(ref_path)
+    f_ref, phase_ref_unwr = unwrap_phase_deg(freq_ref, phase_ref)
+
+    # 3. Probenmessung einlesen & entfalten
+    freq_probe, phase_probe, phase_probe_std, amp_probe, n_probe = load_and_validate_measurement(probe_path)
+    f_probe, phase_probe_unwr = unwrap_phase_deg(freq_probe, phase_probe)
+
+    # 4. Gemeinsame Frequenzachse & Phasendifferenz
+    freq_common, phase_ref_common, phase_probe_common = align_measurements(
+        f_ref, phase_ref_unwr, f_probe, phase_probe_unwr
+    )
+    Phi = phase_ref_common - phase_probe_common
+
+    # 5. Fit durchführen
+    d_fit, kL_fit, d_err, kL_err, model_func = fit_layer_parameters(
+        freq_common, Phi, b_S, rho_S, C_S
+    )
+
+    # 6. Fit-Kurve für Visualisierung aufbereiten
+    freq_fine = np.logspace(np.log10(freq_common.min()), np.log10(freq_common.max()), 500)
+    Phi_fit_curve = model_func(freq_fine, d_fit, kL_fit)
+
+    # 7. Ergebnisse als Dictionary zur Weiterverarbeitung in der GUI zurückgeben
+    return {
+        "d_fit_um": d_fit * 1e6,
+        "d_err_um": d_err * 1e6,
+        "kL_fit": kL_fit,
+        "kL_err": kL_err,
+        "plot_data": {
+            "f_ref": f_ref,
+            "phase_ref_unwr": phase_ref_unwr,
+            "f_probe": f_probe,
+            "phase_probe_unwr": phase_probe_unwr,
+            "freq_common": freq_common,
+            "Phi": Phi,
+            "freq_fine": freq_fine,
+            "Phi_fit_curve": Phi_fit_curve,
+            "ref_filename": os.path.basename(ref_path),
+            "probe_filename": os.path.basename(probe_path)
+        }
+    }
