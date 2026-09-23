@@ -2003,7 +2003,7 @@ def starte_pvf_analyse():
     except Exception as e:
         messagebox.showerror("Fehler", f"Fehler bei der Analyse: {e}")
 
-        
+
 '''
     initialize_pvf_plot()
     ax_pvf.clear()

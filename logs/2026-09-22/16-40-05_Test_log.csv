@@ -1,2 +1,6 @@
 Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
 2026-09-22,16:40:05,094,Gui,Button,Info,Button clicked,📈 Phase vs. Frequency Analysis,,,,,
+2026-09-22,16:42:22,136,Gui,Button,Info,Button clicked,📁 Import Data File,,,,,
+2026-09-22,16:42:54,503,Gui,Button,Info,Button clicked,📈 Phase vs. Frequency Analysis,,,,,
+2026-09-22,16:43:11,103,Gui,Button,Info,Button clicked,💾 Save Plot,,,,,
+2026-09-22,16:43:19,810,Sys,GUI,Info,Foreground Shutdown,GUI closed,,,,,
