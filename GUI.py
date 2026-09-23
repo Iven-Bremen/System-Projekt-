@@ -11,6 +11,7 @@ import shutil
 
 import Log
 import Komunikation
+import Send
 import Starter
 import State
 import SimGuiUpdatet
@@ -2262,6 +2263,9 @@ if __name__ == "__main__":
 
 
 
+ValueOfLCA = Send.read(Send.OSTechG.LCA)    # actual current
+Send.set(Send.OSTechS.GFD, 12.0)            # Fan voltage
+
 #   Beispiele wie man Abfagen machen 
 
 
@@ -2305,3 +2309,5 @@ if __name__ == "__main__":
 #Send.set(Send.OSTechS.LCL, 6.3)   # Laser Current Limit
 #Send.set(Send.OSTechS.LTM, 33.0) # Max Temperature
 #Send.set(Send.OSTechS.GFD, 12.0) # Fan voltage
+
+

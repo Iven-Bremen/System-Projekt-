@@ -37,8 +37,6 @@ TIMEOUT = 2
 DEFAULT_TICK_MS = 1
 DEFAULT_CYCLES = None
 GUI_INTERVAL_MS = 12
-TEST_TAG = "Kommunikations-Test fuer SR830 und OSTECH"
-
 SR830 = None
 SR830_ID = None
 OSTECH = None
@@ -325,24 +323,6 @@ def ask_OSTECH(command: str, value=None, return_type=str):
         return _convert_response(response, return_type)
 
 
-def ask_OSTech(command: str, value=None, return_type=str):
-    """Compatibility alias kept for the Send-layer metadata API."""
-    return ask_OSTECH(command, value=value, return_type=return_type)
-
-
-def send_ostech_command(command: str):
-    """Send a raw OSTECH text command without reading a response.
-
-    This low-level compatibility helper is useful for commands whose response
-    is intentionally ignored. Typed reads should use ``LabOSTECHCommand`` so
-    echo, payload length, and checksum validation are not skipped.
-    """
-    if OSTECH is None:
-        raise RuntimeError("OSTECH ist nicht verbunden.")
-    resolved_command = _resolve_ostech_command(command)
-    with OSTECH_LOCK:
-        OSTECH.write(f"{resolved_command}\r".encode("ascii"))
-        OSTECH.flush()
 
 
 def send_OSTECH(command: str, value=None):
@@ -353,11 +333,6 @@ def send_OSTECH(command: str, value=None):
     with OSTECH_LOCK:
         OSTECH.write(f"{_format_command(resolved_command, value)}\r".encode("ascii"))
         OSTECH.flush()
-
-
-def send_OSTech(command: str, value=None):
-    """Compatibility alias kept for the Send-layer metadata API."""
-    return send_OSTECH(command, value=value)
 
 
 def query_ostech_text(command: str):

@@ -79,6 +79,14 @@ class SR830G:
 
     SPTS = SR830CommandInfo("SPTS?", int, "points", "Liest Anzahl der gespeicherten Datenpunkte")
     IDN = SR830CommandInfo("*IDN?", str, "", "Liest die Geräte-Identifikation")
+
+    # ERRS? und LIAS? sind keine Konfigurationsbefehle, sondern reine Statusabfragen.
+    # Sie liefern interne Zustandsbytes des SR830 und werden daher in der API als
+    # Lesebefehle modelliert. Das ist wichtig, weil der Code den Unterschied sauber
+    # zwischen „Messwert lesen“ und „Gerätestatus lesen“ aufrechterhalten will.
+    #
+    # Der eigentliche serielle Austausch passiert in Komunikation.ask_SR830().
+    # Diese Klasse hier beschreibt nur die Bedeutung des Befehls und dessen Typ.
     ERRS = SR830CommandInfo("ERRS?", int, "", "Liest das Error Status Byte")
     LIAS = SR830CommandInfo("LIAS?", int, "", "Liest das LIA Status Byte")
 
@@ -289,7 +297,7 @@ class OSTechG:
         actual_type = command_info.type if return_type is None else return_type
         command_name = getattr(command_info, "command", str(command_info))
         Log.Log("Send", "OSTech", "Running", command_name, "read request", "query")
-        return Komunikation.ask_OSTech(command_info, return_type=actual_type)
+        return Komunikation.ask_OSTECH(command_info, return_type=actual_type)
 
     @classmethod
     def all(cls):

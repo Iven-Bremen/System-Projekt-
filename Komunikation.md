@@ -1,481 +1,585 @@
 ﻿# Kommunikationsarchitektur
 
-## Zweck dieses Dokuments
+## 1. Ziel dieses Dokuments
 
-Dieses Dokument beschreibt die Kommunikation zwischen der Anwendung und den
-beiden Messgeräten:
+Dieses Dokument beschreibt die tatsächliche Kommunikationslogik zwischen der Python-Anwendung und den beiden Mess- und Steuergeräten:
 
-- dem Lock-In-Verstärker **Stanford Research Systems SR830**
-- dem Laser-/TEC-Controller **OSTECH**
+- SR830: Lock-In-Verstärker von Stanford Research Systems
+- OSTECH: Laser-/TEC-Controller
 
-Beschrieben werden nicht nur die einzelnen Funktionen in `Komunikation.py`,
-sondern auch die Gründe für die Aufteilung in Zustände, Threads, Queues und
-Protokollschichten. Die Kommunikation ist absichtlich von der GUI getrennt.
-Die Geräte liefern Daten, `State.py` hält den neuesten bekannten Zustand, und
-die GUI liest diesen Zustand im Tkinter-Hauptthread.
+Es geht nicht nur um die allgemeine Idee, sondern um die reale Architektur im Code: `Komunikation.py`, `Send.py`, `Threads.py`, `State.py` und `Log.py` arbeiten als eines zusammen, aber mit klaren Verantwortlichkeiten.
 
-Das wichtigste Architekturprinzip lautet:
+Das Kernprinzip lautet:
 
-> Kommunikationscode darf Geräte abfragen und `State` aktualisieren, aber er
-> darf niemals direkt Tkinter-Widgets verändern.
+> Hardwarezugriff, Protokoll-Parsing und State-Updates gehören in die Kommunikations- und Thread-Schicht. Die GUI darf nicht direkt mit seriellen Worker-Threads interagieren.
 
-Dadurch bleiben Hardwareabfragen, Simulation und Anzeige austauschbar.
+Das schützt vor Deadlocks, Race Conditions und GUI-Fehlern, die durch direkten Zugriff aus dem Hintergrundthread entstehen würden.
 
 ---
 
-## Gesamtaufbau
+## 2. Gesamtarchitektur des Projekts
+
+Das System ist bewusst geschichtet:
 
 ```text
-Starter.py
-	|
-	| initial scan; GUI Connect calls open_devices()
-	v
+GUI / Starter
+    |
+    v
+Send.py
+    |
+    |  Befehls-Definitionen + High-Level API
+    v
 Komunikation.py
-	|
-	| SR830Thread              OSTECHThread              CommandThread
-	|       |                       |                         |
-	|       +-----------+-----------+-------------------------+
-	|                   |
-	|                   | ThreadMessage
-	|                   v
-	|          CommunicationThreads
-	|             |              |
-	|             |              +--> LoggingThread --> Log.py --> CSV/Terminal
-	|             |
-	|             +-----------------> GuiThread --> GUI-Nachrichten
-	|
-	+--> State.py <----------------- dekodierte Messwerte
-					^
-					|
-			  GUI.py liest State
-			  im Tkinter-Hauptthread
+    |
+    |  serielle I/O + Protokollparsing + Geräteregeln + State-Updates
+    v
+Threads.py
+    |
+    |  Hintergrundschleifen, Queues, Worker-Threads
+    v
+Log.py
+    |
+    +--> CSV-Datei
+    +--> Terminal
+    +--> GUI-Callbacks
 ```
 
-Die Geräte-Threads laufen parallel. Innerhalb eines einzelnen Geräts bleiben
-die Befehle jedoch sequenziell, weil eine serielle Schnittstelle eine
-geordnete Befehlsfolge benötigt.
+Zusätzlich gibt es `State.py`, das den aktuellen Messzustand hält:
+
+```text
+Gerät -> Komunikation -> State.update_values() -> GUI liest State
+                |
+                +--> Log.Log() -> CSV/Terminal/GUI
+```
+
+Das heißt: Der Hardware-Input wird dekodiert, in den State geschrieben und zusätzlich protokolliert.
 
 ---
 
-## Zuständigkeiten der Module
+## 3. Zuständigkeit der einzelnen Module
 
-### `Komunikation.py`
+### `Send.py`: öffentliche Befehls-API
 
-Dieses Modul besitzt die Protokollkenntnis:
+`Send.py` ist die Benutzer-/Anwendungs-Schnittstelle. Es enthält:
+
+- `SR830G` für Read-Only-Befehle
+- `SR830S` für Set-/Action-Befehle
+- `OSTechG` und `OSTechS` analog für OSTECH
+- `resolve_sr830_setting(...)` für menschenlesbare Werte wie `"Normal"` oder `"1 s"`
+- öffentliche API-Funktionen `send()`, `read()`, `set()`, `run()`
+
+Wichtig ist: Diese Datei definiert den Befehl und seine Semantik. Sie enthält keine echte serielle Übertragung.
+
+### `Komunikation.py`: echte Hardware-Schicht
+
+In `Komunikation.py` passieren die eigentlichen Hardware-Operationen:
 
 - COM-Port öffnen und schließen
-- Befehle formatieren
-- Antworten lesen
-- ASCII-Antworten umwandeln
-- OSTECH-Binärframes prüfen
-- Checksumme berechnen
-- `GS`-Statusbits dekodieren
-- Messwerte nach `State.py` schreiben
-- Polling-Aktionen für die Threads erzeugen
+- serielle Kommunikation mit `pyserial`
+- Befehlskodierung und Antwortdekodierung
+- Parsing von ASCII- und Binärprotokollen
+- Status- und Messwert-Updates im `State`
+- gerätespezifische Abfragen und Timeouts
 
-### `State.py`
+Diese Datei ist die eigentliche technische Verbindung zur Hardware.
 
-Dieses Modul ist die gemeinsame Datenablage. Beispiele:
+### `Threads.py`: Hintergrundarbeit und Orchestrierung
 
-```python
-State.OUTP1
-State.OUTP4
-State.LCT
-State.XTA
-State.GS
-State.OSTECH_STATUS
-```
+`Threads.py` definiert die Worker-Schicht:
 
-Die GUI liest diese Werte. Kommunikations- und Simulationsteil schreiben sie.
-Der State enthält immer den aktuellsten bekannten Wert, aber keine komplette
-Historie. Die Historie wird vom Logger in der CSV-Datei geführt.
+- `DeviceThread`
+- `MessageThread`
+- `CommandThread`
+- `CalculationThread`
+- `CommunicationThreads`
 
-### `Threads.py`
+Diese Threads sind dafür da, I/O, Messaging und Berechnungen von der GUI zu trennen. Die GUI wird nicht in den Gerätethreads direkt verändert.
 
-Dieses Modul startet und stoppt die Worker. Es kennt keine konkreten
-Gerätebefehle und keine Tkinter-Widgets. Dadurch bleibt es generisch.
+### `State.py`: gemeinsamer Zustands-Speicher
 
-### `Log.py`
+`State.py` ist der In-Memory-Zustand der laufenden Messung. Typische Werte sind:
 
-Jede Kommunikationsmeldung kann in zwei unabhängigen Queues landen:
+- `OUTP1`, `OUTP2`, `OUTP3`, `OUTP4`
+- `PHAS`, `FREQ`
+- `LCT`, `GS`, `GM`
 
-- in der Logging-Queue
-- in der GUI-Queue
+Die GUI liest diese Werte aus dem State. Die Hardware-Threads schreiben sie hinein.
 
-Die Logging-Queue schreibt die Meldung in die CSV. Die GUI-Queue kann die
-Meldung anzeigen, ohne dass der Geräte-Thread auf Dateischreiben oder GUI-Code
-warten muss.
+### `Log.py`: zentrale Audit- und Debug-Logs
+
+`Log.py` sammelt Ereignisse aus allen Bereichen und schreibt sie an mehrere Ziele:
+
+- Terminal
+- CSV-Datei
+- GUI-Callbacks
+
+Damit bleibt das Logging zentralisiert und konsistent.
 
 ---
 
-## Geräteparameter
-
-Die aktuellen Grundeinstellungen in `Komunikation.py` sind:
-
-```python
-SR830_PORT = "COM3"
-OSTECH_PORT = "COM4"
-BAUDRATE = 9600
-TIMEOUT = 2
-```
-
-`SR830_LOCK` und `OSTECH_LOCK` sind getrennte Locks. Das ist wichtig, weil
-SR830 und OSTECH unabhängig voneinander arbeiten können. Eine langsame
-Antwort des OSTECH darf eine SR830-Abfrage nicht blockieren.
-
----
-
-## Öffnen der Geräte
+## 4. Verbindungs- und Startlogik
 
 ### `CheckCOM()`
 
-`CheckCOM()` führt eine kurze, temporäre Prüfung durch:
+`CheckCOM(COM, ID, Command, returnvalue)` ist eine kurze Port-Erkennung. Sie:
 
-1. COM-Port mit Baudrate und Timeout öffnen.
-2. Befehl mit Wagenrücklauf senden.
-3. Antwort bis `\r` lesen.
-4. Optional ein Echo überspringen.
-5. Prüfen, ob eine Antwort vorhanden ist.
-6. Port immer im `finally`-Block schließen.
+1. öffnet den Port
+2. sendet einen Testbefehl
+3. liest die Antwort
+4. validiert sie
+5. schließt den Port wieder
 
-Die Funktion gibt bei Port-, Betriebssystem- oder Dekodierungsfehlern `False`
-zurück. Ein nicht angeschlossenes Gerät ist beim Programmstart kein Absturz,
-sondern ein erwartbarer Zustand.
+Der Zweck ist nicht das normale Gerätedaten-Handling, sondern der gezielte Porttest. Wenn ein Port nicht passt oder nicht antwortet, liefert die Funktion `False`.
+
+### `_find_device_ports(ports)`
+
+Diese Hilfsfunktion durchläuft die verfügbaren COM-Ports und erkennt die Geräte anhand typischer Antworten:
+
+- SR830: `*IDN?`
+- OSTECH: `GVN`
+
+Das ist wichtig, weil die Anwendung die Geräte anhand des realen Protokolls identifizieren muss und nicht nur anhand fester Portnummern.
 
 ### `open_devices()`
 
-SR830 und OSTECH werden unabhängig geprüft. Das bedeutet:
+`open_devices(sr830_port=None, ostech_port=None)` öffnet die beiden Geräte separat und unabhängig:
 
-- SR830 kann fehlen, während OSTECH geöffnet wird.
-- OSTECH kann fehlen, während SR830 geöffnet wird.
-- Ein fehlendes Gerät verhindert nicht automatisch den Start der GUI.
+- SR830 wird mit SR830-Handshake erkannt
+- OSTECH wird mit Text- und ggf. Binärmodus initialisiert
+- ein fehlendes Gerät darf das andere nicht komplett blockieren
 
-Beim SR830 wird nach der Prüfung die Gerätekennung über `*IDN?` gelesen.
-Beim OSTECH wird zuerst die Textkommunikation verwendet, danach wird mit
-`GMS8` in den Binärmodus gewechselt.
+Der eigentliche serielle Zugriff wird aus `pyserial` als `serial.Serial(...)`-Objekt aufgebaut.
 
 ### `close_devices()`
 
-Beim Programmende werden alle noch offenen Ports geschlossen. Die Funktion
-prüft vorher, ob ein Port existiert und geöffnet ist. Sie darf deshalb auch
-dann aufgerufen werden, wenn nur eines oder kein Gerät verfügbar war.
+Beim Beenden werden die offenen Geräte sauber geschlossen. Es wird geprüft, ob der Port noch offen ist und ob der Handle noch gültig ist.
 
 ---
 
-## SR830-Protokoll
+## 5. SR830-Kommunikation im Detail
 
-Der SR830 verwendet eine zeilenorientierte ASCII-Kommunikation. Ein Befehl
-wird mit `\r` abgeschlossen:
+Der SR830 verwendet ASCII-Befehle mit einem Zeilenende `\r`.
 
-```text
-FREQ?\r
-PHAS?\r
-SNAP? 1,2,3,4,10,11\r
-```
-
-### Lesen mit `ask_SR830()`
-
-Der Ablauf lautet:
-
-1. Prüfen, ob `SR830` geöffnet ist.
-2. `SR830_LOCK` betreten.
-3. Befehl formatieren.
-4. ASCII-Bytes schreiben.
-5. Stream flushen.
-6. Bis `\r` lesen.
-7. ASCII dekodieren.
-8. Ergebnis mit `_convert_response()` umwandeln.
-9. Lock verlassen.
-
-Der Lock verhindert, dass zwei Threads gleichzeitig Bytes in denselben
-seriellen Datenstrom schreiben oder Antworten vertauschen.
-
-### SR830-Messwertmapping
-
-Die SR830-Abfragen bleiben bewusst in zwei getrennten SNAP-Gruppen:
+Beispiele:
 
 ```text
+FREQ?
+PHAS?
 SNAP? 1,2,3,4,10,11
 ```
 
-| SR830-Kanal | Bedeutung | State-Variable |
-|---:|---|---|
-| 1 | X | `OUTP1` |
-| 2 | Y | `OUTP2` |
-| 3 | R | `OUTP3` |
-| 4 | Theta | `OUTP4` |
-| 10 | CH1 display | `CH1_DISPLAY` |
-| 11 | CH2 display | `CH2_DISPLAY` |
+### `ask_SR830()`
 
-Die zweite Gruppe lautet:
+`ask_SR830(command, value=None, return_type=None)` ist der zentrale Lese-Mechanismus. Typischer Ablauf:
 
-```text
-SNAP? 5,6,7,8,9
+```python
+with SR830_LOCK:
+    SR830.write(f"{_format_command(resolved_command, value)}\r".encode("ascii"))
+    SR830.flush()
+    response = SR830.read_until(b"\r").decode("ascii", errors="replace").strip()
+    return _convert_response(response, resolved_type)
 ```
 
-| SR830-Kanal | Bedeutung | State-Variable |
-|---:|---|---|
-| 5 | Aux In 1 | `OAUX1` |
-| 6 | Aux In 2 | `OAUX2` |
-| 7 | Aux In 3 | `OAUX3` |
-| 8 | Aux In 4 | `OAUX4` |
-| 9 | Reference Frequency | `REFERENCE_FREQUENCY` |
+Das ist das zentrale Muster:
 
-Die Antwort wird in einzelne Werte zerlegt und mit `float()` umgewandelt.
-Stimmt die Anzahl der Werte nicht mit der erwarteten Anzahl überein, wird ein
-Fehler erzeugt. Es wird dann kein unvollständiges Mapping verwendet.
+- Befehl formatieren
+- mit `\r` abschließen
+- Antwort lesen
+- in gewünschten Typ umwandeln
+- mit Gerätelock schützen
 
-Zusätzliche Abfragen:
+Das verhindert, dass zwei Threads denselben seriellen Stream gleichzeitig vermischen.
 
-```text
-PHAS? -> State.PHAS
-FREQ? -> State.FREQ
-```
+### `send_SR830()`
+
+`send_SR830(...)` sendet Befehle ohne ein Rückgabeergebnis zu erwarten. Das ist sinnvoll für reine Set- oder Action-Kommandos.
+
+### Explizit zu `ERRS?` und `LIAS?`
+
+Diese beiden Befehle sind ein gutes Beispiel für die Reihenfolge der Abstraktion:
+
+- `Send.py` definiert sie als `SR830G`-Befehle
+- `Komunikation.ask_SR830()` verarbeitet sie mit derselben Standardlogik wie andere SR830-Read-Befehle
+- die Antwort wird als Integer interpretiert
+- sie liefern ein Statusbyte, kein konfigurierbarer Wert
+
+Das ist der entscheidende Punkt:
+
+> `ERRS?` und `LIAS?` sind keine Setter, sondern Statusabfragen.
+
+Sie fragen den Zustand des Lock-In-Verstärkers ab, sie verändern nichts am Gerät. Deshalb gehören sie in die `SR830G`-Gruppe der Lesebefehle, nicht in `SR830S`.
+
+Das ist keine bloße Namensfrage, sondern eine wichtige Architekturentscheidung, weil die gesamte API zwischen:
+
+- Lesen von Werten/Zuständen
+- Schreiben von Konfigurationen/Actions
+
+sauber trennen will.
+
+### `_convert_response()`
+
+Dieser Helper wandelt die Antwort je nach gewünschtem Typ um:
+
+- `str` bleibt unverändert
+- `bool` akzeptiert `1`, `0`, `true`, `false`, `on`, `off`
+- numerische Typen werden mit `float`/`int` geparst
+
+Wenn ein Wert nicht in den erwarteten Typ passt, wird eine Exception ausgelöst. Das ist bewusst, damit ein fehlerhaftes Protokoll nicht stillschweigend als gültiger Messwert akzeptiert wird.
 
 ---
 
-## OSTECH-Protokoll
+## 6. OSTECH-Kommunikation: Textmodus und Binärmodus
 
-OSTECH verwendet zwei Phasen.
+OSTECH ist in diesem Code in zwei Betriebsarten organisiert.
 
-### Phase 1: Textmodus
+### Textmodus beim Start
 
-Während des Starts werden Befehle als ASCII gesendet. Die Antwort besteht aus
-Echo und Nutzantwort. Das Echo wird geprüft, damit keine alte Antwort aus dem
-seriellen Puffer versehentlich als aktuelle Antwort interpretiert wird.
+Beim Initialisieren wird zunächst ein einfacher ASCII-Dialog verwendet, z. B. mit:
 
-### Phase 2: Binärmodus
+- `GVN`
+- `GS`
+- `GMS8`
 
-Nach erfolgreichem `GMS8`-Handshake werden Messwerte binär übertragen. Ein
-Frame enthält:
-
-```text
-ASCII-Echo + Payload + Checksumme
-```
-
-Die erwartete Payload-Länge hängt vom Datentyp ab:
-
-| Datentyp | Payload |
-|---|---:|
-| `float` | 4 Bytes |
-| `int` | 2 Bytes |
-| `bool` | 1 Byte |
-
-Für numerische Werte wird Big-Endian verwendet. Die Checksumme wird aus dem
-Startwert `0x55` und allen Payload-Bytes berechnet:
+Die Funktion `query_ostech_text()` prüft dabei ein wichtiges Detail: Das Echo muss exakt mit dem gesendeten Befehl übereinstimmen. Wenn das nicht passiert, wird die Antwort verworfen.
 
 ```python
-checksum = (0x55 + sum(payload)) % 256
+echo = OSTECH.read_until(b"\r")
+expected_echo = f"{command.upper()}\r".encode("ascii")
+if echo != expected_echo:
+    raise RuntimeError(f"Unerwartetes {command}-Echo: {echo!r}")
 ```
 
-Ist das Echo falsch, die Antwort zu kurz oder die Checksumme ungültig, wird
-eine Exception ausgelöst. Der Messwert wird dann nicht als gültiger Wert in
-`State` übernommen.
+Das verhindert, dass veraltete Antwortbytes aus einem Puffer als neue Messung interpretiert werden.
 
----
+### Binärmodus nach `GMS8`
 
-## OSTECH-Befehle
+Nach dem erfolgreichen Handshake wechselt OSTECH in einen Binärmodus. Dann erwartet die Bibliothek bzw. die Kommunikationsschicht:
 
-`OSTECHCommandInfo` beschreibt pro Befehl:
+- ASCII-Echo
+- Payload-Bytes
+- Checksumme am Ende
 
-- Wire-Befehl
-- erwarteten Datentyp
-- Einheit
+Die Antwort wird mit `struct.unpack()` in numerische Typen oder Statuswerte übersetzt. Wenn der Frame zu kurz ist oder die Prüfsumme nicht stimmt, wird ein Fehler ausgelöst.
 
-Beispiel:
+Das ist ein typisches Design für Geräteprotokolle: Eine Antwort ist erst dann gültig, wenn sie nicht nur „sichtbar“, sondern auch strukturell und checksum-basiert korrekt ist.
+
+### `decode_ostech_status(status_word)`
+
+Für `GS` bzw. den Status-Befehl wird das Bitfeld in semantische Zustände umgewandelt. Ein `status_word` wird dann als Kombination von Flags interpretiert, z. B.:
 
 ```python
-LCT = OSTECHCommandInfo("LCT", float, "mA")
-```
-
-Die Enum-Gruppen sind:
-
-### Periodische Messwerte
-
-```text
-LCT, XTA, LVA, XTCA, XTVA, LCA
-```
-
-### Startup-Werte und Status
-
-```text
-XTT, LTM, GT, GS, GVN
-```
-
-### Befehle nach Benutzeraktion
-
-```text
-LMDX, L
-```
-
-`LabOSTECHCommand()` führt den Befehl aus und schreibt normale Ergebnisse
-unter dem Enum-Namen nach `State`:
-
-```python
-State.LCT
-State.XTA
-State.GVN
-```
-
----
-
-## Besonderheit `GS`
-
-`GS` liefert ein Statuswort. Dieses Statuswort wird nicht als unlesbare Zahl
-weitergereicht, sondern mit `decode_ostech_status()` in ein Dictionary
-übersetzt:
-
-```python
-{
-	"status_word": 0x4C0D,
-	"interlock_ok": True,
-	"driver_supply_ok": True,
-	"driver_temperature_ok": True,
-	"lt_sensor_ok": True,
-	"ct_sensor_ok": True,
-	"lc_on": True,
-	"lc_error": False,
+masks = {
+    "interlock_ok": 0x0001,
+    "driver_supply_ok": 0x0004,
+    "driver_temperature_ok": 0x0008,
+    "lt_sensor_ok": 0x0400,
+    "ct_sensor_ok": 0x0800,
+    "lc_on": 0x4000,
+    "lc_error": 0x8000,
 }
 ```
 
-Die Werte werden sowohl in `State.GS` als auch in
-`State.OSTECH_STATUS` gespeichert. Die doppelte Benennung macht den Zweck
-klar: `GS` ist der Gerätebefehl, `OSTECH_STATUS` beschreibt die Bedeutung für
-die Anzeige und Sicherheitslogik.
+So kann die Anwendung mit verständlichen Zuständen arbeiten, statt rohe Bitmuster im Code herumzutragen.
 
 ---
 
-## Threadablauf
+## 7. State-Updates und Messwert-Logik
 
-`start_threaded_measurement()` erstellt die Kommunikationsworker:
+Nach dem erfolgreichen Lesen werden die Werte in `State.py` geschrieben. Das ist ein zentraler Teil der Architektur, weil die GUI nicht die Geräte direkt liest, sondern nur den State übernimmt.
 
-1. `SR830Thread`
-2. `OSTECHThread`
-3. `CommandThread`
-4. `LoggingThread`
-5. `GuiThread`
+Beispiele:
 
-Die Verbraucher (`LoggingThread`, `GuiThread`) werden zuerst gestartet. Danach
-werden die Produzenten gestartet. So kann bereits die erste Geräteantwort
-verarbeitet werden, ohne dass eine Queue oder ein Handler fehlt.
+- `PHAS` und `FREQ` aus SR830
+- `LCT` und `GS` aus OSTECH
+- `OUTP1` bis `OUTP4` als Messwerte
 
-### Gerätefehler
+Das designet eine klare Pipeline:
 
-Wenn eine Geräteaktion fehlschlägt:
+```text
+Gerät -> serieller Buffer -> parse -> State -> GUI
+```
 
-1. Die Exception wird im Geräte-Thread gefangen.
-2. Ein Payload mit `step = "error"` wird erzeugt.
-3. `CommunicationThreads` klassifiziert die Nachricht als Fehler.
-4. Logging und GUI erhalten dieselbe Fehlernachricht.
-5. Der betroffene Geräte-Loop endet.
-6. Andere unabhängige Threads können weiterlaufen.
+Das ist wichtig, weil die GUI-Logik und die Hardware-Logik somit entkoppelt sind. Wenn ein Gerätfehler auftritt, bleibt der State konsistent und die GUI kann sauber reagieren.
 
-Das ist der Grund, warum ein fehlendes OSTECH nicht zwangsläufig den SR830-
-Thread oder die GUI beendet.
+---
 
-### CalculationThread
+## 8. SNAP- und Multiwert-Abfragen am SR830
 
-Berechnungen werden nicht direkt in `State.py` als Thread implementiert.
-`State.py` ist ausschließlich der gemeinsame Datencontainer. Der eigentliche
-Worker lebt in `Threads.py`, wird aber von `Starter.py` erzeugt und gestartet:
+Der SR830 unterstützt mehrere Mehrwertabfragen mit `SNAP?`. Typische Beispiele:
 
 ```python
-calculation_thread = CalculationThread(
-	my_calculation_runner,
-	publish_calculation_result,
+SNAP? 1,2,3,4,10,11
+SNAP? 5,6,7,8,9
+```
+
+Diese Abfragen liefern mehrere Werte in einer Antwort. Die Anwendung parst danach die Antwort und ordnet die Werte den einzelnen State-Feldern zu.
+
+Beispiel aus dem Code:
+
+```python
+values = [float(value.strip()) for value in response.split(",")]
+if len(values) != len(names):
+    raise ValueError(f"Unerwartete SNAP-Antwort fuer {commands}: {response!r}")
+```
+
+Das ist ein wichtiges Sicherheitsmerkmal: Eine Antwort mit falscher Länge wird nicht stillschweigend akzeptiert, sondern als Fehler behandelt.
+
+---
+
+## 9. Threads und Geräte-Locks
+
+Die Kommunikationsschicht nutzt separate Locks für die Geräte:
+
+```python
+SR830_LOCK = threading.Lock()
+OSTECH_LOCK = threading.Lock()
+```
+
+Das ist strategisch richtig, weil die Geräte technisch unabhängig sind. Ein SR830-Timeout darf nicht automatisch das OSTECH-Protokoll blockieren.
+
+Das Design ist damit:
+
+- getrennte Gerätepfade
+- getrennte Locks
+- gemeinsame Zustandsobjekte
+- zentrale Logging-Ablage
+
+Dadurch ist die Anwendung robust gegenüber Parallelität und Gerät-Fehlern.
+
+---
+
+## 10. Warum `Send.py` und `Komunikation.py` getrennt sind
+
+Das Projekt trennt bewusst zwei Ebenen:
+
+1. `Send.py` definiert den Befehl und seine Bedeutung
+2. `Komunikation.py` führt den realen Hardware-Transport aus
+
+Dieser Aufbau ist wichtig, weil:
+
+- GUI, Threads und Berechnungen sich auf die Befehlsemantik konzentrieren können
+- serielle Protokolllogik nicht in der Oberfläche landet
+- Geräte- und Format-Details isoliert werden
+- die Anwendung wartbarer und testbarer bleibt
+
+Kurz gesagt: `Send.py` erklärt, was ein Befehl bedeutet; `Komunikation.py` sagt, wie er abgearbeitet wird.
+
+---
+
+## 11. Fehlerbehandlung und Robustheit
+
+Die Kommunikationsschicht prüft Fehler aktiv:
+
+- falsche Echo-Antworten
+- zu kurze Binärframes
+- falsche Anzahl von Antwortwerten
+- inkompatible Typumwandlungen
+- fehlende oder geschlossene COM-Ports
+
+Diese Prüfungen sind bewusst nicht nur „benutzerfreundlich“, sondern systemrelevant: Ein fehlerhaftes Protokoll darf nicht sauber wie ein gültiger Messwert weiterlaufen.
+
+Das ist ein wesentliches Qualitätsmerkmal in Hardware-Interfaces.
+
+---
+
+## 12. Typischer Ablauf einer Messung
+
+Ein realistischer Ablauf sieht so aus:
+
+1. App startet
+2. COM-Ports werden erkannt
+3. SR830 und OSTECH werden geöffnet
+4. Identifikationen werden abgefragt
+5. OSTECH wird ggf. in Binärmodus gesetzt
+6. Messwerte werden im Ablauf zyklisch gelesen
+7. Antwortwerte werden geparst
+8. State wird aktualisiert
+9. Log wird geschrieben
+10. GUI wird informiert
+
+Das ist genau die Architektur, die das Projekt verfolgt: sauber trennbar, aber logisch zusammenhängend.
+
+---
+
+## 13. Fazit
+
+Die Kommunikationsarchitektur dieses Projekts ist bewusst nach klaren Schichten aufgebaut:
+
+- `Send.py` beschreibt die Befehlssprache
+- `Komunikation.py` realisiert den seriellen Gerätezugriff
+- `Threads.py` entkoppelt Hardware- und UI-Abläufe
+- `State.py` hält den tatsächlichen Messzustand
+- `Log.py` dokumentiert alles sauber und zentral
+
+Das ist eine robuste Architektur für reale Gerätekommunikation. Sie ist gerade für Messgeräte und asynchrone I/O-Prozesse geeignet, weil sie auf klare Zuständigkeiten, Locks und semantische Trennung setzt.
+
+Die wichtigsten Erkenntnisse für zukünftige Mitarbeiter sind:
+
+- Read/Write-Befehle sind semantisch getrennt
+- SR830-Statusbefehle wie `ERRS?` und `LIAS?` sind Lesebefehle
+- die Hardware-Schicht ist streng von der GUI getrennt
+- der State ist die verbindende Schicht zwischen Gerät und UI
+- Log und Statusbildung sind keine Nebensache, sondern Kernbestandteil des Systems
+
+Die OSTECH-Worker-Schritte sind in `_device_steps()` definiert:
+
+### Periodische Messwerte
+
+```python
+ostech_periodic_steps = tuple(
+    (command.name, lambda command=command: LabOSTECHCommand(OSTECH, command))
+    for command in (
+        OSTECHCommand.LCT,
+        OSTECHCommand.XTA,
+        OSTECHCommand.LVA,
+        OSTECHCommand.XTCA,
+        OSTECHCommand.XTVA,
+        OSTECHCommand.LCA,
+    )
 )
-calculation_thread.start()
 ```
 
-Der Runner erhält:
+Das bedeutet: Der OSTECH-Thread liest zyklisch die aktuellen Werte für:
+
+- `LCT`
+- `XTA`
+- `LVA`
+- `XTCA`
+- `XTVA`
+- `LCA`
+
+### Start-/Startup-Schritte
+
+Zusätzlich gibt es einmalige Startabfragen:
 
 ```python
-stop_requested, publish
+ostech_startup_steps = tuple(
+    (command.name, lambda command=command: LabOSTECHCommand(OSTECH, command))
+    for command in (
+        OSTECHCommand.XTT,
+        OSTECHCommand.LTM,
+        OSTECHCommand.GT,
+        OSTECHCommand.GS,
+        OSTECHCommand.GVN,
+    )
+)
 ```
 
-Er darf aktuelle Werte aus `State` lesen, daraus beispielsweise Phase,
-Frequenz, Mittelwerte oder Fit-Ergebnisse berechnen und anschließend melden:
+Damit werden nach dem Verbindungsaufbau nicht nur laufende Messwerte, sondern auch Geräteinformationen und Zustände abgefragt.
+
+---
+
+## Threading-Modell und Ablauf
+
+`Threads.py` definiert die Kern-Worker-Struktur. Das zentrale Koordinationsobjekt ist `CommunicationThreads`.
+
+Im `start()` passieren die Reihenfolge und die Lebenszyklen:
 
 ```python
-publish({
-	"step": "phase calculation",
-	"value": calculated_value,
-})
+def start(self):
+    self.logging.start()
+    self.gui.start()
+    if self.commands:
+        self.commands.start()
+    if self.calculations:
+        self.calculations.start()
+    self.sr830.start()
+    self.ostech.start()
 ```
 
-Die Anwendung startet diesen Worker direkt in `Starter.py`. Sein aktueller
-Callback schreibt die Statusmeldung mit der Quelle `CALCULATION` ins Logging;
-eine spätere fachliche Berechnung kann zusätzlich über eine passende
-Nachrichten-Queue an die GUI weitergegeben werden. Ein Berechnungsfehler
-beendet nicht automatisch die Geräte-Threads, sondern wird als strukturierte
-Fehlermeldung weitergegeben. Der Starter-Runner berechnet zunächst absichtlich
-nichts. Er meldet nur `READY` beim Start und `STOPPED` beim Herunterfahren.
-Die eigentlichen Formeln können später im Runner in `Starter.py` ergänzt
-werden.
+Das ist eine bewusste Reihenfolge: Zuerst werden die Konsumenten gestartet, dann Produzenten. Beim Stop wird genau umgekehrt vorgegangen. Dadurch gibt es keine „schlafenden“ Consumer-Zugriffe beim Beenden der Worker.
+
+### `ThreadMessage`
+
+Die Worker kommunizieren nicht direkt mit GUI und Log, sondern über ein immutables Objekt:
+
+```python
+@dataclass(frozen=True)
+class ThreadMessage:
+    source: str
+    kind: str
+    value: object
+```
+
+Damit bleiben Nachrichten konsistent und kein Verbraucher kann einen Eintrag an einer anderen Stelle ändern.
+
+### `_publish()` in `CommunicationThreads`
+
+`_publish()` normalisiert den Wert und verteilt ihn an beide Konsumenten:
+
+```python
+self.logging.publish(message)
+self.gui.publish(message)
+```
+
+Das ist die Kernidee der Nachrichtenübertragung: Ein Geräte-Thread erzeugt eine Nachricht, und zwei Queue-Consumer verarbeiten sie unabhängig voneinander.
 
 ---
 
-## State und GUI
+## `start_threaded_measurement()` – Koordination der Gesamtpipeline
 
-Die Kommunikation schreibt nur nach `State.py`. Die GUI liest die Werte im
-Tkinter-Hauptthread. Dadurch gibt es keine direkten Widget-Zugriffe aus einem
-seriellen Worker.
+`start_threaded_measurement()` baut die komplette Kommunikationspipeline. Dabei werden die beiden Device-Läufe durch `_run_device()` gestartet, jeweils mit den passenden Schritten:
 
-Die Emergency-Simulation nutzt denselben Weg. Sie ersetzt nicht die
-Kommunikationsfunktionen, sondern schreibt synthetische Werte in dieselben
-State-Variablen. Dadurch ist der Anzeigeweg im Hardware- und Simulationsmodus
-identisch.
+```python
+sr830_steps, ostech_periodic_steps, _ = _device_steps()
+```
+
+Und danach:
+
+- SR830 Polling läuft in einem eigenen `DeviceThread`
+- OSTECH Polling läuft in einem eigenen `DeviceThread`
+- optionales `command_runner` läuft in einem `CommandThread`
+- GUI- und Logging-Konsumenten laufen als `MessageThread`s
+
+Wenn ein Polling-Schritt fehlschlägt, wird eine Fehlernachricht mit `step="error"` publiziert, aber nur dieser Worker stoppt. Der andere Gerätethread und die GUI können weiterlaufen.
 
 ---
 
-## Typische Fehler und ihre Bedeutung
+## Logging- und GUI-Integration im Kommunikations-Thread
 
-### Kein Gerät verbunden
+`log_handler(message: ThreadMessage)` in `start_threaded_measurement()` schreibt für jeden publizierten Wert einen strukturierten Eintrag:
 
-```text
-RuntimeError: SR830 ist nicht verbunden.
+```python
+if message.kind == "error" or payload.get("step") == "error":
+    Log.Log("Comm", payload.get("tag", message.source), "Error", ...)
+    return
 ```
 
-Das Gerät wurde nicht erfolgreich geöffnet. Das ist ein Verbindungszustand,
-kein Protokollfehler.
+Für normale Statuswerte:
 
-### Falsches Echo
-
-```text
-Unerwartetes Echo
+```python
+Log.Log("Comm", tag, "Running", command, value, info)
 ```
 
-Die Antwort gehört wahrscheinlich nicht zum gesendeten Befehl, oder der
-Controller befindet sich im falschen Protokollmodus.
-
-### Leere OSTECH-Antwort
-
-```text
-Antwort ist zu kurz
-```
-
-Der Controller hat innerhalb des Timeouts nicht genügend Bytes geliefert.
-
-### Ungültige Checksumme
-
-Die Daten sind möglicherweise beschädigt. Der Wert wird nicht akzeptiert,
-weil ein scheinbar plausibler Messwert gefährlicher wäre als ein sichtbarer
-Kommunikationsfehler.
+Das heißt: Communication-Worker erzeugen keine CSV-Schreibungen direkt; sie veröffentlichen nur eine Nachricht, und das Log-Subsystem formatiert dann den Eintrag zentral.
 
 ---
 
-## Erweiterung neuer Befehle
+## Beispiel eines kompletten Ablaufpfads
 
-Ein neuer OSTECH-Befehl sollte in dieser Reihenfolge ergänzt werden:
+Typischer Ablauf bei einer SR830-Abfrage:
 
-1. `OSTECHCommandInfo` definieren.
-2. Eintrag in `OSTECHCommand` hinzufügen.
-3. Zielvariable in `State.py` anlegen.
-4. Falls periodisch: in `ostech_periodic_steps` ergänzen.
-5. Falls Startup-Abfrage: in `ostech_startup_steps` ergänzen.
-6. Falls Benutzeraktion: als Command-Workflow anbinden.
-7. Anzeige oder Logging ergänzen.
-8. Antwort mit Fake-Port oder Simulation testen.
+1. GUI oder Thread ruft `Send.SR830G.read(...)` auf
+2. `Send.py` erzeugt `command_info`
+3. `Komunikation.ask_SR830(...)` sendet das Kommando an das Gerät
+4. Antwort wird per `read_until(b"\r")` geholt
+5. `_convert_response(...)` wandelt sie in `float`/`int`/`str`
+6. `State.update_values(...)` schreibt den Wert in den State
+7. `ThreadMessage` wird publiziert
+8. `Log.Log(...)` schreibt im Logger in CSV/Terminal/GUI
 
-Die Reihenfolge verhindert, dass ein Befehl zwar abgefragt, aber nicht
-gespeichert oder angezeigt wird.
+Damit ist das System klar getrennt: API, Wire-Protokoll, State, Logging und UI sind voneinander unabhängig, aber über feste Schnittstellen verbunden.
+
+---
+
+## Abschluss
+
+Die Kommunikationsarchitektur ist in diesem Projekt bewusst als mehrschichtige Pipeline entworfen:
+
+- `Send.py` definiert „was“ gesendet werden soll
+- `Komunikation.py` realisiert „wie“ das Gerät über seriellen IO kontaktiert wird
+- `Threads.py` verwaltet das asynchrone Laufzeitmodell
+- `State.py` hält die aktuellen Messwerte
+- `Log.py` dokumentiert Ereignisse zentral und konsistent
+
+Diese Struktur ist robust, weil sie die realen Hardware- und Thread-Grenzen sauber abbildet. Sie vermeidet direkte GUI-Zugriffe aus Worker-Threads und garantiert, dass Messdaten und Fehlersituationen zentral protokolliert werden.
