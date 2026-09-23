@@ -1,4 +1,4 @@
-Return = (False," only CVS is allowed")
+Return = (False," only CSV is allowed")
 
 import csv
 import Log
@@ -21,8 +21,8 @@ class State(Enum):
     VALIDATION = "V"
 
 class File_Validation(Enum):
-    Valid_CVS       =           (True,      'Datei ist eine gueltige CSV-Datei und kann importiert werden.'         , ""  )
-    Is_NO_CVS       =           (False,     'Der Header ist gueltig, aber die Datei hat keine CSV-Endung.'          , ""  )
+    Valid_CSV       =           (True,      'Datei ist eine gueltige CSV-Datei und kann importiert werden.'         , ""  )
+    Is_NO_CSV       =           (False,     'Der Header ist gueltig, aber die Datei hat keine CSV-Endung.'          , ""  )
     Is_Valid        =           (False,     'Die Datei hat eine CSV-Endung, aber der Header ist ungueltig.'         , ""  )
     Is_Invalid      =           (False,     'Die Datei hat weder eine CSV-Endung noch den erwarteten Header.'       , ""  )
     No_File         =           (False,     'Keine Datei Ausgewählt.'                                               , ""  )
@@ -40,13 +40,13 @@ def pruefe_csv(dateipfad):
         State=State.VALIDATION,
         Message="File Path",
         Value=str(dateipfad),
-        Info="Dateipfad des CVS Datei",
+        Info="Dateipfad der CSV-Datei",
     )
     with open(dateipfad, mode="r", encoding="utf-8-sig", newline="") as file:
         reader = csv.reader(file, delimiter=",")
         return next(reader, []) == ERWARTETE_HEADER
 
-def Check_CVS_Import(dateipfad):
+def Check_CSV_Import(dateipfad):
     """Prueft Dateityp und Header und protokolliert das Enum-Ergebnis."""
     path = Path(dateipfad)
     is_csv = path.suffix.lower() == ".csv"
@@ -59,9 +59,9 @@ def Check_CVS_Import(dateipfad):
             has_valid_header = False
 
     if is_csv and has_valid_header:
-        ergebnis = File_Validation.Valid_CVS
+        ergebnis = File_Validation.Valid_CSV
     elif not is_csv and has_valid_header:
-        ergebnis = File_Validation.Is_NO_CVS
+        ergebnis = File_Validation.Is_NO_CSV
     elif is_csv and not has_valid_header:
         ergebnis = File_Validation.Is_Valid
     else:
@@ -71,7 +71,7 @@ def Check_CVS_Import(dateipfad):
         Category="Log",
         TAG="IMPORT",
         State=State.VALIDATION,
-        Message="CVS Check",
+        Message="CSV Check",
         Value=ergebnis.value[1],
         Info="CONTINUE" if ergebnis.weiter_fuehren else "STOP",
     )

@@ -511,7 +511,7 @@ def Log(Category: str, TAG: str, State: str, Message: str, Value: str, Info: str
         except Exception:
             pass
 
-def Look_Up_CVS(Category: str, TAG: str, Message: str, State: str = " "):
+def Look_Up_CSV(Category: str, TAG: str, Message: str, State: str = " "):
     """Sucht passende Eintraege in der aktuell verwendeten CSV-Datei.
 
     `Category`, `TAG` und `Message` werden immer exakt verglichen. Wenn
@@ -540,10 +540,10 @@ def Look_Up_CVS(Category: str, TAG: str, Message: str, State: str = " "):
     return result
 
 
-def Merge_Look_Up_CVS(first_lookup, second_lookup):
+def Merge_Look_Up_CSV(first_lookup, second_lookup):
     """Fuehrt zwei Look-Up-Ergebnisse nach ihrem Zeitstempel zusammen.
 
-    Die Argumente sind die Listen, die `Look_Up_CVS()` zurueckgibt. Bei jedem
+    Die Argumente sind die Listen, die `Look_Up_CSV()` zurueckgibt. Bei jedem
     Schritt wird der zeitlich aeltere Eintrag uebernommen. Ist der erste
     Zeitstempel kleiner, kommt der Eintrag aus `first_lookup`; andernfalls
     kommt er aus `second_lookup`. Bei gleichem Zeitstempel wird also der
@@ -597,50 +597,8 @@ def Merge_Look_Up_CVS(first_lookup, second_lookup):
 
     return merged
 
-def Test_Log():
-    """Fuehrt drei einfache manuelle Tests fuer das Logging aus.
 
-    Getestet werden ein normaler Eintrag mit wenigen Werten, ein vollstaendig
-    ausgefuellter Eintrag und ein langer Text. Die Funktion ist fuer lokale
-    Kontrolle gedacht und wird nur ausgefuehrt, wenn `Log.py` direkt gestartet
-    wird. Beim Import des Moduls startet sie nicht automatisch.
-    """
-    print("--- Starte Log-Tests ---")
-    
-    # Test 1: Pflichtfelder mit leer gelassenen optionalen Feldern.
-    Log(
-        Category="Sys",
-        TAG="INFO", 
-        State="Start", 
-        Message="Anwendung gestartet", 
-        Value="0"
-    )
-    
-    # Test 2: Ein Eintrag, bei dem auch die optionalen Felder verwendet werden.
-    Log(
-        Category="NETWORK", 
-        TAG="ERR", 
-        State="Verbindung verloren", 
-        Message="FAILED", 
-        Value="404", 
-        Info="Retry in 3s", 
-        AdditionalMessage="Timeout Error", 
-        AdditionalValue="5000ms", 
-        AdditionalInfo="Port 80", 
-        Else="Fatal"
-    )
-    
-    # Test 3: Langer Inhalt. Der Formatter darf dabei nicht abstuerzen.
-    Log(
-        Category="DATABASE_SYSTEM_LONG", 
-        TAG="WARNING_TAG", 
-        State="Dieser Status ist viel zu lang", 
-        Message="Diese Nachricht überschreitet die erlaubten 50 Zeichen massiv und wird abgeschnitten.", 
-        Value="Unendlicher Wert"
-    )
-    
-    print("--- Tests beendet ---")
 
 if __name__ == "__main__":
-    Test_Log()
+    Log("Sys", "INFO", "Start", "Log-Modul direkt gestartet", "0")
 

@@ -1,0 +1,22 @@
+Sys | START | Start | Programm gestartet | Version 1.0 | 
+Sys | START | Start | Programm gestartet | Version 1.0 | 
+Sys | SYSTEM | Info | COM-Port Scan | [] | Startup
+Calc | CALCULATION | Info | calculation ready | No calculations configured | STARTER
+Gui | GUI | Start | Starting GUI |  | 
+TERMINAL | No COM ports available
+Sys | SYSTEM | Warning | Port check after GUI startup | No COM ports detected | Active ports
+Gui | Button | Info | Button clicked | 🔌 Connect | 
+Comm | COM3 | Warning | Try connect | FAILED | could not open port 'COM3': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)
+Comm | COM3 | Warning | Try connect | FAILED | could not open port 'COM3': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)
+Comm | COM4 | Warning | Try connect | FAILED | could not open port 'COM4': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)
+Comm | COM4 | Warning | Try connect | FAILED | could not open port 'COM4': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)
+Gui | Button | Info | Button clicked | 🔌 Connect | 
+Comm | COM3 | Warning | Try connect | FAILED | could not open port 'COM3': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)
+Comm | COM3 | Warning | Try connect | FAILED | could not open port 'COM3': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)
+Comm | COM4 | Warning | Try connect | FAILED | could not open port 'COM4': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)
+Comm | COM4 | Warning | Try connect | FAILED | could not open port 'COM4': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)
+Gui | Button | Info | Button clicked | 🔌 Connect | 
+Comm | COM3 | Warning | Try connect | FAILED | could not open port 'COM3': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)
+Comm | COM3 | Warning | Try connect | FAILED | could not open port 'COM3': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)
+Comm | COM4 | Warning | Try connect | FAILED | could not open port 'COM4': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)
+Comm | COM4 | Warning | Try connect | FAILED | could not open port 'COM4': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)

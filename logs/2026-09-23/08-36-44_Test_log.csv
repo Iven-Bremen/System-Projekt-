@@ -1,0 +1,13 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-23,08:36:44,940,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-09-23,08:36:44,940,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-09-23,08:36:44,942,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-09-23,08:36:44,942,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-09-23,08:36:44,961,OUTPUT,TERMINAL,OUTPUT,No COM ports available,,,,,,
+2026-09-23,08:36:44,962,Sys,SYSTEM,Info,COM-Port Scan,[],Startup,,,,
+2026-09-23,08:36:44,964,Calc,CALCULATION,Info,calculation ready,No calculations configured,STARTER,,,,
+2026-09-23,08:36:45,038,OUTPUT,ERROR,OUTPUT,c:\Users\ivenh\Coding\Projekte\Python\Softwear_Projekt\GUI.py:2043: SyntaxWarning: invalid escape sequence '\s',,,,,,
+2026-09-23,08:36:45,039,OUTPUT,ERROR,OUTPUT,"ax_pvf.set_xlabel(r'$\sqrt{\omega}$ [$\sqrt{\mathrm{Hz}}$]', color=""white"")",,,,,,
+2026-09-23,08:36:50,396,Gui,GUI,Start,Starting GUI,,,,,,
+2026-09-23,08:36:50,451,OUTPUT,TERMINAL,OUTPUT,No COM ports available,,,,,,
+2026-09-23,08:36:50,452,Sys,SYSTEM,Warning,Port check after GUI startup,No COM ports detected,Active ports,,,,
