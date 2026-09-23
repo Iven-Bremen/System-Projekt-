@@ -8,6 +8,9 @@ from tkinter import messagebox, ttk, filedialog
 from tkinter.constants import DISABLED
 import datetime
 import shutil
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 import Log
 import Komunikation
@@ -17,6 +20,9 @@ import State
 import SimGuiUpdatet
 from State import scan_com_ports
 import GUIErrorHandler
+
+import SWP_Calculation_PhaseVsFrequenz_v8 as PhasFreq_v8
+
 
 # Externe Bibliotheken
 try:
@@ -1926,9 +1932,80 @@ def initialize_pvf_plot():
 
 
 def starte_pvf_analyse():
-    # Führt eine simulierte Phase-vs-Frequency-Analyse aus und zeichnet das Ergebnis.
-    import numpy as np
+    global fig_pvf, ax_pvf, canvas_pvf
 
+    # 1. Referenz-Datei abfragen
+    path_to_ref = filedialog.askopenfilename(
+        title="1. Select Reference Measurement File (unnitriert)",
+        filetypes=[("Text Files", "*.txt *.csv"), ("All files", "*.*")]
+    )
+    if not path_to_ref:
+        return
+
+    # 2. Proben-Datei abfragen
+    path_to_probe = filedialog.askopenfilename(
+        title="2. Select Probe Measurement File (nitriert)",
+        filetypes=[("Text Files", "*.txt *.csv"), ("All files", "*.*")]
+    )
+    if not path_to_probe:
+        return
+
+    try:
+        # 3. Berechnung ausführen
+        results = PhasFreq_v8.start_PhaseFreq(path_to_ref, path_to_probe)
+
+        d_um = results["d_fit_um"]
+        d_err = results["d_err_um"]
+        kL = results["kL_fit"]
+        kL_err = results["kL_err"]
+        pdata = results["plot_data"]
+
+        # 4. Figure initialisieren / zurücksetzen
+        if fig_pvf is None:
+            fig_pvf = plt.Figure(figsize=(6, 5), dpi=100)
+        else:
+            fig_pvf.clf()
+
+        # Subplots erstellen
+        ax_raw = fig_pvf.add_subplot(211)
+        ax_fit = fig_pvf.add_subplot(212)
+
+        # Plot 1: Rohdaten
+        ax_raw.plot(pdata["f_ref"], pdata["phase_ref_unwr"], "o-", label=f"Ref: {pdata['ref_filename']}")
+        ax_raw.plot(pdata["f_probe"], pdata["phase_probe_unwr"], "s--", label=f"Probe: {pdata['probe_filename']}")
+        ax_raw.set_xscale("log")
+        ax_raw.set_xlabel("Frequenz in Hz (log-Skala)")
+        ax_raw.set_ylabel("Phase (entfaltet) in °")
+        ax_raw.set_title("Sicht-Vergleich der Rohdaten")
+        ax_raw.legend(fontsize=8)
+        ax_raw.grid(True, which="both", alpha=0.4)
+
+        # Plot 2: Phasendifferenz & Fit
+        ax_fit.plot(np.sqrt(2 * np.pi * pdata["freq_common"]), pdata["Phi"], "o", label=r"Messdaten $\Phi(\omega)$")
+        ax_fit.plot(np.sqrt(2 * np.pi * pdata["freq_fine"]), pdata["Phi_fit_curve"], "--", label="Fit-Modell")
+        ax_fit.set_xlabel(r"$\sqrt{\omega}$ in $\sqrt{Hz}$")
+        ax_fit.set_ylabel(r"Phasendifferenz $\Phi$ in °")
+        ax_fit.set_title(f"Ergebnis: d = {d_um:.2f} ± {d_err:.2f} µm | k_L = {kL:.2f} ± {kL_err:.2f} W/(m·K)")
+        ax_fit.legend(fontsize=8)
+        ax_fit.grid(True, alpha=0.4)
+
+        fig_pvf.tight_layout()
+
+        # Canvas in den Frame frame_plot_pvf einbetten (falls noch nicht geschehen)
+        if canvas_pvf is None:
+            canvas_pvf = FigureCanvasTkAgg(fig_pvf, master=frame_plot_pvf)
+            canvas_pvf.get_tk_widget().pack(fill="both", expand=True)
+
+        # Canvas aktualisieren
+        canvas_pvf.draw()
+
+        messagebox.showinfo("Analysis", "Phase vs. Frequenz Analyse erfolgreich berechnet.")
+
+    except Exception as e:
+        messagebox.showerror("Fehler", f"Fehler bei der Analyse: {e}")
+
+        
+'''
     initialize_pvf_plot()
     ax_pvf.clear()
     ax_pvf.grid(True, color="#444444", linestyle=":")
@@ -1967,9 +2044,10 @@ def starte_pvf_analyse():
     ax_pvf.set_ylabel('Phase φ [°]', color="white")
     ax_pvf.set_title('PTR Phase vs. Frequency Analysis & Fit', color="white", fontweight="bold")
     ax_pvf.legend(facecolor="#2b2b2b", edgecolor="#444444", labelcolor="white")
-    canvas_pvf.draw()
+'''
 
-    messagebox.showinfo("Analysis", "Phase vs. Frequenz Analyse erfolgreich berechnet und visualisiert.")
+
+
 
 
 def save_pvf_plot():
