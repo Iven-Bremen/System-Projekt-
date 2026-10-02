@@ -12,6 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+# Lokale Projektmodule
 import Log
 import Komunikation
 import Send
@@ -23,8 +24,7 @@ import GUIErrorHandler
 
 import SWP_Calculation_PhaseVsFrequenz_v8 as PhasFreq_v8
 
-
-# Externe Bibliotheken
+# Externe Bibliotheken mit Fallback-Mechanismus
 try:
     from deep_translator import GoogleTranslator
 except ImportError:
@@ -43,8 +43,7 @@ except ImportError:
 # ==========================================
 # ORDNER INITIALISIERUNG
 # ==========================================
-# Diese beiden Ordner werden für alle Messdaten, Log-Dateien und Plots genutzt.
-# Dadurch bleiben sämtliche Auswertungen und Protokolle an einem zentralen Ort.
+# Erstellt Verzeichnisse für Log-Dateien und generierte Plots, falls nicht vorhanden.
 LOG_DIR = os.path.join(os.getcwd(), "logs")
 if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR)
@@ -54,42 +53,14 @@ if not os.path.exists(PLOT_DIR):
     os.makedirs(PLOT_DIR)
 
 # ==========================================
-# KONFIGURATION & PASSWORT-MANAGEMENT
+# KONFIGURATION
 # ==========================================
-# Diese Funktionen laden und speichern globale GUI-Einstellungen.
-# Wichtig: Einstellungen werden in einer lokalen JSON-Datei abgelegt, damit
-# Werte wie z. B. Sicherheitsparameter oder zuletzt verwendete Optionen nicht verloren gehen.
-SETTINGS_FILE = "settings.json"
-
-
-def load_settings():
-    default_settings = {"emergency_password": "admin123"}
-    if os.path.exists(SETTINGS_FILE):
-        try:
-            with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                default_settings.update(data)
-        except Exception:
-            pass
-    else:
-        save_settings(default_settings)
-    return default_settings
-
-
-def save_settings(data):
-    try:
-        with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
-    except Exception as e:
-        print(f"Fehler beim Speichern der Settings: {e}")
-
-
-APP_SETTINGS = load_settings()
-
 
 def read_numeric_entry(entry_widget, field_name, minimum=None, maximum=None):
-    # Diese Hilfsfunktion liest aus einem Tkinter-Eingabefeld einen Zahlenwert aus.
-    # Sie akzeptiert Einheiten wie V, mA, Hz, °C und prüft anschließend den erlaubten Bereich.
+    """Liest einen numerischen Wert aus einem Tkinter-Entry-Widget.
+
+    Entfernt Einheiten (z.B. V, mA, Hz, °C) und prüft Min/Max-Grenzen.
+    """
     raw_value = entry_widget.get().strip()
     normalized_value = raw_value.replace(",", ".")
     for unit in ("°C", "degC", "mA", "V", "A", "ms", "Hz"):
@@ -115,8 +86,7 @@ def read_numeric_entry(entry_widget, field_name, minimum=None, maximum=None):
 
 
 def read_integer_entry(entry_widget, field_name, minimum=None, maximum=None):
-    # Diese Funktion prüft, ob ein Feld eine ganze Zahl erwartet und
-    # verhindert dadurch Fehleingaben bei z. B. Portnummern oder Intensitätswerten.
+    """Liest eine Ganzzahl (Integer) aus einem Entry-Widget und validiert diese."""
     value = read_numeric_entry(entry_widget, field_name, minimum, maximum)
     if value is None or value.is_integer():
         return None if value is None else int(value)
@@ -130,14 +100,14 @@ def read_integer_entry(entry_widget, field_name, minimum=None, maximum=None):
 # ==========================================
 # AUTOMATISIERTES ÜBERSETZUNGS-SYSTEM
 # ==========================================
-# Das GUI-System kann automatisch zwischen Sprachen wechseln.
-# Angemeldete Widgets werden hier mit einer englischen Basis-Textvorlage registriert
-# und bei Sprachwechsel entsprechend übersetzt.
+# Pfad zum lokalen Übersetzungs-Cache
 CACHE_FILE = "translation_cache.json"
+# Globale Variable für die aktuelle Sprache (Standard: Englisch "en")
 current_lang = "en"
 
 
 def load_cache():
+    """Lädt den Übersetzungscache aus einer lokalen JSON-Datei."""
     if os.path.exists(CACHE_FILE):
         try:
             with open(CACHE_FILE, "r", encoding="utf-8") as f:
@@ -148,6 +118,7 @@ def load_cache():
 
 
 def save_cache():
+    """Speichert den Übersetzungscache lokal."""
     try:
         with open(CACHE_FILE, "w", encoding="utf-8") as f:
             json.dump(TRANSLATION_CACHE, f, ensure_ascii=False, indent=4)
@@ -155,8 +126,10 @@ def save_cache():
         print(f"Fehler beim Speichern des Caches: {e}")
 
 
+# Globaler Übersetzungs-Cache
 TRANSLATION_CACHE = load_cache()
 
+# Manuelle Übersetzungs-Korrekturen
 MANUAL_OVERRIDES = {
     "de": {
         "Sine Out": "Sine-Out Signal",
@@ -166,20 +139,19 @@ MANUAL_OVERRIDES = {
         "Overview": "Übersicht",
         "Lock-In Amplifier": "Lock-In Verstärker",
         "Laser / TEC Controller": "Laser / TEC Regler",
-        "Analysis": "Analyse",
+        "Experiment": "Experiment",
         "Help": "Hilfe",
         "Guide": "Handbuch / Anleitung",
         "Settings": "Einstellungen"
     }
 }
 
+# Liste aller registrierten UI-Elemente für den Sprachwechsel
 registered_widgets = []
 
 
 def auto_tr(english_text):
-    # Übersetzt einen englischen Text in die aktuell ausgewählte Sprache.
-    # Wenn der Text bereits gecached ist, wird er direkt geladen; andernfalls
-    # wird versucht, ihn mit GoogleTranslator zu übersetzen.
+    """Übersetzt englischen Text in die aktuell eingestellte Sprache."""
     if current_lang == "en":
         return english_text
 
@@ -204,13 +176,13 @@ def auto_tr(english_text):
 
 
 def reg_ui(widget, english_text, prop="text"):
-    # Registriert ein Widget für Sprachupdates.
-    # Dadurch kann das Label oder der Tab-Text beim Wechsel der Sprache automatisch aktualisiert werden.
+    """Registriert ein UI-Widget zur dynamischen Übersetzung."""
     registered_widgets.append((widget, prop, english_text))
     update_single_widget(widget, prop, english_text)
 
 
 def update_single_widget(widget, prop, english_text):
+    """Aktualisiert die Beschriftung eines einzelnen registrierten Widgets."""
     translated_val = auto_tr(english_text)
     try:
         if prop == "text":
@@ -223,6 +195,7 @@ def update_single_widget(widget, prop, english_text):
 
 
 def change_language(lang_code):
+    """Wechselt die globale Sprache der Benutzeroberfläche."""
     global current_lang
     current_lang = lang_code
     for widget, prop, english_text in registered_widgets:
@@ -232,10 +205,11 @@ def change_language(lang_code):
 # ==========================================
 # HARDWARE VARIABLEN & STEUERUNG
 # ==========================================
-# Hier werden globale Zustände für Geräteverbindungen und Messstatus verwaltet.
-# Diese Variablen werden von mehreren Tabs gleichzeitig genutzt, z. B. Overview, Lock-In und Laser.
+# COM-Ports für Hardware
 LOCK_IN_AMPLIFIER_PORT = Komunikation.DEFAULT_SR830_PORT
 LASER_PORT = Komunikation.DEFAULT_OSTECH_PORT
+
+# Status- und Sitzungsvariablen
 lockin_device = None
 current_file_path = None
 
@@ -246,7 +220,7 @@ communication_threads = None
 
 
 def stop_communication_threads():
-    # Stoppt laufende Kommunikations-Threads sauber, bevor Hardware getrennt oder GUI geschlossen wird.
+    """Stoppt alle aktiven Hintergrund-Kommunikations-Threads."""
     global communication_threads
     if communication_threads is not None:
         communication_threads.stop()
@@ -254,6 +228,7 @@ def stop_communication_threads():
 
 
 def check_real_com_port(port_name):
+    """Prüft, ob der angegebene COM-Port physikalisch verfügbar ist."""
     if serial:
         return port_name in scan_com_ports()
     if pyvisa:
@@ -267,10 +242,12 @@ def check_real_com_port(port_name):
 
 
 def get_available_com_ports():
+    """Liest alle verfügbaren COM-Ports des Systems aus."""
     return scan_com_ports()
 
 
 def open_file_dialog():
+    """Öffnet einen Dateiauswahldialog zum Importieren von Messdaten."""
     global current_file_path
     file_path = filedialog.askopenfilename(
         title=auto_tr("Import Data File"),
@@ -281,13 +258,13 @@ def open_file_dialog():
         lbl_file_status.config(text=os.path.basename(current_file_path))
 
 
+# GUI-Refresh Job Referenz
 refresh_job = None
 is_closing = False
 
 
 def on_closing():
-    # Wird beim Schließen des Fensters aufgerufen.
-    # Hier werden laufende Threads, refresh-Callbacks und GUI-Updates sauber beendet.
+    """Beendet die GUI und trennt alle Verbindungen und Threads sicher."""
     global refresh_job, is_closing
     if is_closing:
         return
@@ -311,14 +288,13 @@ def on_closing():
 # ==========================================
 # GUI ANWENDUNG INITIALISIERUNG
 # ==========================================
-# Das Hauptfenster wird hier initialisiert und mit dem Theme sowie dem Schließen-Handler versehen.
-# Danach werden die Tabs erzeugt, die den kompletten Ablauf der Software darstellen.
 root = tk.Tk()
 root.title('PAMO - Photothermal Analysis & Monitoring Overview')
 root.state("zoomed")
 root.configure(bg="#2b2b2b")
 root.protocol("WM_DELETE_WINDOW", on_closing)
 
+# Styling-Konfiguration
 style = ttk.Style()
 style.theme_use('default')
 style.configure("TNotebook", background="#2b2b2b", borderwidth=0)
@@ -326,15 +302,13 @@ style.configure("TNotebook.Tab", background="#3c3f41", foreground="#ffffff", pad
                 font=('Consolas', 10, 'bold'))
 style.map("TNotebook.Tab", background=[("selected", "#007acc")], foreground=[("selected", "#ffffff")])
 
-# Globale Widget-Listen für Status-Labels
-# Diese Listen enthalten alle Label, die den Verbindungsstatus der Hardware anzeigen.
+# Status-Anzeige-Listen
 status_labels_lockin = []
 status_labels_laser = []
 
 
 def update_status_indicators():
-    # Aktualisiert alle Statusanzeigen für Lock-In und Laser.
-    # Wenn Gerät verbunden ist, erscheint grün; ansonsten rot.
+    """Aktualisiert alle visuellen Verbindungs-Labels im Interface."""
     for lbl in status_labels_lockin:
         lbl.config(text="🟢 Verbunden" if is_lockin_connected else "🔴 Nicht Verbunden",
                    fg="#00ff00" if is_lockin_connected else "#ff4444")
@@ -347,8 +321,7 @@ def update_status_indicators():
 # HARDWARE SAMMLUNGSFUNKTIONEN
 # ==========================================
 def connect_all_hardware():
-    # Verbindet alle konfigurierten Hardware-Geräte mit der Software.
-    # Danach werden Statusflags gesetzt und ein Übersicht-Log aktualisiert.
+    """Initiert die Verbindung zu Lock-In Verstaerker und Laser Controller."""
     global is_lockin_connected, is_laser_connected, is_emergency_bypass
     global LOCK_IN_AMPLIFIER_PORT, LASER_PORT
     global communication_threads
@@ -379,8 +352,7 @@ def connect_all_hardware():
 
 
 def disconnect_all_hardware():
-    # Trennt alle Geräte sauber und setzt die Verbindungszustände zurück.
-    # Wichtig: Nach dem Trennen müssen Threads und Hardware-Handles beendet werden.
+    """Trennt die Verbindung zu allen angeschlossenen Geräten."""
     global is_lockin_connected, is_laser_connected, is_emergency_bypass, lockin_device
     is_lockin_connected = False
     is_laser_connected = False
@@ -394,33 +366,29 @@ def disconnect_all_hardware():
     update_overview_log("Hardware connections disconnected.")
 
 
-# Hilfsfunktionen für Lock-In und Laser Port-Steuerung
-# Diese Bar-Widgets erzeugen die COM-Port-Auswahl und die Connect/Disconnect-Buttons pro Gerät.
+# ------------------------------------------
+# HARDWARE STEUERUNGSLEISTEN (Anpassung: Textfeld statt Combobox)
+# ------------------------------------------
 def create_lockin_control_bar(parent):
+    """Erzeugt die Verbindungskontrollleiste für den Lock-In Amplifier mit Textfeld für COM-Port."""
     frame = tk.LabelFrame(parent, text=" Lock-In Connection Control ", font=("Consolas", 10, "bold"),
                           bg="#1e1e1e", fg="#00ffcc", padx=10, pady=8)
     frame.pack(fill="x", padx=10, pady=5)
 
     tk.Label(frame, text="COM Port:", bg="#1e1e1e", fg="#ffffff", font=("Consolas", 9, "bold")).pack(side="left",
                                                                                                      padx=5)
-    combo_com = ttk.Combobox(frame, values=get_available_com_ports(), width=12)
+
+    # Textfeld statt Combobox
+    entry_com = ttk.Entry(frame, width=12)
     if LOCK_IN_AMPLIFIER_PORT:
-        combo_com.set(LOCK_IN_AMPLIFIER_PORT)
-    combo_com.pack(side="left", padx=5)
-
-    def refresh_ports():
-        ports = get_available_com_ports()
-        combo_com['values'] = ports
-        if ports and not combo_com.get():
-            combo_com.set(ports[0])
-
-    btn_refresh = tk.Button(frame, text="🔄 Refresh", font=("Consolas", 8, "bold"), bg="#3c3f41", fg="white",
-                            command=refresh_ports)
-    btn_refresh.pack(side="left", padx=5)
+        entry_com.insert(0, LOCK_IN_AMPLIFIER_PORT)
+    else:
+        entry_com.insert(0, "COM1")
+    entry_com.pack(side="left", padx=5)
 
     def do_connect():
         global LOCK_IN_AMPLIFIER_PORT
-        LOCK_IN_AMPLIFIER_PORT = combo_com.get().strip()
+        LOCK_IN_AMPLIFIER_PORT = entry_com.get().strip()
         connect_all_hardware()
 
     btn_connect = tk.Button(frame, text="🔌 Connect", font=("Consolas", 8, "bold"), bg="#2e7d32", fg="white",
@@ -438,30 +406,25 @@ def create_lockin_control_bar(parent):
 
 
 def create_laser_control_bar(parent):
+    """Erzeugt die Verbindungskontrollleiste für den Laser Controller mit Textfeld für COM-Port."""
     frame = tk.LabelFrame(parent, text=" Laser Connection Control ", font=("Consolas", 10, "bold"),
                           bg="#1e1e1e", fg="#00ffcc", padx=10, pady=8)
     frame.pack(fill="x", padx=10, pady=5)
 
     tk.Label(frame, text="COM Port:", bg="#1e1e1e", fg="#ffffff", font=("Consolas", 9, "bold")).pack(side="left",
                                                                                                      padx=5)
-    combo_com = ttk.Combobox(frame, values=get_available_com_ports(), width=12)
+
+    # Textfeld statt Combobox
+    entry_com = ttk.Entry(frame, width=12)
     if LASER_PORT:
-        combo_com.set(LASER_PORT)
-    combo_com.pack(side="left", padx=5)
-
-    def refresh_ports():
-        ports = get_available_com_ports()
-        combo_com['values'] = ports
-        if ports and not combo_com.get():
-            combo_com.set(ports[0])
-
-    btn_refresh = tk.Button(frame, text="🔄 Refresh", font=("Consolas", 8, "bold"), bg="#3c3f41", fg="white",
-                            command=refresh_ports)
-    btn_refresh.pack(side="left", padx=5)
+        entry_com.insert(0, LASER_PORT)
+    else:
+        entry_com.insert(0, "COM2")
+    entry_com.pack(side="left", padx=5)
 
     def do_connect():
         global LASER_PORT
-        LASER_PORT = combo_com.get().strip()
+        LASER_PORT = entry_com.get().strip()
         connect_all_hardware()
 
     btn_connect = tk.Button(frame, text="🔌 Connect", font=("Consolas", 8, "bold"), bg="#2e7d32", fg="white",
@@ -477,28 +440,73 @@ def create_laser_control_bar(parent):
     status_labels_laser.append(lbl_status)
     return frame
 
+def toggle_laser():
+    """Schaltet den Laser ein oder aus und sendet den Befehl an den OStech-Controller."""
+    # Aktuellen Zustand aus dem State abfragen oder umkehren
+    current_state = bool(getattr(State, "L", False))
+    new_state = not current_state
 
-# ==========================================================
-# HAUPTSTRUKTUR DER GUI: REGISTERKARTEN (TABS)
-# ==========================================================
-# Alle Hauptbereiche der Software werden als Tabs im Notebook organisiert.
-# Dadurch bleibt jede Funktion logisch getrennt:
-# - Status/Übersicht
-# - Logs
-# - Lock-In-Steuerung
-# - Laser/TEC-Steuerung
-# - Analyse
-# - Hilfe
-# - Einstellungen
+    try:
+        # Sende-Befehl an den OStech Laser-Controller (1 = AN, 0 = AUS)
+        if not is_emergency_bypass:
+            if not is_laser_connected or Komunikation.OSTECH is None:
+                raise RuntimeError("OStech Laser Controller ist nicht verbunden.")
+            Komunikation.send_OSTECH("L", 1 if new_state else 0)
+
+        # Lokalen Status aktualisieren & Button-Design anpassen
+        State.L = 1 if new_state else 0
+        update_laser_toggle_button(new_state)
+
+        status_text = "EINGESCHALTET" if new_state else "AUSGESCHALTET"
+        messagebox.showinfo("Laser Controller", f"Laser wurde {status_text}.")
+        Log.Log("Gui", "Laser", "Info", "Laser Power", f"Laser set to {status_text}")
+
+    except Exception as e:
+        messagebox.showerror("Laser Fehler", f"Fehler beim Umschalten des Lasers:\n{e}")
+
+def update_laser_toggle_button(is_on):
+    """Aktualisiert Text und Farbe des Laser-Start/Stopp-Knopfs."""
+    if is_on:
+        btn_laser_toggle.config(
+            text="⚡ LASER STOPPEN ⚡",
+            bg="#d32f2f",        # Auffälliges Rot
+            activebackground="#b71c1c",
+            fg="#ffffff"
+        )
+    else:
+        btn_laser_toggle.config(
+            text="⚡ LASER STARTEN ⚡",
+            bg="#388e3c",        # Auffälliges Grün
+            activebackground="#2e7d32",
+            fg="#ffffff"
+        )
+
+
+# ==========================================
+# REGISTERKARTEN / TABS INITIALISIERUNG
+# ==========================================
+# Haupt-Notebook für alle primären Tabs
 main_notebook = ttk.Notebook(root)
 main_notebook.pack(fill="both", expand=True, padx=10, pady=10)
 
 # ------------------------------------------
-# 1. TAB: OVERVIEW (PASSIVE DISPLAY- & HARDWARE-PREVIEW)
+# 0. TAB: HOME
 # ------------------------------------------
-# Dieser Tab zeigt nur Status und Vorschau an.
-# Er ist keine Steueroberfläche für Messungen, sondern die Startseite.
-# Ziel: Sofort erkennen, ob Hardware verbunden ist und ob das System stabil läuft.
+tab_home = tk.Frame(main_notebook, bg="#1e1e1e")
+main_notebook.add(tab_home, text="")
+reg_ui((main_notebook, tab_home), "Home", "tab_text")
+
+lbl_welcome = tk.Label(tab_home, font=("Consolas", 12, "bold"), bg="#1e1e1e", fg="#00ffcc")
+lbl_welcome.pack(pady=(40, 10))
+reg_ui(lbl_welcome, "WELCOME TO PAMO - THE PHOTOTHERMAL ANALYSIS & MONITORING OVERVIEW")
+
+lbl_info = tk.Label(tab_home, font=("Segoe UI", 10), bg="#1e1e1e", fg="#aaaaaa", justify="center")
+lbl_info.pack(pady=10)
+reg_ui(lbl_info, "Select a tab above to control hardware or run data analysis.")
+
+# ------------------------------------------
+# 1. TAB: OVERVIEW
+# ------------------------------------------
 tab_overview = tk.Frame(main_notebook, bg="#1e1e1e")
 main_notebook.add(tab_overview, text="")
 reg_ui((main_notebook, tab_overview), "Overview", "tab_text")
@@ -522,11 +530,11 @@ lbl_status_ov_laser = tk.Label(frame_overview_status, text="🔴 Nicht Verbunden
 lbl_status_ov_laser.grid(row=0, column=3, sticky="w", padx=10, pady=5)
 status_labels_laser.append(lbl_status_ov_laser)
 
-# --- Passive Gerät-Display Vorschauen ---
+# --- Vorschau der Displays ---
 frame_previews = tk.Frame(tab_overview, bg="#1e1e1e")
 frame_previews.pack(fill="x", padx=10, pady=5)
 
-# Lock-In Passive Preview
+# Lock-In Vorschau
 frame_ov_lockin = tk.LabelFrame(frame_previews, text=" Lock-In Display Preview (Read-Only) ",
                                 font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#00ffcc", padx=10, pady=5)
 frame_ov_lockin.pack(side="left", fill="both", expand=True, padx=(0, 5))
@@ -547,7 +555,7 @@ lbl_ov_ch2_title.pack(anchor="w", padx=5, pady=2)
 lbl_ov_ch2_val = tk.Label(frame_ov_ch2, text="0.00 °", font=("Consolas", 16, "bold"), bg="#000000", fg="#00ff00")
 lbl_ov_ch2_val.pack(padx=5, pady=2)
 
-# Laser Passive Preview
+# Laser Vorschau
 frame_ov_laser = tk.LabelFrame(frame_previews, text=" Laser Layout Preview (Read-Only) ", font=("Consolas", 9, "bold"),
                                bg="#1e1e1e", fg="#00ffcc", padx=10, pady=5)
 frame_ov_laser.pack(side="right", fill="both", expand=True, padx=(5, 0))
@@ -564,6 +572,7 @@ lbl_ov_laser_main_val = tk.Label(frame_ov_laser, text="0.0 mA", font=("Consolas"
                                  fg="#00ff00", bd=2, relief="sunken")
 lbl_ov_laser_main_val.pack(fill="x", pady=5)
 
+# Live-Log
 frame_overview_log = tk.LabelFrame(tab_overview, text=" Live Log Terminal ", font=("Consolas", 10, "bold"),
                                    bg="#1e1e1e", fg="#00ffcc", padx=10, pady=5)
 frame_overview_log.pack(fill="both", expand=True, padx=10, pady=5)
@@ -574,8 +583,7 @@ txt_overview_log.pack(fill="both", expand=True, padx=5, pady=5)
 
 
 def update_overview_log(message):
-    # Schreibt eine Zeile in das Live-Log des Overview-Tabs.
-    # Diese Funktion wird z. B. beim Verbinden/Trennen von Hardware aufgerufen.
+    """Schreibt System- und Statusnachrichten in das Overview Log Terminal."""
     txt_overview_log.config(state="normal")
     txt_overview_log.insert("end", f"[{datetime.datetime.now().strftime('%H:%M:%S')}] {message}\n")
     txt_overview_log.see("end")
@@ -585,10 +593,162 @@ def update_overview_log(message):
 update_overview_log("System initialized. Monitoring active...")
 
 # ------------------------------------------
-# 2. TAB: LOGS
+# 2. TAB: EXPERIMENT (Anpassung: ehemals Analysis, jetzt an 3. Stelle)
 # ------------------------------------------
-# In diesem Bereich werden gespeicherte Messprotokolle verwaltet und als Dateien angezeigt.
-# Der Nutzer kann neue Logs erzeugen, existierende importieren und historische Dateien aufrufen.
+tab_experiment = tk.Frame(main_notebook, bg="#1e1e1e")
+main_notebook.add(tab_experiment, text="")
+reg_ui((main_notebook, tab_experiment), "Experiment", "tab_text")
+
+# Untertabs für Experiment
+exp_notebook = ttk.Notebook(tab_experiment)
+exp_notebook.pack(fill="both", expand=True, padx=10, pady=10)
+
+# Untertab 2.1: Experiment Settings
+tab_exp_settings = tk.Frame(exp_notebook, bg="#1e1e1e")
+exp_notebook.add(tab_exp_settings, text="")
+reg_ui((exp_notebook, tab_exp_settings), "Experiment Settings", "tab_text")
+
+frame_sweep = tk.LabelFrame(tab_exp_settings, text=" Frequency Parameter Sweep ", font=("Consolas", 10, "bold"),
+                            bg="#1e1e1e", fg="#00ffcc", padx=15, pady=15)
+frame_sweep.pack(fill="x", padx=10, pady=10)
+
+tk.Label(frame_sweep, text="Start Frequency (Hz):", font=("Consolas", 9), bg="#1e1e1e", fg="#ffffff").grid(row=0,
+                                                                                                           column=0,
+                                                                                                           sticky="w",
+                                                                                                           padx=5,
+                                                                                                           pady=5)
+entry_sweep_start = ttk.Entry(frame_sweep, width=15)
+entry_sweep_start.insert(0, "10.0")
+entry_sweep_start.grid(row=0, column=1, sticky="w", padx=5, pady=5)
+
+tk.Label(frame_sweep, text="End Frequency (Hz):", font=("Consolas", 9), bg="#1e1e1e", fg="#ffffff").grid(row=1,
+                                                                                                         column=0,
+                                                                                                         sticky="w",
+                                                                                                         padx=5, pady=5)
+entry_sweep_end = ttk.Entry(frame_sweep, width=15)
+entry_sweep_end.insert(0, "100000.0")
+entry_sweep_end.grid(row=1, column=1, sticky="w", padx=5, pady=5)
+
+
+def apply_sweep_settings():
+    """Liest und überprüft die Parameter für den Frequenz-Sweep."""
+    f_start = read_numeric_entry(entry_sweep_start, "Start Frequency", 0.001, 102000)
+    f_end = read_numeric_entry(entry_sweep_end, "End Frequency", 0.001, 102000)
+    if f_start is not None and f_end is not None:
+        messagebox.showinfo("Sweep Settings", f"Frequency Sweep gesetzt von {f_start} Hz bis {f_end} Hz.")
+
+
+btn_apply_sweep = tk.Button(frame_sweep, text="✔ Set Sweep Parameters", font=("Consolas", 9, "bold"), bg="#007acc",
+                            fg="white", command=apply_sweep_settings)
+btn_apply_sweep.grid(row=2, column=0, columnspan=2, pady=10, sticky="ew")
+
+# Untertab 2.2: Results (Calculations & Fit)
+tab_exp_results = tk.Frame(exp_notebook, bg="#252526")
+exp_notebook.add(tab_exp_results, text="")
+reg_ui((exp_notebook, tab_exp_results), "Results", "tab_text")
+
+paned_stats = ttk.PanedWindow(tab_exp_results, orient="horizontal")
+paned_stats.pack(fill="both", expand=True, padx=5, pady=5)
+
+frame_tree_stats = tk.Frame(paned_stats, bg="#1e1e1e", width=260)
+paned_stats.add(frame_tree_stats, weight=1)
+
+lbl_tree_stats_title = tk.Label(frame_tree_stats, text="PROJECT EXPLORER", font=("Consolas", 9, "bold"), bg="#3c3f41",
+                                fg="#ffffff", anchor="w", padx=5)
+lbl_tree_stats_title.pack(fill="x")
+
+tree_stats = ttk.Treeview(frame_tree_stats, show="tree")
+tree_stats.pack(fill="both", expand=True)
+
+frame_stats_work = tk.Frame(paned_stats, bg="#252526")
+paned_stats.add(frame_stats_work, weight=4)
+
+frame_stats_top = tk.Frame(frame_stats_work, bg="#252526")
+frame_stats_top.pack(fill="x", pady=10)
+
+btn_load = tk.Button(frame_stats_top, font=("Consolas", 9, "bold"), bg="#007acc", fg="white", padx=10, pady=5,
+                     command=open_file_dialog)
+btn_load.pack(side="left", padx=10)
+reg_ui(btn_load, "📁 Import Data File")
+
+lbl_file_status = tk.Label(frame_stats_top, font=("Consolas", 9), bg="#252526", fg="#aaaaaa")
+lbl_file_status.pack(side="left", padx=10)
+reg_ui(lbl_file_status, "No file loaded")
+
+frame_plot_pvf = tk.Frame(frame_stats_work, bg="#1e1e1e", bd=2, relief="sunken")
+frame_plot_pvf.pack(fill="both", expand=True, padx=10, pady=5)
+
+fig_pvf = None
+ax_pvf = None
+canvas_pvf = None
+
+
+def starte_pvf_analyse():
+    """Startet die Berechnung und grafische Auswertung der Phase-vs-Frequenz-Messdaten."""
+    global fig_pvf, ax_pvf, canvas_pvf
+
+    path_to_ref = filedialog.askopenfilename(
+        title="1. Select Reference Measurement File (unnitriert)",
+        filetypes=[("Text Files", "*.txt *.csv"), ("All files", "*.*")]
+    )
+    if not path_to_ref:
+        return
+
+    path_to_probe = filedialog.askopenfilename(
+        title="2. Select Probe Measurement File (nitriert)",
+        filetypes=[("Text Files", "*.txt *.csv"), ("All files", "*.*")]
+    )
+    if not path_to_probe:
+        return
+
+    try:
+        results = PhasFreq_v8.start_PhaseFreq(path_to_ref, path_to_probe)
+
+        pdata = results["plot_data"]
+
+        if fig_pvf is None:
+            fig_pvf = plt.Figure(figsize=(6, 5), dpi=100)
+        else:
+            fig_pvf.clf()
+
+        ax_raw = fig_pvf.add_subplot(211)
+        ax_fit = fig_pvf.add_subplot(212)
+
+        ax_raw.plot(pdata["f_ref"], pdata["phase_ref_unwr"], "o-", label=f"Ref: {pdata['ref_filename']}")
+        ax_raw.plot(pdata["f_probe"], pdata["phase_probe_unwr"], "s--", label=f"Probe: {pdata['probe_filename']}")
+        ax_raw.set_xscale("log")
+        ax_raw.set_title("Unwrapped Raw Phase Data")
+        ax_raw.grid(True)
+        ax_raw.legend()
+
+        ax_fit.plot(pdata["f_ref"], pdata["delta_phase"], "g^", label="Delta Phase")
+        ax_fit.set_xscale("log")
+        ax_fit.set_title("Phase Difference")
+        ax_fit.grid(True)
+        ax_fit.legend()
+
+        fig_pvf.tight_layout()
+
+        if canvas_pvf is not None:
+            canvas_pvf.get_tk_widget().destroy()
+
+        canvas_pvf = FigureCanvasTkAgg(fig_pvf, master=frame_plot_pvf)
+        canvas_pvf.draw()
+        canvas_pvf.get_tk_widget().pack(fill="both", expand=True)
+
+        messagebox.showinfo("Analysis Complete", "Phase vs. Frequency calculation finished successfully.")
+
+    except Exception as e:
+        messagebox.showerror("Analysis Error", f"An error occurred during analysis:\n{e}")
+
+
+btn_calc = tk.Button(frame_stats_top, text="⚡ Run Calculations", font=("Consolas", 9, "bold"), bg="#2e7d32", fg="white",
+                     padx=10, pady=5, command=starte_pvf_analyse)
+btn_calc.pack(side="left", padx=10)
+
+# ------------------------------------------
+# 3. TAB: LOGS
+# ------------------------------------------
 tab_logs = tk.Frame(main_notebook, bg="#1e1e1e")
 main_notebook.add(tab_logs, text="")
 reg_ui((main_notebook, tab_logs), "Logs", "tab_text")
@@ -627,7 +787,7 @@ entry_manual_note.pack(side="left", padx=5)
 
 
 def add_manual_log_note():
-    # Einfache manuelle Notiz, die ebenfalls in der Log-Laufzeit und in der CSV erscheint.
+    """Fügt einen manuellen Benutzereintrag in das Logsystem ein."""
     note = entry_manual_note.get().strip()
     if not note or note == "Nachricht eingeben...":
         messagebox.showwarning("Hinweis", "Bitte zuerst eine Nachricht eingeben.")
@@ -644,7 +804,7 @@ btn_add_note.pack(side="left", padx=5)
 
 
 def save_current_log():
-    # Speichert den Inhalt des Log-Terminals als CSV-Datei im "logs"-Ordner.
+    """Speichert das aktuelle Log-Terminal als CSV-/Textdatei ab."""
     filename = entry_log_name.get().strip()
     if not filename:
         messagebox.showerror("Error", "Please enter a valid log file name.")
@@ -669,7 +829,7 @@ btn_save_log.pack(side="left", padx=5)
 
 
 def import_external_csv():
-    # Lädt eine CSV-Datei von außerhalb in das Log-Verzeichnis der Anwendung.
+    """Kopiert eine externe Logdatei in den zentralen 'logs'-Ordner."""
     file_path = filedialog.askopenfilename(
         title="Import CSV Log File",
         filetypes=[("CSV Files", "*.csv"), ("All files", "*.*")]
@@ -702,12 +862,7 @@ txt_log_terminal_main.pack(fill="both", expand=True, padx=5, pady=5)
 
 
 def append_gui_log_text(message):
-    """Nimmt Log-Callbacks entgegen und hängt sie im Laufzeit-Log an.
-
-    Manuelle Einträge aus dem Eingabefeld werden ebenfalls hier abgelegt, da sie
-    intern mit ``Log.Log(...)`` geschrieben werden. Dadurch bleibt ein einheitliches
-    Verhalten für regelmäßige Meldungen und für Benutzernachträge.
-    """
+    """Callback-Funktion für das Haupt-Log-Terminal."""
     if not root.winfo_exists():
         return
 
@@ -727,7 +882,7 @@ Log.register_gui_callback(append_gui_log_text, filter_func=Log.gui_live_log_filt
 
 
 def on_tree_logs_main_select(event):
-    # Wenn ein Eintrag im Log-Baum ausgewählt wird, wird der Inhalt direkt im Terminal angezeigt.
+    """Zeigt den Inhalt der im Explorer ausgewählten Datei im Terminal an."""
     selected = tree_logs_main.selection()
     if selected:
         val = tree_logs_main.item(selected[0], "values")
@@ -747,10 +902,8 @@ def on_tree_logs_main_select(event):
 tree_logs_main.bind("<<TreeviewSelect>>", on_tree_logs_main_select)
 
 # ------------------------------------------
-# 3. TAB: LOCK-IN AMPLIFIER
+# 4. TAB: LOCK-IN AMPLIFIER
 # ------------------------------------------
-# Hier werden die SR830-Einstellungen und Messkanäle konfiguriert.
-# Der Lock-In ist das Herzstück der Messdiagnostik und steuert die Signalverarbeitung.
 tab_lockin = tk.Frame(main_notebook, bg="#1e1e1e")
 main_notebook.add(tab_lockin, text="")
 reg_ui((main_notebook, tab_lockin), "Lock-In Amplifier", "tab_text")
@@ -836,8 +989,7 @@ combo_slope.pack(fill="x", pady=2)
 
 
 def apply_lockin_filter_settings():
-    # Überträgt die eingestellten Lock-In-Parameter an das Gerät.
-    # Die Mappe definiert die Hardware-Kommandos und deren Werte für SR830.
+    """Überträgt die eingegebenen Filter- und Signal-Einstellungen an den SR830."""
     if not messagebox.askyesno("Bestätigung",
                                "Filter- und Eingangs-Einstellungen an den Lock-In Amplifier übermitteln?"):
         return
@@ -893,34 +1045,31 @@ btn_apply_input = tk.Button(frame_input, text="✔ Apply Input Settings", font=(
 btn_apply_input.pack(fill="x", pady=(10, 2))
 
 
-# --- Hilfsfunktion für Display-Geräteansicht nach Hardware-Muster ---
-# Diese Funktion erzeugt eine künstliche Hardware-Anzeige, die wie ein physischer Messgerät-Display aussieht.
+# --- Hilfsfunktion für Display-Geräteansicht ---
 def create_hardware_display_box(parent, status_left=("AUTO", "SYNC")):
+    """Baut eine realistische Hardware-Messwert-Anzeige mit skalierten Einheiten auf."""
     disp_frame = tk.Frame(parent, bg="#000000", bd=2, relief="sunken")
     disp_frame.pack(fill="x", pady=2)
 
-    # Obere Leiste: Status links, Hauptwert, Einheiten-Grid rechts
     top_bar = tk.Frame(disp_frame, bg="#000000")
     top_bar.pack(fill="x", padx=2, pady=2)
 
-    # Status Indikatoren Links
     status_box = tk.Frame(top_bar, bg="#000000")
     status_box.pack(side="left", anchor="n", padx=2, pady=2)
     tk.Label(status_box, text="OVLD", font=("Consolas", 7, "bold"), bg="#000000", fg="#444444").pack(anchor="w")
     tk.Label(status_box, text=status_left[0], font=("Consolas", 7, "bold"), bg="#000000", fg="#00ff00").pack(anchor="w")
     tk.Label(status_box, text=status_left[1], font=("Consolas", 7, "bold"), bg="#000000", fg="#00ff00").pack(anchor="w")
 
-    # Hauptwert Anzeigelabel (Vergrößertes Display mit integrierter Einheit)
     val_container = tk.Frame(top_bar, bg="#000000")
     val_container.pack(side="left", expand=True, padx=2)
 
-    val_label = tk.Label(val_container, text="+0.0000", font=("Consolas", 28, "bold"), bg="#000000", fg="#00ff00")
+    val_label = tk.Label(val_container, text="+0.0000", font=("Consolas", 22, "bold"), bg="#000000", fg="#00ff00")
     val_label.pack(side="left")
 
-    unit_label = tk.Label(val_container, text="V", font=("Consolas", 18, "bold"), bg="#000000", fg="#00ff00")
+    unit_label = tk.Label(val_container, text="V", font=("Consolas", 14, "bold"), bg="#000000", fg="#00ff00")
     unit_label.pack(side="left", padx=(4, 0))
 
-    # Einheiten-Grid Rechts (Vollständige Matrix)
+    # Skalierte, kleinere Einheiten-Matrix am Bildschirmrand (Anpassung 2)
     units_box = tk.Frame(top_bar, bg="#000000")
     units_box.pack(side="right", anchor="n", padx=2)
     units = [
@@ -931,14 +1080,13 @@ def create_hardware_display_box(parent, status_left=("AUTO", "SYNC")):
     ]
     for r, row in enumerate(units):
         for c, u in enumerate(row):
-            tk.Label(units_box, text=u, font=("Consolas", 6, "bold"), bg="#000000", fg="#888888").grid(row=r, column=c,
+            tk.Label(units_box, text=u, font=("Consolas", 5, "bold"), bg="#000000", fg="#666666").grid(row=r, column=c,
                                                                                                        padx=1)
 
-    # Untere Leiste: Levelbar mit 8er Marker-Stücken & Beschriftungen
     bot_bar = tk.Frame(disp_frame, bg="#000000")
     bot_bar.pack(fill="x", padx=5, pady=(0, 2))
 
-    canvas_bar = tk.Canvas(bot_bar, height=14, bg="#000000", highlightthickness=0)
+    canvas_bar = tk.Canvas(bot_bar, height=12, bg="#000000", highlightthickness=0)
     canvas_bar.pack(fill="x")
 
     labels_frame = tk.Frame(bot_bar, bg="#000000")
@@ -953,17 +1101,7 @@ def create_hardware_display_box(parent, status_left=("AUTO", "SYNC")):
     return disp_frame, val_label, unit_label, canvas_bar
 
 
-# ==========================================================
-# LOCK-IN TAB: CH1 / CH2 / REFERENCE DISPLAY
-# ==========================================================
-# In diesem Bereich werden die angezeigten Messwerte der GUI definiert.
-# Wichtige Stelle: Die Live-Anzeige der Werte wird hier nicht direkt berechnet,
-# sondern mit den aktuellen State-Werten aus State.py aktualisiert.
-# CH1 = Signal- oder X-Wert
-# CH2 = Phase oder Y-Wert
-# Ref Display = Referenzfrequenz / Phase / Amplitude
-
-# CH1
+# CH1 Display
 frame_ch1 = tk.LabelFrame(frame_lockin_content, font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#00ffcc", padx=8,
                           pady=5)
 frame_ch1.grid(row=0, column=1, sticky="nsew", padx=4, pady=5)
@@ -980,7 +1118,6 @@ disp_ch1_box, val_ch1_label, val_ch1_unit_label, canvas_bar1 = create_hardware_d
 lbl_overload_ch1 = tk.Label(frame_ch1, text="OVERLOAD: OK", font=("Consolas", 8, "bold"), bg="#2e7d32", fg="#ffffff")
 lbl_overload_ch1.pack(fill="x", pady=2)
 
-# Ratio & Expand nebeneinander für CH1
 frame_re1 = tk.Frame(frame_ch1, bg="#1e1e1e")
 frame_re1.pack(fill="x", pady=4)
 
@@ -1000,9 +1137,7 @@ combo_expand1.pack(side="right", expand=True, fill="x")
 
 
 def update_ch1_display(event=None):
-    # LOCK-IN TAB: Aktualisiert die CH1-Anzeige mit dem aktuell ausgewählten Messwert.
-    # Der eigentliche Zahlenwert kommt aus State.py, z. B. State.OUTP1, State.OUTP3 etc.
-    # Die GUI bindet lediglich diese Werte an das Label, damit die Anzeige live aktualisiert wird.
+    """Liest die Werte von CH1 aus State.py und aktualisiert das UI."""
     selection = combo_ch1_src.get()
     cmd_map = {
         "X": ("OUTP1", "V"),
@@ -1014,7 +1149,6 @@ def update_ch1_display(event=None):
     cmd, unit = cmd_map.get(selection, ("OUTP1", "V"))
     val = getattr(State, cmd, 0.0)
 
-    # Diese Labels sind die tatsächlichen sichtbaren Werte im GUI-Display.
     val_ch1_label.config(text=f"{val:+.4f}")
     val_ch1_unit_label.config(text=unit)
     lbl_ov_ch1_title.config(text=f"CH1 Display [{selection}]")
@@ -1030,6 +1164,7 @@ combo_ch1_src.bind("<<ComboboxSelected>>", update_ch1_display)
 
 
 def draw_bargraph(canvas, percent):
+    """Zeigt den Signalpegel visuell als Balkendiagramm an."""
     canvas.delete("all")
     width = canvas.winfo_width()
     if width <= 1:
@@ -1038,7 +1173,6 @@ def draw_bargraph(canvas, percent):
     for x in range(0, fill_width, 5):
         color = "#00ff00" if x < width * 0.8 else "#ff3333"
         canvas.create_rectangle(x, 1, x + 3, 11, fill=color, outline="")
-    # 8 Markerstück-Unterteilungen
     for i in range(1, 8):
         x_pos = int(width * (i / 8.0))
         canvas.create_line(x_pos, 11, x_pos, 14, fill="#ffffff")
@@ -1046,7 +1180,6 @@ def draw_bargraph(canvas, percent):
 
 canvas_bar1.bind("<Configure>", lambda e: draw_bargraph(canvas_bar1, 68))
 
-# Offset Steuerung gemäß Hardware-Muster
 frame_off1 = tk.LabelFrame(frame_ch1, text=" OFFSET ", font=("Consolas", 8, "bold"), bg="#1e1e1e", fg="#00ffcc")
 frame_off1.pack(fill="x", pady=(5, 2))
 frame_off1_btns = tk.Frame(frame_off1, bg="#1e1e1e")
@@ -1058,7 +1191,7 @@ btn_auto_off1.pack(side="left", expand=True, padx=1)
 btn_mod1 = tk.Button(frame_off1_btns, text="Modify", font=("Consolas", 7), bg="#3c3f41", fg="white")
 btn_mod1.pack(side="left", expand=True, padx=1)
 
-# CH2
+# CH2 Display
 frame_ch2 = tk.LabelFrame(frame_lockin_content, font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#00ffcc", padx=8,
                           pady=5)
 frame_ch2.grid(row=0, column=2, sticky="nsew", padx=4, pady=5)
@@ -1075,7 +1208,6 @@ disp_ch2_box, val_ch2_label, val_ch2_unit_label, canvas_bar2 = create_hardware_d
 lbl_overload_ch2 = tk.Label(frame_ch2, text="OVERLOAD: OK", font=("Consolas", 8, "bold"), bg="#2e7d32", fg="#ffffff")
 lbl_overload_ch2.pack(fill="x", pady=2)
 
-# Ratio & Expand nebeneinander für CH2
 frame_re2 = tk.Frame(frame_ch2, bg="#1e1e1e")
 frame_re2.pack(fill="x", pady=4)
 
@@ -1095,8 +1227,7 @@ combo_expand2.pack(side="right", expand=True, fill="x")
 
 
 def update_ch2_display(event=None):
-    # LOCK-IN TAB: Aktualisiert die CH2-Anzeige analog zu CH1.
-    # Der Unterschied ist nur die Auswahl der Quelle: bei CH2 kann Phase (θ) im Gradmaß dargestellt werden.
+    """Liest die Werte von CH2 aus State.py und aktualisiert das UI."""
     selection = combo_ch2_src.get()
     cmd_map = {
         "Y": ("OUTP2", "V"),
@@ -1108,7 +1239,6 @@ def update_ch2_display(event=None):
     cmd, unit = cmd_map.get(selection, ("OUTP4", "°"))
     val = getattr(State, cmd, 0.0)
 
-    # Diese Labels sind die sichtbaren Werte im CH2-Feld.
     val_ch2_label.config(text=f"{val:+.2f}")
     val_ch2_unit_label.config(text=unit)
     lbl_ov_ch2_title.config(text=f"CH2 Display [{selection}]")
@@ -1124,9 +1254,7 @@ combo_ch2_src.bind("<<ComboboxSelected>>", update_ch2_display)
 
 
 def refresh_shared_values():
-    # LOCK-IN TAB + LASER TAB: Diese Funktion führt die regelmäßige Aktualisierung aller Live-Werte aus.
-    # Sie wird per root.after(...) in kurzen Intervallen aufgerufen, damit die GUI "live" wirkt.
-    # Wichtig: Hier werden die aktuellsten Werte aus State.py an die sichtbaren Labels gebunden.
+    """Periodischer GUI-Refresh für kontinuierliche Messwert-Anzeigen."""
     global refresh_job
     if is_closing:
         refresh_job = None
@@ -1169,8 +1297,7 @@ frame_auto.columnconfigure((0, 1), weight=1)
 
 
 def send_lockin_command(command, value=None):
-    # Sendet ein SR830-Kommando an das Gerät, falls angeschlossen.
-    # Wenn der Notfall-Bypass aktiviert ist, werden keine Hardware-Kommandos gesendet.
+    """Hilfsfunktion zum Senden von GPIB/Befehlen an den SR830."""
     if is_emergency_bypass:
         return
     if not is_lockin_connected or Komunikation.SR830 is None:
@@ -1179,7 +1306,7 @@ def send_lockin_command(command, value=None):
 
 
 def run_auto_command(command, values=None):
-    # Führt eine Automatik-Funktion des Lock-In aus, z. B. Auto Phase oder Auto Gain.
+    """Führt Automatikfunktionen des Lock-Ins aus."""
     try:
         if values is None:
             send_lockin_command(command)
@@ -1190,25 +1317,20 @@ def run_auto_command(command, values=None):
         messagebox.showerror("Lock-In Fehler", f"{command}: {error}")
 
 
-btn_auto_phase = tk.Button(
-    frame_auto, text="Auto Phase", font=("Consolas", 8, "bold"),
-    bg="#3c3f41", fg="white", command=lambda: run_auto_command("APHS"),
-)
+btn_auto_phase = tk.Button(frame_auto, text="Auto Phase", font=("Consolas", 8, "bold"), bg="#3c3f41", fg="white",
+                           command=lambda: run_auto_command("APHS"))
 btn_auto_phase.grid(row=0, column=0, padx=2, pady=2, sticky="ew")
-btn_auto_gain = tk.Button(
-    frame_auto, text="Auto Gain", font=("Consolas", 8, "bold"),
-    bg="#3c3f41", fg="white", command=lambda: run_auto_command("AGAN"),
-)
+
+btn_auto_gain = tk.Button(frame_auto, text="Auto Gain", font=("Consolas", 8, "bold"), bg="#3c3f41", fg="white",
+                          command=lambda: run_auto_command("AGAN"))
 btn_auto_gain.grid(row=0, column=1, padx=2, pady=2, sticky="ew")
-btn_auto_reserve = tk.Button(
-    frame_auto, text="Auto Reserve", font=("Consolas", 8, "bold"),
-    bg="#3c3f41", fg="white", command=lambda: run_auto_command("ARSV"),
-)
+
+btn_auto_reserve = tk.Button(frame_auto, text="Auto Reserve", font=("Consolas", 8, "bold"), bg="#3c3f41", fg="white",
+                             command=lambda: run_auto_command("ARSV"))
 btn_auto_reserve.grid(row=1, column=0, padx=2, pady=2, sticky="ew")
-btn_auto_offset = tk.Button(
-    frame_auto, text="Auto Offset", font=("Consolas", 8, "bold"),
-    bg="#3c3f41", fg="white", command=lambda: run_auto_command("AOFF", (1, 2, 3)),
-)
+
+btn_auto_offset = tk.Button(frame_auto, text="Auto Offset", font=("Consolas", 8, "bold"), bg="#3c3f41", fg="white",
+                            command=lambda: run_auto_command("AOFF", (1, 2, 3)))
 btn_auto_offset.grid(row=1, column=1, padx=2, pady=2, sticky="ew")
 
 lbl_freq = tk.Label(frame_ref, font=("Consolas", 8), bg="#1e1e1e", fg="#aaaaaa")
@@ -1234,6 +1356,7 @@ entry_ampl.pack(fill="x", pady=1)
 
 
 def lockin_start():
+    """Startet das Sine Out Signal am Lock-In Amplifier."""
     try:
         send_lockin_command("SLVL", 1.0)
         messagebox.showinfo(auto_tr("Lock-In Amplifier"), auto_tr("Sine Out set to 1.0 V (ON)."))
@@ -1242,6 +1365,7 @@ def lockin_start():
 
 
 def lockin_stop():
+    """Stoppt das Sine Out Signal am Lock-In Amplifier."""
     try:
         send_lockin_command("SLVL", 0.0)
         messagebox.showinfo(auto_tr("Lock-In Amplifier"), auto_tr("Sine Out set to 0.0 V (OFF)."))
@@ -1250,8 +1374,7 @@ def lockin_stop():
 
 
 def apply_ref_settings():
-    # LOCK-IN TAB: Setzt Frequenz, Phase und Ausgangsamplitude des Referenzsignals.
-    # Die sichtbaren Werte werden in val_ref_display übernommen und als GUI-Anzeige dargestellt.
+    """Wendet Frequenz, Phase und Amplitude des Referenzsignals an."""
     new_freq = read_numeric_entry(entry_freq, "Ref Frequency", 0.001, 102000)
     new_phase = read_numeric_entry(entry_ref_phase, "Ref Phase", -360, 729.99)
     new_ampl = read_numeric_entry(entry_ampl, "Sine Output Amplitude", 0, 5)
@@ -1287,10 +1410,8 @@ btn_stop_lockin.pack(fill="x", pady=2)
 reg_ui(btn_stop_lockin, "⏹ Stop Sine Out")
 
 # ------------------------------------------
-# 4. TAB: OSTECH LASER / TEC CONTROLLER
+# 5. TAB: OSTECH LASER / TEC CONTROLLER
 # ------------------------------------------
-# Hier werden Laserparameter, TEC-Regelung und Sicherheitslogik gesteuert.
-# Die Sicherheitsabfrage verhindert, dass der Laser ohne Prüfung bedient wird.
 tab_laser = tk.Frame(main_notebook, bg="#1e1e1e")
 main_notebook.add(tab_laser, text="")
 reg_ui((main_notebook, tab_laser), "Laser / TEC Controller", "tab_text")
@@ -1349,7 +1470,7 @@ for idx, p in enumerate(params_list):
 
 
 def update_laser_display_mode(event=None):
-    # Aktualisiert die Anzeige je nach ausgewählter Hardware-Layout-Konfiguration.
+    """Aktualisiert die angezeigten Parameter anhand des Hardware-Layouts."""
     mode_str = combo_layout.get()
     lbl_ov_laser_layout_val.config(text=mode_str)
 
@@ -1415,7 +1536,7 @@ def update_laser_display_mode(event=None):
 
 combo_layout.bind("<<ComboboxSelected>>", update_laser_display_mode)
 
-# Laser Security Checklist
+# Laser Sicherheitskontrolle
 var_goggles = tk.BooleanVar(value=False)
 var_interlock = tk.BooleanVar(value=False)
 var_beampath = tk.BooleanVar(value=False)
@@ -1423,18 +1544,13 @@ var_warning = tk.BooleanVar(value=False)
 
 
 def check_laser_safety():
-    # Prüft, ob die Sicherheitscheckliste vollständig erfüllt wurde.
-    # Nur dann wird das Laser-Menü freigeschaltet.
+    """Entsperrt das Lasermenü nur, wenn alle Sicherheitsabfragen erfüllt sind."""
     if var_goggles.get() and var_interlock.get() and var_beampath.get() and var_warning.get():
         ostech_notebook.tab(tab_ostech_laser, state="normal")
         reg_ui((ostech_notebook, tab_ostech_laser), "Laser Menu", "tab_text")
         lbl_disabled_banner.pack_forget()
         frame_lmenu.pack(fill="both", expand=True, padx=10, pady=10)
-        lbl_safety_status.config(
-            text=" SAFE TO OPERATE \nLaser-Menu Unlocked",
-            bg="#2e7d32",
-            fg="#ffffff"
-        )
+        lbl_safety_status.config(text=" SAFE TO OPERATE \nLaser-Menu Unlocked", bg="#2e7d32", fg="#ffffff")
         messagebox.showinfo(auto_tr("Laser Security"),
                             auto_tr("All safety measurements complied. The Laser-Menu is now unlocked."))
     else:
@@ -1442,11 +1558,7 @@ def check_laser_safety():
         reg_ui((ostech_notebook, tab_ostech_laser), "🔒 Laser Menu (Locked)", "tab_text")
         frame_lmenu.pack_forget()
         lbl_disabled_banner.pack(fill="both", expand=True, padx=20, pady=40)
-        lbl_safety_status.config(
-            text=" ⚠️ INTERLOCKED ⚠️ \nChecklist Incomplete",
-            bg="#c62828",
-            fg="#ffffff"
-        )
+        lbl_safety_status.config(text=" ⚠️ INTERLOCKED ⚠️ \nChecklist Incomplete", bg="#c62828", fg="#ffffff")
 
 
 frame_safety = tk.LabelFrame(tab_ostech_main, text=" Laser Security Checklist ", font=("Consolas", 9, "bold"),
@@ -1473,36 +1585,21 @@ chk_warning = tk.Checkbutton(frame_safety, text=" Laser warning light active & e
                              selectcolor="#2b2b2b", activebackground="#1e1e1e")
 chk_warning.pack(anchor="w", pady=2)
 
-lbl_safety_status = tk.Label(
-    frame_safety,
-    text=" ⚠️ INTERLOCKED ⚠️ \nChecklist Incomplete",
-    font=("Consolas", 11, "bold"),
-    bg="#c62828",
-    fg="#ffffff",
-    bd=3,
-    relief="ridge",
-    padx=15,
-    pady=8
-)
+lbl_safety_status = tk.Label(frame_safety, text=" ⚠️ INTERLOCKED ⚠️ \nChecklist Incomplete",
+                             font=("Consolas", 11, "bold"), bg="#c62828", fg="#ffffff", bd=3, relief="ridge", padx=15,
+                             pady=8)
 lbl_safety_status.pack(fill="x", pady=(10, 0))
 
-# Laser Menu Tab
+# Laser Menü Untertab
 tab_ostech_laser = tk.Frame(ostech_notebook, bg="#1e1e1e")
 ostech_notebook.add(tab_ostech_laser, text="")
 reg_ui((ostech_notebook, tab_ostech_laser), "🔒 Laser Menu (Locked)", "tab_text")
 ostech_notebook.tab(tab_ostech_laser, state=DISABLED)
 
-lbl_disabled_banner = tk.Label(
-    tab_ostech_laser,
-    text="🔒 LASER MENU DEACTIVATED\n\nPlease complete the Laser Security Checklist in the 'Main Display' tab to unlock hardware controls.",
-    font=("Consolas", 12, "bold"),
-    bg="#2b2b2b",
-    fg="#ff4444",
-    relief="ridge",
-    bd=2,
-    padx=20,
-    pady=30
-)
+lbl_disabled_banner = tk.Label(tab_ostech_laser,
+                               text="🔒 LASER MENU DEACTIVATED\n\nPlease complete the Laser Security Checklist in the 'Main Display' tab to unlock hardware controls.",
+                               font=("Consolas", 12, "bold"), bg="#2b2b2b", fg="#ff4444", relief="ridge", bd=2, padx=20,
+                               pady=30)
 lbl_disabled_banner.pack(fill="both", expand=True, padx=20, pady=40)
 
 frame_lmenu = tk.LabelFrame(tab_ostech_laser, text=" Laser Menu Parameters ", font=("Consolas", 9, "bold"),
@@ -1574,7 +1671,7 @@ chk_lg.grid(row=3, column=2, sticky="w", padx=5)
 
 
 def apply_laser_settings():
-    # Validiert und akzeptiert die Laserparameter wie Stromlimit, Spannung und Temperaturgrenze.
+    """Liest und speichert veränderte Laser-Parameter."""
     values = (
         read_numeric_entry(entry_lcl, "LCL", 0, 100),
         read_numeric_entry(entry_lvc, "LVC", 0, 100),
@@ -1591,6 +1688,7 @@ def apply_laser_settings():
 
 
 def reset_laser_defaults():
+    """Setzt alle Laser-Einstellungen auf Standardwerte zurück."""
     if messagebox.askyesno("Reset", "Laser-Parameter auf Werkseinstellungen zurücksetzen?"):
         entry_lcl.delete(0, tk.END)
         entry_lcl.insert(0, "6.300")
@@ -1609,6 +1707,21 @@ def reset_laser_defaults():
         chk_lg.deselect()
         messagebox.showinfo("Reset", "Laser-Standardwerte wiederhergestellt.")
 
+# Laser Start / Stop Button
+btn_laser_toggle = tk.Button(
+    frame_lmenu,
+    text="⚡ START LASER ⚡",
+    font=("Consolas", 12, "bold"),
+    bg="#388e3c",
+    fg="#ffffff",
+    activebackground="#2e7d32",
+    activeforeground="#ffffff",
+    bd=3,
+    relief="raised",
+    command=toggle_laser
+)
+# Positioned across columns 1 and 2 in the laser menu grid
+btn_laser_toggle.grid(row=7, column=1, columnspan=2, sticky="ew", padx=5, pady=(10, 5))
 
 frame_laser_btns = tk.Frame(frame_lmenu, bg="#1e1e1e")
 frame_laser_btns.grid(row=8, column=0, columnspan=3, pady=15, sticky="ew")
@@ -1621,7 +1734,7 @@ btn_reset_laser = tk.Button(frame_laser_btns, text="Restore Default Settings", f
                             bg="#c62828", fg="white", command=reset_laser_defaults)
 btn_reset_laser.pack(side="right", padx=5)
 
-# TEC Menu
+# TEC Menü
 tab_ostech_tec = tk.Frame(ostech_notebook, bg="#1e1e1e")
 ostech_notebook.add(tab_ostech_tec, text=" TEC Menu & PID ")
 
@@ -1683,7 +1796,7 @@ combo_sens_model.pack(fill="x", pady=2)
 
 
 def apply_tec_settings():
-    # Überträgt TEC-Limits und PID-Parameter auf das Temperaturregelgerät.
+    """Wendet die veränderten TEC- und PID-Einstellungswerte an."""
     values = (
         read_numeric_entry(entry_tlu, "TLU", -273.15, 500),
         read_numeric_entry(entry_tll, "TLL", -273.15, 500),
@@ -1703,6 +1816,7 @@ def apply_tec_settings():
 
 
 def reset_tec_defaults():
+    """Setzt TEC-Parameter zurück."""
     if messagebox.askyesno("Reset", "TEC-Parameter auf Werkseinstellungen zurücksetzen?"):
         entry_tlu.delete(0, tk.END)
         entry_tlu.insert(0, "40.00")
@@ -1731,7 +1845,7 @@ btn_reset_tec = tk.Button(frame_tec_btns, text="Restore Default Settings", font=
                           fg="white", command=reset_tec_defaults)
 btn_reset_tec.pack(side="right", padx=5)
 
-# Device Menu
+# Device Menu Untertab
 tab_ostech_dev = tk.Frame(ostech_notebook, bg="#1e1e1e")
 ostech_notebook.add(tab_ostech_dev, text=" Device Menu ")
 
@@ -1763,7 +1877,7 @@ entry_gfd.pack(side="left", padx=10)
 
 
 def apply_device_settings():
-    # Verarbeitet Geräteeinstellungen wie Pilot-Laser-Stärke und Lüfterspannung.
+    """Wendet System- und Geräte-Optionen an."""
     pilot_intensity = read_integer_entry(spin_pilot, "Pilot Laser Intensity", 0, 16)
     fan_voltage = read_numeric_entry(entry_gfd, "GFD", 0, 100)
     if pilot_intensity is None or fan_voltage is None:
@@ -1773,6 +1887,7 @@ def apply_device_settings():
 
 
 def reset_device_defaults():
+    """Setzt Geräteeinstellungen zurück."""
     if messagebox.askyesno("Reset", "Gerätesystem-Einstellungen zurücksetzen?"):
         chk_ext_start.deselect()
         chk_pilot.deselect()
@@ -1795,15 +1910,11 @@ btn_reset_def = tk.Button(frame_dev_btns, text="Restore Default Settings", font=
 btn_reset_def.pack(side="left", padx=5)
 
 
-# ==========================================
+# ------------------------------------------
 # HELPER FOR EXPLORER TREEVIEW
-# ==========================================
-# Diese Funktionen bauen die Dateibaumstruktur für Logs und Plot-Ordner auf.
-# Dadurch kann der Benutzer gespeicherte Messdaten im GUI-Browser einfach auswählen.
+# ------------------------------------------
 def build_file_tree(tree_widget, root_dir):
-    # Baut den Dateibaum für den Log-Explorer auf.
-    # Der Baum zeigt verzeichnisweise alle Dateien und Unterordner an.
-    # Damit kann der Benutzer gespeicherte Messdaten schnell auswählen und öffnen.
+    """Baut eine Ordnerstruktur im Baumdiagramm für Datei-Explorer auf."""
     tree_widget.delete(*tree_widget.get_children())
     root_node = tree_widget.insert("", "end", text=f" 📂 {os.path.basename(os.path.abspath(root_dir))}", open=True,
                                    values=[os.path.abspath(root_dir)])
@@ -1834,311 +1945,47 @@ def build_file_tree(tree_widget, root_dir):
     populate(root_node, os.path.abspath(root_dir))
 
 
-def build_analysis_explorer(tree_widget):
-    # Zeigt im Analyse-Tab ausschließlich die relevanten Datenordner an.
-    # Dadurch bleibt der Explorer übersichtlich und enthält nur Messdaten sowie gespeicherte Plots.
-    tree_widget.delete(*tree_widget.get_children())
-    root_node = tree_widget.insert("", "end", text=" 📂 Workspace", open=True, values=[os.getcwd()])
-
-    for dir_path, label in [(LOG_DIR, "logs"), (PLOT_DIR, "plots")]:
-        node = tree_widget.insert(root_node, "end", text=f" 📁 {label}", open=True, values=[dir_path])
-        try:
-            entries = sorted(os.listdir(dir_path))
-            for entry in entries:
-                if entry.startswith('.'):
-                    continue
-                full_path = os.path.join(dir_path, entry)
-                if not os.path.isdir(full_path):
-                    tree_widget.insert(node, "end", text=f" 📝 {entry}", values=[full_path])
-        except Exception:
-            pass
-
-
 build_file_tree(tree_logs_main, LOG_DIR)
-
-# ------------------------------------------
-# 5. TAB: ANALYSIS
-# ------------------------------------------
-# Hier werden die Messdaten ausgewertet und graphisch dargestellt.
-# Der Nutzer kann Daten importieren, Plots berechnen und die Ergebnisse speichern.
-tab_analysis = tk.Frame(main_notebook, bg="#1e1e1e")
-main_notebook.add(tab_analysis, text="")
-reg_ui((main_notebook, tab_analysis), "Analysis", "tab_text")
-
-analysis_notebook = ttk.Notebook(tab_analysis)
-analysis_notebook.pack(fill="both", expand=True, padx=10, pady=10)
-
-sub_tab_stats = tk.Frame(analysis_notebook, bg="#252526")
-analysis_notebook.add(sub_tab_stats, text="")
-reg_ui((analysis_notebook, sub_tab_stats), "Statistics", "tab_text")
-
-paned_stats = ttk.PanedWindow(sub_tab_stats, orient="horizontal")
-paned_stats.pack(fill="both", expand=True, padx=5, pady=5)
-
-frame_tree_stats = tk.Frame(paned_stats, bg="#1e1e1e", width=260)
-paned_stats.add(frame_tree_stats, weight=1)
-
-lbl_tree_stats_title = tk.Label(frame_tree_stats, text="PROJECT EXPLORER", font=("Consolas", 9, "bold"), bg="#3c3f41",
-                                fg="#ffffff", anchor="w", padx=5)
-lbl_tree_stats_title.pack(fill="x")
-
-tree_stats = ttk.Treeview(frame_tree_stats, show="tree")
-tree_stats.pack(fill="both", expand=True)
-
-# Analysis Explorer stellt ausschließlich den Log- und Plot-Ordner dar
-build_analysis_explorer(tree_stats)
-
-frame_stats_work = tk.Frame(paned_stats, bg="#252526")
-paned_stats.add(frame_stats_work, weight=4)
-
-frame_stats_top = tk.Frame(frame_stats_work, bg="#252526")
-frame_stats_top.pack(fill="x", pady=10)
-
-btn_load = tk.Button(frame_stats_top, font=("Consolas", 9, "bold"), bg="#007acc", fg="white", padx=10, pady=5,
-                     command=open_file_dialog)
-btn_load.pack(side="left", padx=10)
-reg_ui(btn_load, "📁 Import Data File")
-
-lbl_file_status = tk.Label(frame_stats_top, font=("Consolas", 9), bg="#252526", fg="#aaaaaa")
-lbl_file_status.pack(side="left", padx=10)
-reg_ui(lbl_file_status, "No file loaded")
-
-frame_plot_pvf = tk.Frame(frame_stats_work, bg="#1e1e1e", bd=2, relief="sunken")
-frame_plot_pvf.pack(fill="both", expand=True, padx=10, pady=5)
-
-fig_pvf = None
-ax_pvf = None
-canvas_pvf = None
-
-
-def initialize_pvf_plot():
-    # Initialisiert das Matplotlib-Plot-Fenster für die PVF-/Phasenanalyse.
-    global fig_pvf, ax_pvf, canvas_pvf
-    if fig_pvf is not None:
-        return
-
-    import matplotlib.pyplot as plt
-    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
-    fig_pvf, ax_pvf = plt.subplots(figsize=(6, 4), facecolor="#1e1e1e")
-    ax_pvf.set_facecolor("#2b2b2b")
-    ax_pvf.tick_params(colors="white")
-    ax_pvf.xaxis.label.set_color("white")
-    ax_pvf.yaxis.label.set_color("white")
-    ax_pvf.title.set_color("white")
-    ax_pvf.grid(True, color="#444444", linestyle=":")
-    canvas_pvf = FigureCanvasTkAgg(fig_pvf, master=frame_plot_pvf)
-    canvas_pvf.get_tk_widget().pack(fill="both", expand=True)
-
-
-def starte_pvf_analyse():
-    global fig_pvf, ax_pvf, canvas_pvf
-
-    # 1. Referenz-Datei abfragen
-    path_to_ref = filedialog.askopenfilename(
-        title="1. Select Reference Measurement File (unnitriert)",
-        filetypes=[("Text Files", "*.txt *.csv"), ("All files", "*.*")]
-    )
-    if not path_to_ref:
-        return
-
-    # 2. Proben-Datei abfragen
-    path_to_probe = filedialog.askopenfilename(
-        title="2. Select Probe Measurement File (nitriert)",
-        filetypes=[("Text Files", "*.txt *.csv"), ("All files", "*.*")]
-    )
-    if not path_to_probe:
-        return
-
-    try:
-        # 3. Berechnung ausführen
-        results = PhasFreq_v8.start_PhaseFreq(path_to_ref, path_to_probe)
-
-        d_um = results["d_fit_um"]
-        d_err = results["d_err_um"]
-        kL = results["kL_fit"]
-        kL_err = results["kL_err"]
-        pdata = results["plot_data"]
-
-        # 4. Figure initialisieren / zurücksetzen
-        if fig_pvf is None:
-            fig_pvf = plt.Figure(figsize=(6, 5), dpi=100)
-        else:
-            fig_pvf.clf()
-
-        # Subplots erstellen
-        ax_raw = fig_pvf.add_subplot(211)
-        ax_fit = fig_pvf.add_subplot(212)
-
-        # Plot 1: Rohdaten
-        ax_raw.plot(pdata["f_ref"], pdata["phase_ref_unwr"], "o-", label=f"Ref: {pdata['ref_filename']}")
-        ax_raw.plot(pdata["f_probe"], pdata["phase_probe_unwr"], "s--", label=f"Probe: {pdata['probe_filename']}")
-        ax_raw.set_xscale("log")
-        ax_raw.set_xlabel("Frequenz in Hz (log-Skala)")
-        ax_raw.set_ylabel("Phase (entfaltet) in °")
-        ax_raw.set_title("Sicht-Vergleich der Rohdaten")
-        ax_raw.legend(fontsize=8)
-        ax_raw.grid(True, which="both", alpha=0.4)
-
-        # Plot 2: Phasendifferenz & Fit
-        ax_fit.plot(np.sqrt(2 * np.pi * pdata["freq_common"]), pdata["Phi"], "o", label=r"Messdaten $\Phi(\omega)$")
-        ax_fit.plot(np.sqrt(2 * np.pi * pdata["freq_fine"]), pdata["Phi_fit_curve"], "--", label="Fit-Modell")
-        ax_fit.set_xlabel(r"$\sqrt{\omega}$ in $\sqrt{Hz}$")
-        ax_fit.set_ylabel(r"Phasendifferenz $\Phi$ in °")
-        ax_fit.set_title(f"Ergebnis: d = {d_um:.2f} ± {d_err:.2f} µm | k_L = {kL:.2f} ± {kL_err:.2f} W/(m·K)")
-        ax_fit.legend(fontsize=8)
-        ax_fit.grid(True, alpha=0.4)
-
-        fig_pvf.tight_layout()
-
-        # Canvas in den Frame frame_plot_pvf einbetten (falls noch nicht geschehen)
-        if canvas_pvf is None:
-            canvas_pvf = FigureCanvasTkAgg(fig_pvf, master=frame_plot_pvf)
-            canvas_pvf.get_tk_widget().pack(fill="both", expand=True)
-
-        # Canvas aktualisieren
-        canvas_pvf.draw()
-
-        messagebox.showinfo("Analysis", "Phase vs. Frequenz Analyse erfolgreich berechnet.")
-
-    except Exception as e:
-        messagebox.showerror("Fehler", f"Fehler bei der Analyse: {e}")
-
-
-'''
-    initialize_pvf_plot()
-    ax_pvf.clear()
-    ax_pvf.grid(True, color="#444444", linestyle=":")
-
-    np.random.seed(42)
-    f_simulated = np.logspace(0, 5, 250)
-
-    def get_effusivity(k, rho, c): return np.sqrt(k * rho * c)
-
-    def get_diffusivity(k, rho, c): return k / (rho * c)
-
-    def fit_model_d_only(f, d_um, k_L=14.4):
-        omega = 2.0 * np.pi * f
-        d = d_um * 1e-6
-        b_L = get_effusivity(k_L, 7870.0, 460.0)
-        b_S = get_effusivity(73.0, 7870.0, 460.0)
-        alpha_L = get_diffusivity(k_L, 7870.0, 460.0)
-        mu_L = np.sqrt(2.0 * alpha_L / omega)
-        term_d_mu = (2.0 * d) / mu_L
-        b_diff = b_S - b_L
-        b_sum = b_S + b_L
-        num = (b_S ** 2 - b_L ** 2) * (np.exp(term_d_mu) - np.exp(-term_d_mu)) + 2.0 * (b_S ** 2 - b_L ** 2) * np.sin(
-            term_d_mu)
-        den = -(b_diff ** 2) + (b_sum ** 2) * np.exp(2.0 * term_d_mu) + 2.0 * (b_S ** 2 - b_L ** 2) * np.sin(term_d_mu)
-        return np.degrees(np.arctan(num / den))
-
-    d_true = 30.0
-    phi_simulated = fit_model_d_only(f_simulated, d_true) + np.random.normal(0, 0.35, size=250)
-
-    sqrt_omega = np.sqrt(2 * np.pi * f_simulated)
-    ax_pvf.plot(sqrt_omega, phi_simulated, 'o', color='#ff7043', alpha=0.6, markersize=3, label='Lock-In Messdaten')
-    ax_pvf.plot(sqrt_omega, fit_model_d_only(f_simulated, 30.0), color='#29b6f6', linewidth=2,
-                label='Fit (d = 30.00 µm, R² = 0.9984)')
-
-    ax_pvf.set_xlabel(r'$\sqrt{\omega}$ [$\sqrt{\mathrm{Hz}}$]', color="white")
-    ax_pvf.set_ylabel('Phase φ [°]', color="white")
-    ax_pvf.set_title('PTR Phase vs. Frequency Analysis & Fit', color="white", fontweight="bold")
-    ax_pvf.legend(facecolor="#2b2b2b", edgecolor="#444444", labelcolor="white")
-'''
-
-
-
-
-
-def save_pvf_plot():
-    # Speichert das aktuell erstellte Plot als PNG im plots-Ordner.
-    if fig_pvf is None:
-        messagebox.showerror("Error", "Kein Plot vorhanden, der gespeichert werden kann.")
-        return
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"PTR_Plot_{timestamp}.png"
-    filepath = os.path.join(PLOT_DIR, filename)
-    try:
-        fig_pvf.savefig(filepath, dpi=300, bbox_inches="tight", facecolor=fig_pvf.get_facecolor())
-        messagebox.showinfo("Erfolg", f"Plot erfolgreich gespeichert unter:\n{filepath}")
-        build_analysis_explorer(tree_stats)
-    except Exception as e:
-        messagebox.showerror("Fehler", f"Fehler beim Speichern des Plots: {e}")
-
-
-btn_pvf = tk.Button(frame_stats_top, font=("Consolas", 9, "bold"), bg="#f57c00", fg="white", padx=10, pady=5,
-                    command=starte_pvf_analyse)
-btn_pvf.pack(side="left", padx=10)
-reg_ui(btn_pvf, "📈 Phase vs. Frequency Analysis")
-
-btn_save_plot = tk.Button(frame_stats_top, text="💾 Save Plot", font=("Consolas", 9, "bold"), bg="#2e7d32", fg="white", padx=10, pady=5,
-                          command=save_pvf_plot)
-btn_save_plot.pack(side="left", padx=10)
-
-
-def on_tree_stats_select(event):
-    selected = tree_stats.selection()
-    if selected:
-        val = tree_stats.item(selected[0], "values")
-        if val and os.path.isfile(val[0]):
-            lbl_file_status.config(text=os.path.basename(val[0]))
-
-
-tree_stats.bind("<<TreeviewSelect>>", on_tree_stats_select)
+build_file_tree(tree_stats, LOG_DIR)
 
 # ------------------------------------------
 # 6. TAB: HELP
 # ------------------------------------------
-# Dieser Bereich enthält die allgemeine Bedienhinweise und Informationsseiten für den Nutzer.
 tab_help = tk.Frame(main_notebook, bg="#1e1e1e")
 main_notebook.add(tab_help, text="")
 reg_ui((main_notebook, tab_help), "Help", "tab_text")
 
-help_notebook = ttk.Notebook(tab_help)
-help_notebook.pack(fill="both", expand=True, padx=10, pady=10)
+lbl_help_title = tk.Label(tab_help, font=("Consolas", 12, "bold"), bg="#1e1e1e", fg="#00ffcc")
+lbl_help_title.pack(pady=20)
+reg_ui(lbl_help_title, "Help & User Guide")
 
-sub_tab_about_the_application = tk.Frame(help_notebook, bg="#252526")
-help_notebook.add(sub_tab_about_the_application, text="")
-reg_ui((help_notebook, sub_tab_about_the_application), "About the application", "tab_text")
+txt_help = tk.Text(tab_help, bg="#252526", fg="#ffffff", font=("Segoe UI", 10), wrap="word", padx=15, pady=15)
+txt_help.pack(fill="both", expand=True, padx=20, pady=10)
 
-lbl_help = tk.Label(sub_tab_about_the_application, font=("Consolas", 14, "bold"), bg="#252526", fg="#00ffcc")
-lbl_help.pack(pady=(20, 10))
-reg_ui(lbl_help,
-       "This application is the result of the software project of summer semester 2026.\nIn case of problems please contact support.")
+help_content = """PAMO System Documentation & Instructions:
 
-sub_tab_guide = tk.Frame(help_notebook, bg="#252526")
-help_notebook.add(sub_tab_guide, text="")
-reg_ui((help_notebook, sub_tab_guide), "Guide", "tab_text")
+1. Overview Tab:
+   - Live hardware status indicators and previews for Lock-in Amplifier and Laser Controller.
 
-txt_guide = tk.Text(sub_tab_guide, bg="#1e1e1e", fg="#ffffff", font=("Segoe UI", 10), padx=15, pady=15, wrap="word")
-txt_guide.pack(fill="both", expand=True, padx=10, pady=10)
+2. Experiment Tab:
+   - Configure parameter sweeps for frequency (Start and End Frequency).
+   - View results, process raw measurement data and run delta phase calculations.
 
-guide_content = """📖 PAMO EXPERIMENT & HARDWARE GUIDE
+3. Logs Tab:
+   - Monitor real-time logs, insert manual user notes, and import/export CSV measurement records.
 
-1. OVERVIEW & HARDWARE CONNECTION:
-   - Live status of hardware connection visible on top.
-   - Live Log Terminal monitoring real-time system events.
+4. Lock-In Amplifier Tab:
+   - Configure input channels, sensitivities, filter slopes, and reference oscillator parameters.
 
-2. LOG MANAGEMENT (LOGS TAB):
-   - Access the Log Directory using the built-in file explorer.
-   - Define custom log file names using the format '[YYYY-MM-DD]_Experiment_[Identifier]'.
-   - Import external CSV log files using the 'Import CSV' button.
+5. Laser / TEC Controller Tab:
+   - Requires safety checklist verification before unlocking control parameters.
+   - Adjust PID loop settings, sensor types, and current limits.
 
-3. LOCK-IN AMPLIFIER:
-   - Configure signal inputs, coupling (AC/DC), line notch filters, and sensitivity.
-   - Monitor CH1/CH2 live channels with physical units (V, °) and dynamic Overload Detection.
-   - Execute auto-tuning functions (Auto Phase, Auto Gain, Auto Reserve, Auto Offset).
-
-4. OSTECH LASER & TEC CONTROLLER:
-   - Complete the Laser Security Checklist to unlock the Laser Menu.
-   - Configure laser limits (LCL, LVC, LTM) and modulation modes (CW, External, Internal).
-   - Adjust TEC temperature limits and PID controller parameters (Tk, Tn, Tv).
-
-5. DATA ANALYSIS:
-   - Import dataset files (.txt, .csv) and run Phase vs. Frequency analysis models.
+6. Settings Tab:
+   - Manage application language and emergency passwords.
 """
-txt_guide.insert("end", guide_content)
-txt_guide.config(state="disabled")
+txt_help.insert("1.0", help_content)
+txt_help.config(state="disabled")
 
 # ------------------------------------------
 # 7. TAB: SETTINGS & THEME ENGINE
@@ -2341,12 +2188,12 @@ if __name__ == "__main__":
 
 
 
-#ValueOfLCA = Send.read(Send.OSTechG.LCA)     
+#ValueOfLCA = Send.read(Send.OSTechG.LCA)
 # actual current
-#Send.set(Send.OSTechS.GFD, 12.0)           
+#Send.set(Send.OSTechS.GFD, 12.0)
 #   Fan voltage
 
-#   Beispiele wie man Abfagen machen 
+#   Beispiele wie man Abfagen machen
 
 
 #   SR830
@@ -2359,7 +2206,7 @@ if __name__ == "__main__":
 #y_value = Send.read(Send.SR830G.OUTP_Y)
 #theta = Send.read(Send.SR830G.OUTP_THETA)
 
-#   Werte Setzen 
+#   Werte Setzen
 
 #import Send
 
@@ -2371,7 +2218,7 @@ if __name__ == "__main__":
 
 
 
-#   OSTECH 
+#   OSTECH
 
 #   Werte lesen
 
@@ -2389,5 +2236,3 @@ if __name__ == "__main__":
 #Send.set(Send.OSTechS.LCL, 6.3)   # Laser Current Limit
 #Send.set(Send.OSTechS.LTM, 33.0) # Max Temperature
 #Send.set(Send.OSTechS.GFD, 12.0) # Fan voltage
-
-
