@@ -322,10 +322,9 @@ def update_status_indicators():
 # ==========================================
 def connect_all_hardware():
     """Initiert die Verbindung zu Lock-In Verstaerker und Laser Controller."""
-    global is_lockin_connected, is_laser_connected, is_emergency_bypass
+    global is_lockin_connected, is_laser_connected
     global LOCK_IN_AMPLIFIER_PORT, LASER_PORT
     global communication_threads
-    is_emergency_bypass = False
     SimGuiUpdatet.stop(root)
     stop_communication_threads()
 
@@ -1982,7 +1981,7 @@ help_content = """PAMO System Documentation & Instructions:
    - Adjust PID loop settings, sensor types, and current limits.
 
 6. Settings Tab:
-   - Manage application language and emergency passwords.
+   - Manage application language and the layout.
 """
 txt_help.insert("1.0", help_content)
 txt_help.config(state="disabled")
@@ -2078,7 +2077,6 @@ def apply_theme(theme_name):
                               lbl_lcd_main) or widget in lcd_vars.values():
                     is_display = True
                 elif widget in (btn_start_lockin, btn_stop_lockin, btn_reset_def, btn_reset_laser, btn_reset_tec,
-                                btn_pvf, btn_save_plot,
                                 lbl_safety_status, lbl_disabled_banner, lbl_overload_ch1, lbl_overload_ch2):
                     is_protected_signal = True
                 elif any(keyword in str(widget).lower() for keyword in
