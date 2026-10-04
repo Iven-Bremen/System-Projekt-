@@ -1,0 +1,12 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-22,12:55:07,808,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-09-22,12:55:07,809,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-09-22,12:55:07,810,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-09-22,12:55:07,811,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-09-22,12:55:07,818,OUTPUT,TERMINAL,OUTPUT,No COM ports available,,,,,,
+2026-09-22,12:55:07,818,Sys,SYSTEM,Info,COM-Port Scan,[],Startup,,,,
+2026-09-22,12:55:07,819,Calc,CALCULATION,Info,calculation ready,No calculations configured,STARTER,,,,
+2026-09-22,12:55:10,198,Gui,GUI,Start,Starting GUI,,,,,,
+2026-09-22,12:55:10,215,OUTPUT,TERMINAL,OUTPUT,No COM ports available,,,,,,
+2026-09-22,12:55:10,216,OUTPUT,ERROR,OUTPUT,Exception in Tkinter callback,,,,,,
+2026-09-22,12:55:10,216,Sys,GUI,Error,GUI konnte nicht gestartet werden,TypeError: 'tuple' object is not callable,GUI,,,,

@@ -1,0 +1,4 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-10-04,15:28:55,725,Gui,Button,Info,Button clicked,Run Calculations,,,,,
+2026-10-04,15:29:13,904,Gui,Button,Info,Button clicked,Run Uncertainty,,,,,
+2026-10-04,15:29:22,082,Gui,Button,Info,Button clicked,Run Uncertainty,,,,,

@@ -1,0 +1,8 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-18,10:36:22,257,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-09-18,10:36:22,257,START,SYSTEM,Version 1.0,Programm gestartet,Version 1.0,,,,, 
+2026-09-18,10:36:22,281,OUTPUT,TERMINAL,OUTPUT,"['COM5', 'COM4']",,,,,,
+2026-09-18,10:36:22,281,Info,SYSTEM,"['COM5', 'COM4']",COM-Port Scan,"['COM5', 'COM4']",,,,Startup, 
+2026-09-18,10:36:22,283,CALCULATION,CALCULATION,I,calculation ready,No calculations configured,STARTER,,,,
+2026-09-18,10:36:44,500,Info,GUI,CLICK,Button clicked,CLICK,,,,📈 Phase vs. Frequency Analysis, 
+2026-09-18,10:38:01,332,Info,SYSTEM,Benutzerabbruch,Programm beendet,Benutzerabbruch,,,, , 

@@ -1,0 +1,7 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-22,12:35:41,868,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-09-22,12:35:41,868,Gui,GUI,Start,Starting GUI,,,,,,
+2026-09-22,12:35:41,870,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-09-22,12:35:41,870,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-09-22,12:35:41,875,OUTPUT,TERMINAL,OUTPUT,No COM ports available,,,,,,
+2026-09-22,12:35:41,875,Sys,GUI,Error,GUI konnte nicht gestartet werden,TypeError: 'tuple' object is not callable,GUI,,,,

@@ -1,0 +1,493 @@
+"""
+Photothermische Radiometrie (PTR) - Messunsicherheit Typ A der Phase pro
+Frequenz aus GENAU EINER CSV-Datei, mit Fit durch die Mittelwerte.
+
+Ablauf:
+  1) Gate: Es wird genau EINE .csv-Datei im SNAP-Kommando-Log-Format akzeptiert
+     (SR830, Spalten Date,Time,Ms,Category,Tag,State,Message,Value,...) mit
+     SNAP-Zeilen der Kategorie "PTR_Messung".
+  2) Phase (SNAP-Index 4) und Frequenz (SNAP-Index 9) werden wie im
+     Dickenberechnungs-Code (SWP_Calculation_PhaseVsFrequenz_v8) zu
+     Messpunkten zusammengefuehrt.
+  3) Messpunkte mit (relativ) gleicher Frequenz werden zu einer Frequenz
+     gruppiert (mehrere Sweeps hintereinander in der Datei).
+  4) Pro Frequenz nach Typ A (GUM):
+
+        Mittelwert                 x_mean = (x_1 + ... + x_n) / n
+        Standardabweichung         s      = sqrt( sum(x_i - x_mean)^2 / (n-1) )
+        Standardunsicherheit (A)   u_A    = s / sqrt(n)
+
+     Die Phase ist ein Winkel (Sprung 360 -> 0); Differenzen werden auf
+     [-180, +180] Grad gefaltet, die Mittelwerte ueber der Frequenz entfaltet.
+  5) Fit durch die MITTELWERTE: gewichteter Glaettungsspline ueber log10(f),
+     Gewichte 1/u_A. Der Glaettungsfaktor ist so gewaehlt, dass die gewichtete
+     Fehlerquadratsumme etwa der Anzahl der Frequenzen entspricht
+     (SMOOTHING_FAKTOR = 1).
+
+  Drei Plots (eine Figure, gemeinsame Frequenzachse):
+     1) roh: alle Einzelmesswerte, Mittelwert +- s
+     2) Fit durch die Mittelwerte (Mittelwert +- u_A)
+     3) Residuum = Mittelwert - Fit (Balken: +- u_A)
+
+HINWEIS: Der Fit ist EMPIRISCH (kein physikalisches Modell). Aus einer einzelnen
+Messung laesst sich keine Schichtdicke bestimmen: dafuer braucht man die Differenz
+zur Referenz (unnitriert), weil der Frequenzgang von Aufbau und Detektor sonst
+die Schichtwirkung ueberdeckt.
+"""
+
+import os
+import sys
+import csv
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.interpolate import UnivariateSpline
+
+# Tkinter fuer den Datei-Explorer
+import tkinter as tk
+from tkinter import filedialog
+
+
+# 0) Eigene Exceptions / Konstanten
+
+class InvalidFileTypeError(Exception):
+    # Wird geworfen, wenn die ausgewaehlte Datei keine .csv-Datei ist
+    pass
+
+
+class InvalidFileContentError(Exception):
+    # Wird geworfen, wenn die CSV nicht dem erwarteten SNAP-Log-Aufbau entspricht
+    pass
+
+
+ALLOWED_EXTENSIONS = (".csv",)
+EXPECTED_COLUMNS = ("Date", "Time", "Ms", "Category", "Tag", "State", "Message", "Value")
+
+# Nur Messungen dieser Kategorie werden ausgewertet (z.B. nicht "KOM_Test")
+REQUIRED_CATEGORY = "PTR_Messung"
+
+# SR830 SNAP?-Parameterindizes (siehe Geraetehandbuch)
+SNAP_PARAM_PHASE = 4   # Theta (Phase)
+SNAP_PARAM_FREQ = 9    # Reference Frequency
+
+# Zwei Messpunkte gelten als "gleiche Frequenz", wenn sie relativ weniger als
+# 2 % auseinanderliegen. (Kleinster relativer Abstand im Sweep ca. 5 %, der
+# Lock-in-Jitter der Ist-Frequenz liegt bei < 0,1 %.)
+FREQ_REL_TOL = 0.02
+
+
+# 1) Dateiauswahl (GENAU EINE Datei)
+
+def select_file_via_explorer(title="CSV-Datei auswählen"):
+    # Oeffnet einen Explorer fuer genau EINE Datei. :return: Pfad oder "" bei Abbruch
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes("-topmost", True)
+    path = filedialog.askopenfilename(
+        title=title,
+        filetypes=[("CSV-Dateien", "*.csv")],
+    )
+    root.destroy()
+    return path
+
+
+def select_save_path_via_explorer(default_name):
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes("-topmost", True)
+    path = filedialog.asksaveasfilename(
+        title="Ergebnis speichern (optional)",
+        defaultextension=".csv",
+        initialfile=default_name,
+        filetypes=[("CSV-Dateien", "*.csv")],
+    )
+    root.destroy()
+    return path
+
+
+# 2) Gate: nur den bekannten CSV-Aufbau akzeptieren
+
+def validate_csv_gate(path: str) -> None:
+    """
+    Prueft Dateityp und Spaltenaufbau, bevor irgendetwas eingelesen wird.
+
+    :raises FileNotFoundError:      Datei existiert nicht
+    :raises InvalidFileTypeError:   Endung ist nicht .csv
+    :raises InvalidFileContentError: Kopfzeile / SNAP-Aufbau stimmt nicht
+    """
+    if not isinstance(path, (str, os.PathLike)):
+        raise InvalidFileTypeError(
+            "Es wird GENAU EINE CSV-Datei erwartet (einen einzelnen Pfad), "
+            f"übergeben wurde: {type(path).__name__}")
+    if not path or not os.path.isfile(path):
+        raise FileNotFoundError(f"Datei nicht gefunden: '{path}'")
+
+    ext = os.path.splitext(path)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise InvalidFileTypeError(
+            f"Ungültiger Dateityp '{ext}' bei '{os.path.basename(path)}'. "
+            f"Erlaubt sind nur: {', '.join(ALLOWED_EXTENSIONS)}"
+        )
+
+    with open(path, "r", encoding="utf-8-sig", errors="ignore", newline="") as f:
+        reader = csv.DictReader(f)
+        fields = reader.fieldnames or []
+
+        missing = [c for c in EXPECTED_COLUMNS if c not in fields]
+        if missing:
+            raise InvalidFileContentError(
+                f"'{os.path.basename(path)}': Erwartete Spalten fehlen: {missing}. "
+                f"Gefunden: {fields}"
+            )
+
+        # Mindestens eine SNAP-Zeile der Kategorie PTR_Messung muss vorhanden sein
+        categories = set()
+        found = False
+        for row in reader:
+            categories.add((row.get("Category") or "").strip())
+            if ((row.get("Category") or "").strip() == REQUIRED_CATEGORY
+                    and (row.get("Message") or "").strip().upper().startswith("SNAP")):
+                found = True
+                break
+        if not found:
+            raise InvalidFileContentError(
+                f"'{os.path.basename(path)}': Keine 'SNAP'-Zeilen der Kategorie "
+                f"'{REQUIRED_CATEGORY}' gefunden (vorhandene Kategorien: "
+                f"{sorted(c for c in categories if c)}). Handelt es sich um eine Messdatei?"
+            )
+
+
+# 3) Einlesen: (Frequenz, Phase)-Messpunkte in Originalreihenfolge
+
+def read_snap_csv(path: str):
+    """
+    Liest alle zusammengehoerigen (Frequenz, Phase)-Messpunkte einer Datei.
+    Die Zusammenfuehrung erfolgt wie in Code v8: Phase (Index 4) und Frequenz
+    (Index 9) stehen in zwei aufeinanderfolgenden SNAP-Zeilen.
+
+    :return: freq (np.ndarray), phase_deg (np.ndarray)
+    """
+    validate_csv_gate(path)
+
+    pending_phase = None
+    pending_freq = None
+    freq_list, phase_list = [], []
+
+    with open(path, "r", encoding="utf-8-sig", errors="ignore", newline="") as f:
+        for row in csv.DictReader(f):
+            message = (row.get("Message") or "").strip()
+            value_str = (row.get("Value") or "").strip()
+
+            if (row.get("Category") or "").strip() != REQUIRED_CATEGORY:
+                continue
+            if not message.upper().startswith("SNAP"):
+                continue
+
+            param_part = message[len("SNAP"):].strip()
+            try:
+                params = [int(p.strip()) for p in param_part.split(",") if p.strip()]
+                values = [float(v.strip()) for v in value_str.split(",") if v.strip()]
+            except ValueError:
+                continue
+            if len(params) != len(values):
+                continue
+
+            param_to_value = dict(zip(params, values))
+            if SNAP_PARAM_PHASE in param_to_value:
+                pending_phase = param_to_value[SNAP_PARAM_PHASE]
+            if SNAP_PARAM_FREQ in param_to_value:
+                pending_freq = param_to_value[SNAP_PARAM_FREQ]
+
+            if pending_phase is not None and pending_freq is not None:
+                freq_list.append(pending_freq)
+                phase_list.append(pending_phase)
+                pending_phase = None
+                pending_freq = None
+
+    if not freq_list:
+        raise InvalidFileContentError(
+            f"'{os.path.basename(path)}': Keine zusammengehörigen Phasen- "
+            f"(Index {SNAP_PARAM_PHASE}) und Frequenzwerte (Index {SNAP_PARAM_FREQ}) gefunden."
+        )
+
+    freq = np.array(freq_list, dtype=float)
+    phase = np.array(phase_list, dtype=float)
+
+    if not (np.all(np.isfinite(freq)) and np.all(np.isfinite(phase))):
+        raise InvalidFileContentError(f"'{os.path.basename(path)}': Nicht-numerische Messwerte.")
+    if np.any(freq <= 0):
+        raise InvalidFileContentError(f"'{os.path.basename(path)}': Frequenzen <= 0 Hz gefunden.")
+
+    return freq, phase
+
+
+# 4) Gruppieren nach Frequenz
+
+def group_by_frequency(freq, rel_tol=FREQ_REL_TOL):
+    """
+    Fasst Messpunkte mit (relativ) gleicher Frequenz zusammen.
+
+    :return: Liste von Index-Arrays, aufsteigend nach Frequenz sortiert
+    """
+    order = np.argsort(freq)
+    groups = []
+    current = [order[0]]
+    f_start = freq[order[0]]
+
+    for idx in order[1:]:
+        if freq[idx] <= f_start * (1.0 + rel_tol):
+            current.append(idx)
+        else:
+            groups.append(np.array(current))
+            current = [idx]
+            f_start = freq[idx]
+    groups.append(np.array(current))
+    return groups
+
+
+# 5) Statistik Typ A
+
+def _wrap180(deg):
+    # faltet Winkeldifferenzen in den Bereich [-180, +180) Grad
+    return (np.asarray(deg, dtype=float) + 180.0) % 360.0 - 180.0
+
+
+def type_a_statistics(phase_deg):
+    """
+    Typ-A-Auswertung fuer eine Frequenz.
+
+    :return: (mean, s, u_A, n)   mean/s/u_A in Grad; s und u_A = NaN bei n = 1
+    """
+    phase_deg = np.asarray(phase_deg, dtype=float)
+    n = len(phase_deg)
+
+    # Arithmetischer Mittelwert, robust gegen 360/0-Ueberlauf:
+    ref = phase_deg[0]
+    mean = (ref + np.mean(_wrap180(phase_deg - ref))) % 360.0
+
+    if n < 2:
+        return mean, np.nan, np.nan, n
+
+    dev = _wrap180(phase_deg - mean)              # x_i - x_mean
+    s = np.sqrt(np.sum(dev ** 2) / (n - 1))       # empirische Standardabweichung
+    u_a = s / np.sqrt(n)                          # Standardunsicherheit des Mittelwerts
+    return mean, s, u_a, n
+
+
+# 6) Typ A fuer die EINE Datei
+
+def unwrap_phase_deg(phase_deg):
+    # Entfaltet die (nach Frequenz sortierte) Phase in Grad
+    return np.rad2deg(np.unwrap(np.deg2rad(phase_deg)))
+
+
+def compute_type_a_single(path, rel_tol=FREQ_REL_TOL):
+    """
+    Liest GENAU EINE CSV-Datei und berechnet pro Frequenz Mittelwert, s und u_A.
+
+    :return: dict (aufsteigend nach Frequenz); "phase_mean" in [0, 360),
+             "phase_mean_unwr" entfaltet ueber der Frequenz,
+             "raw_phase_unwr" sind die Einzelwerte im selben (entfalteten) Bezug
+    """
+    freq_all, phase_all = read_snap_csv(path)        # prueft Gate (nur ein Pfad)
+    groups = group_by_frequency(freq_all, rel_tol)
+
+    f_mean, p_mean, s_arr, u_arr, n_arr = [], [], [], [], []
+    for g in groups:
+        m, s, u, n = type_a_statistics(phase_all[g])
+        f_mean.append(np.mean(freq_all[g]))
+        p_mean.append(m)
+        s_arr.append(s)
+        u_arr.append(u)
+        n_arr.append(n)
+
+    p_mean = np.array(p_mean)
+    p_mean_unwr = unwrap_phase_deg(p_mean)
+
+    raw_unwr = np.empty_like(phase_all)
+    for k, g in enumerate(groups):
+        raw_unwr[g] = p_mean_unwr[k] + _wrap180(phase_all[g] - p_mean[k])
+
+    return {
+        "freq": np.array(f_mean),
+        "phase_mean": p_mean,
+        "phase_mean_unwr": p_mean_unwr,
+        "phase_std": np.array(s_arr),            # s
+        "u_A": np.array(u_arr),                  # s / sqrt(n)
+        "n": np.array(n_arr, dtype=int),
+        "raw_freq": freq_all,
+        "raw_phase_unwr": raw_unwr,
+        "file": os.path.basename(path),
+    }
+
+
+# 7) Fit durch die Mittelwerte
+
+# Groesser = glatterer Fit. 1.0: gewichtete Fehlerquadratsumme ~ Anzahl der Frequenzen.
+SMOOTHING_FAKTOR = 1.0
+MIN_FREQUENZEN_FUER_FIT = 5
+
+
+def fit_means_spline(res, smoothing=SMOOTHING_FAKTOR):
+    """
+    Gewichteter kubischer Glaettungsspline durch die Mittelwerte (ueber log10 f).
+
+    :raises ValueError: zu wenige Frequenzen oder u_A nirgends verwendbar
+    """
+    x = np.log10(res["freq"])
+    y = res["phase_mean_unwr"]
+    u = res["u_A"]
+    N = len(x)
+    if N < MIN_FREQUENZEN_FUER_FIT:
+        raise ValueError(f"Nur {N} Frequenzen - für den Fit werden mindestens "
+                         f"{MIN_FREQUENZEN_FUER_FIT} benötigt.")
+
+    valid = np.isfinite(u) & (u > 0)
+    if not valid.any():
+        raise ValueError("u_A ist für keine Frequenz > 0 - keine Gewichtung möglich "
+                         "(zu wenige oder identische Messwerte pro Frequenz).")
+    u_eff = np.where(valid, u, np.median(u[valid]))       # Ersatz fuer fehlende u_A
+
+    spline = UnivariateSpline(x, y, w=1.0 / u_eff, k=3, s=smoothing * N)
+
+    fit = spline(x)
+    residual = y - fit
+    x_fine = np.linspace(x.min(), x.max(), 600)
+    return {
+        "fit": fit,
+        "residual": residual,
+        "u_eff": u_eff,
+        "n_invalid_u": int((~valid).sum()),
+        "freq_fine": 10 ** x_fine,
+        "fit_curve": spline(x_fine),
+        "rms": float(np.sqrt(np.mean(residual ** 2))),
+        "chi2_per_point": float(np.sum((residual / u_eff) ** 2) / N),
+    }
+
+
+# 8) Ausgabe: Tabelle, Export, Plots
+
+def print_table(res, fit):
+    print(f"\nDatei: {res['file']}")
+    print(f"{'f in Hz':>10} {'n':>4} {'Mittelwert °':>13} {'s in °':>9} {'u_A in °':>9} "
+          f"{'Fit °':>9} {'Residuum °':>11}")
+    print("-" * 74)
+    fit_in_frame = res["phase_mean"] - fit["residual"]      # Fit im Bezug [0, 360)
+    for f, n, m, s, u, ft, r in zip(res["freq"], res["n"], res["phase_mean"], res["phase_std"],
+                                    res["u_A"], fit_in_frame, fit["residual"]):
+        print(f"{f:10.5g} {n:4d} {m:13.3f} {s:9.3f} {u:9.3f} {ft:9.3f} {r:11.3f}")
+
+    n_unique = np.unique(res["n"])
+    if len(n_unique) > 1:
+        print(f"\n[Hinweis] Die Anzahl der Messwerte pro Frequenz ist nicht einheitlich "
+              f"(n = {', '.join(map(str, n_unique))}).")
+    if fit["n_invalid_u"]:
+        print(f"[Hinweis] Bei {fit['n_invalid_u']} Frequenz(en) fehlt u_A (n = 1 oder alle Werte "
+              f"identisch) - dort wurde das mittlere u_A als Gewicht verwendet.")
+    print(f"\nFit (Glättungsspline, empirisch): RMS der Residuen = {fit['rms']:.3f}°, "
+          f"gewichtete Fehlerquadratsumme pro Punkt = {fit['chi2_per_point']:.2f}")
+
+
+def export_results_csv(res, fit, path):
+    # Trennzeichen ';' (deutsches Excel), Dezimalpunkt
+    with open(path, "w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f, delimiter=";")
+        w.writerow(["Frequenz_Hz", "n", "Phase_Mittelwert_deg", "s_deg", "u_A_deg",
+                    "Fit_deg", "Residuum_deg"])
+        for row in zip(res["freq"], res["n"], res["phase_mean"], res["phase_std"], res["u_A"],
+                       res["phase_mean"] - fit["residual"], fit["residual"]):
+            w.writerow(row)
+
+
+def plot_results(res, fit, show=True, figsize=(8.5, 12)):
+    """
+    Drei Plots untereinander (gemeinsame Frequenzachse):
+      1) roh: Einzelmesswerte, Mittelwert +- s
+      2) Fit durch die Mittelwerte (Mittelwert +- u_A)
+      3) Residuum = Mittelwert - Fit
+    :return: matplotlib Figure
+    """
+    if show:
+        fig = plt.figure(figsize=figsize)
+    else:
+        from matplotlib.figure import Figure
+        fig = Figure(figsize=figsize)
+    ax1, ax2, ax3 = fig.subplots(3, 1, sharex=True, gridspec_kw={"height_ratios": [3, 3, 1.5]})
+
+    # 1) roh
+    ax1.plot(res["raw_freq"], res["raw_phase_unwr"], ".", color="tab:gray", alpha=0.5, ms=4,
+             label="Einzelmesswerte")
+    ax1.errorbar(res["freq"], res["phase_mean_unwr"], yerr=res["phase_std"], fmt="o", color="tab:blue",
+                 capsize=3, ms=4, label="Mittelwert ± s")
+    ax1.set_ylabel("Phase in °")
+    ax1.set_title(f"1) Rohdaten - {res['file']}")
+    ax1.grid(True, which="both", alpha=0.4)
+    ax1.legend()
+
+    # 2) Fit durch die Mittelwerte
+    ax2.errorbar(res["freq"], res["phase_mean_unwr"], yerr=res["u_A"], fmt="o", color="tab:green",
+                 capsize=3, ms=4, label=r"Mittelwert ± $u_A$")
+    ax2.plot(fit["freq_fine"], fit["fit_curve"], "--", color="k", label="Fit durch die Mittelwerte")
+    ax2.set_ylabel("Phase in °")
+    ax2.set_title("2) Fit durch die Mittelwerte (gewichteter Glättungsspline)")
+    ax2.grid(True, which="both", alpha=0.4)
+    ax2.legend()
+
+    # 3) Residuum
+    ax3.errorbar(res["freq"], fit["residual"], yerr=res["u_A"], fmt="o", color="tab:green",
+                 capsize=3, ms=4)
+    ax3.axhline(0, color="k", lw=1)
+    ax3.set_xscale("log")
+    ax3.set_xlabel("Frequenz in Hz (log-Skala)")
+    ax3.set_ylabel("Mittelwert − Fit in °")
+    ax3.set_title(r"3) Residuum (Balken: ± $u_A$)")
+    ax3.grid(True, which="both", alpha=0.4)
+
+    fig.tight_layout()
+    if show:
+        plt.show()
+    return fig
+
+
+# 9) Gesamtablauf
+
+def start_Messunsicherheit(path, rel_tol: float = FREQ_REL_TOL, smoothing: float = SMOOTHING_FAKTOR):
+    """
+    :param path: Pfad zu GENAU EINER SNAP-Log-CSV-Datei
+    :return: (Typ-A-Ergebnis, Fit-Ergebnis)
+    """
+    res = compute_type_a_single(path, rel_tol)
+    return res, fit_means_spline(res, smoothing)
+
+
+if __name__ == "__main__":
+    print("Bitte GENAU EINE Messdatei (CSV mit mehreren Sweeps) auswählen...")
+    path = select_file_via_explorer("Messdatei auswählen")
+    if not path:
+        print("[Abbruch] Es wurde keine Datei ausgewählt.")
+        sys.exit()
+
+    try:
+        res = compute_type_a_single(path)
+    except (FileNotFoundError, InvalidFileTypeError, InvalidFileContentError) as e:
+        print(f"\n[Fehler beim Einlesen] {e}")
+        sys.exit(1)
+
+    if res["n"].max() < 2:
+        print("\n[Warnung] Pro Frequenz liegt nur EIN Messwert vor - Streuung und u_A "
+              "sind nicht berechenbar. Bitte eine Datei mit mehreren Sweeps auswählen.")
+        sys.exit(1)
+
+    try:
+        fit = fit_means_spline(res)
+    except ValueError as e:
+        print(f"\n[Fehler beim Fit] {e}")
+        sys.exit(1)
+
+    print_table(res, fit)
+
+    save_path = select_save_path_via_explorer(os.path.splitext(res["file"])[0] + "_TypA.csv")
+    if save_path:
+        export_results_csv(res, fit, save_path)
+        print(f"Ergebnis gespeichert: {save_path}")
+
+    plot_results(res, fit)

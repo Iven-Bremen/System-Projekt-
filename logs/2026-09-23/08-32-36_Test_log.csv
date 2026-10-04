@@ -1,0 +1,10 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-23,08:32:36,390,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-09-23,08:32:36,390,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-09-23,08:32:36,390,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-09-23,08:32:36,390,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-09-23,08:32:36,405,OUTPUT,TERMINAL,OUTPUT,No COM ports available,,,,,,
+2026-09-23,08:32:36,407,Sys,SYSTEM,Info,COM-Port Scan,[],Startup,,,,
+2026-09-23,08:32:36,409,Calc,CALCULATION,Info,calculation ready,No calculations configured,STARTER,,,,
+2026-09-23,08:32:38,582,Send,OSTech,Running,LCA,read request,query,,,,
+2026-09-23,08:32:38,584,Sys,GUI,Error,GUI konnte nicht gestartet werden,RuntimeError: OSTECH ist nicht verbunden.,GUI,,,,

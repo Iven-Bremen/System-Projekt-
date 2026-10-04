@@ -1,0 +1,3 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-10-04,07:03:48,881,Gui,Button,Info,Button clicked,Run Uncertainty,,,,,
+2026-10-04,07:05:35,113,Sys,GUI,Info,Foreground Shutdown,GUI closed,,,,,

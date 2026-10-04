@@ -1,0 +1,4 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-22,12:39:44,542,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-09-22,12:39:44,542,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-09-22,12:39:45,444,Gui,GUI,Start,Starting GUI,,,,,,

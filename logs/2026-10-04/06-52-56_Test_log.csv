@@ -1,0 +1,7 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-10-04,06:52:56,426,Gui,Button,Info,Button clicked,Run Uncertainty,,,,,
+2026-10-04,06:53:36,294,Gui,Button,Info,Button clicked,Run Calculations,,,,,
+2026-10-04,06:53:49,379,Gui,Button,Info,Button clicked,Run Uncertainty,,,,,
+2026-10-04,06:54:33,139,Gui,Button,Info,Button clicked,Run Uncertainty,,,,,
+2026-10-04,06:55:43,267,Gui,Button,Info,Button clicked,Run Uncertainty,,,,,
+2026-10-04,07:02:10,283,Sys,GUI,Info,Foreground Shutdown,GUI closed,,,,,
