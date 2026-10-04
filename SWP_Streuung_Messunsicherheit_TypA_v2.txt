@@ -1,0 +1,623 @@
+"""
+Photothermische Radiometrie (PTR) - Messunsicherheit Typ A der Phase
+pro Frequenz (Frequenzsweep, mehrere Messwiederholungen).
+
+Ablauf:
+  1) Gate: Es werden ausschliesslich .csv-Dateien im SNAP-Kommando-Log-Format
+     (SR830, Spalten Date,Time,Ms,Category,Tag,State,Message,Value,...)
+     mit SNAP-Zeilen der Kategorie "PTR_Messung" akzeptiert.
+  2) Phase (SNAP-Index 4) und Frequenz (SNAP-Index 9) werden wie im
+     Dickenberechnungs-Code (SWP_Calculation_PhaseVsFrequenz_v8) zu
+     Messpunkten zusammengefuehrt.
+  3) Alle Messpunkte, deren Frequenz (im Rahmen einer kleinen relativen
+     Toleranz) uebereinstimmt, werden zu einer Frequenz gruppiert
+     (mehrere Sweeps in einer Datei und/oder mehrere Dateien).
+  4) Pro Frequenz nach Typ A (GUM):
+
+        Mittelwert                 x_mean = (x_1 + ... + x_n) / n
+        Standardabweichung         s      = sqrt( sum(x_i - x_mean)^2 / (n-1) )
+        Standardunsicherheit (A)   u_A    = s / sqrt(n)
+
+     Die Phase ist ein Winkel (Sprung 360 -> 0). Die Differenzen (x_i - x_mean)
+     werden deshalb auf [-180, +180] Grad gefaltet. Ohne Ueberlauf entspricht
+     das exakt dem normalen arithmetischen Mittelwert.
+  5) Fit durch die MITTELWERTE: Referenz (unnitriert) und Probe (nitriert)
+     werden jeweils nach Typ A ausgewertet. Aus den Mittelwerten entsteht
+     Phi = phi_ref - phi_probe (Modell aus SWP_Calculation_PhaseVsFrequenz_v8)
+     mit der kombinierten Unsicherheit
+        u_Phi = sqrt(u_A,ref^2 + u_A,probe^2).
+     Der Fit (d, k_L) wird mit 1/u_Phi gewichtet; Plot mit Streuung,
+     Mittelwerten, Fitkurve und Residuen.
+"""
+
+import os
+import sys
+import csv
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+
+# Tkinter fuer den Datei-Explorer
+import tkinter as tk
+from tkinter import filedialog
+
+
+# 0) Eigene Exceptions / Konstanten
+
+class InvalidFileTypeError(Exception):
+    # Wird geworfen, wenn die ausgewaehlte Datei keine .csv-Datei ist
+    pass
+
+
+class InvalidFileContentError(Exception):
+    # Wird geworfen, wenn die CSV nicht dem erwarteten SNAP-Log-Aufbau entspricht
+    pass
+
+
+ALLOWED_EXTENSIONS = (".csv",)
+EXPECTED_COLUMNS = ("Date", "Time", "Ms", "Category", "Tag", "State", "Message", "Value")
+
+# Nur Messungen dieser Kategorie werden ausgewertet (z.B. nicht "KOM_Test")
+REQUIRED_CATEGORY = "PTR_Messung"
+
+# SR830 SNAP?-Parameterindizes (siehe Geraetehandbuch)
+SNAP_PARAM_PHASE = 4   # Theta (Phase)
+SNAP_PARAM_FREQ = 9    # Reference Frequency
+
+# Zwei Messpunkte gelten als "gleiche Frequenz", wenn sie relativ weniger als
+# 2 % auseinanderliegen. (Kleinster relativer Abstand im Sweep ca. 5 %, der
+# Lock-in-Jitter der Ist-Frequenz liegt bei < 0,1 %.)
+FREQ_REL_TOL = 0.02
+
+
+# 1) Dateiauswahl (mehrere Dateien moeglich)
+
+def select_files_via_explorer(title="CSV-Dateien auswählen"):
+    # Oeffnet einen Explorer; Mehrfachauswahl (Strg/Shift) ist erlaubt.
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes("-topmost", True)
+    paths = filedialog.askopenfilenames(
+        title=title,
+        filetypes=[("CSV-Dateien", "*.csv")],
+    )
+    root.destroy()
+    return list(paths)
+
+
+# 2) Gate: nur den bekannten CSV-Aufbau akzeptieren
+
+def validate_csv_gate(path: str) -> None:
+    """
+    Prueft Dateityp und Spaltenaufbau, bevor irgendetwas eingelesen wird.
+
+    :raises FileNotFoundError:      Datei existiert nicht
+    :raises InvalidFileTypeError:   Endung ist nicht .csv
+    :raises InvalidFileContentError: Kopfzeile / SNAP-Aufbau stimmt nicht
+    """
+    if not path or not os.path.isfile(path):
+        raise FileNotFoundError(f"Datei nicht gefunden: '{path}'")
+
+    ext = os.path.splitext(path)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise InvalidFileTypeError(
+            f"Ungültiger Dateityp '{ext}' bei '{os.path.basename(path)}'. "
+            f"Erlaubt sind nur: {', '.join(ALLOWED_EXTENSIONS)}"
+        )
+
+    with open(path, "r", encoding="utf-8-sig", errors="ignore", newline="") as f:
+        reader = csv.DictReader(f)
+        fields = reader.fieldnames or []
+
+        missing = [c for c in EXPECTED_COLUMNS if c not in fields]
+        if missing:
+            raise InvalidFileContentError(
+                f"'{os.path.basename(path)}': Erwartete Spalten fehlen: {missing}. "
+                f"Gefunden: {fields}"
+            )
+
+        # Mindestens eine SNAP-Zeile der Kategorie PTR_Messung muss vorhanden sein
+        categories = set()
+        found = False
+        for row in reader:
+            categories.add((row.get("Category") or "").strip())
+            if ((row.get("Category") or "").strip() == REQUIRED_CATEGORY
+                    and (row.get("Message") or "").strip().upper().startswith("SNAP")):
+                found = True
+                break
+        if not found:
+            raise InvalidFileContentError(
+                f"'{os.path.basename(path)}': Keine 'SNAP'-Zeilen der Kategorie "
+                f"'{REQUIRED_CATEGORY}' gefunden (vorhandene Kategorien: "
+                f"{sorted(c for c in categories if c)}). Handelt es sich um eine Messdatei?"
+            )
+
+
+# 3) Einlesen: (Frequenz, Phase)-Messpunkte in Originalreihenfolge
+
+def read_snap_csv(path: str):
+    """
+    Liest alle zusammengehoerigen (Frequenz, Phase)-Messpunkte einer Datei.
+    Die Zusammenfuehrung erfolgt wie in Code v8: Phase (Index 4) und Frequenz
+    (Index 9) stehen in zwei aufeinanderfolgenden SNAP-Zeilen.
+
+    :return: freq (np.ndarray), phase_deg (np.ndarray)
+    """
+    validate_csv_gate(path)
+
+    pending_phase = None
+    pending_freq = None
+    freq_list, phase_list = [], []
+
+    with open(path, "r", encoding="utf-8-sig", errors="ignore", newline="") as f:
+        for row in csv.DictReader(f):
+            message = (row.get("Message") or "").strip()
+            value_str = (row.get("Value") or "").strip()
+
+            if (row.get("Category") or "").strip() != REQUIRED_CATEGORY:
+                continue
+            if not message.upper().startswith("SNAP"):
+                continue
+
+            param_part = message[len("SNAP"):].strip()
+            try:
+                params = [int(p.strip()) for p in param_part.split(",") if p.strip()]
+                values = [float(v.strip()) for v in value_str.split(",") if v.strip()]
+            except ValueError:
+                continue
+            if len(params) != len(values):
+                continue
+
+            param_to_value = dict(zip(params, values))
+            if SNAP_PARAM_PHASE in param_to_value:
+                pending_phase = param_to_value[SNAP_PARAM_PHASE]
+            if SNAP_PARAM_FREQ in param_to_value:
+                pending_freq = param_to_value[SNAP_PARAM_FREQ]
+
+            if pending_phase is not None and pending_freq is not None:
+                freq_list.append(pending_freq)
+                phase_list.append(pending_phase)
+                pending_phase = None
+                pending_freq = None
+
+    if not freq_list:
+        raise InvalidFileContentError(
+            f"'{os.path.basename(path)}': Keine zusammengehörigen Phasen- "
+            f"(Index {SNAP_PARAM_PHASE}) und Frequenzwerte (Index {SNAP_PARAM_FREQ}) gefunden."
+        )
+
+    freq = np.array(freq_list, dtype=float)
+    phase = np.array(phase_list, dtype=float)
+
+    if not (np.all(np.isfinite(freq)) and np.all(np.isfinite(phase))):
+        raise InvalidFileContentError(f"'{os.path.basename(path)}': Nicht-numerische Messwerte.")
+    if np.any(freq <= 0):
+        raise InvalidFileContentError(f"'{os.path.basename(path)}': Frequenzen <= 0 Hz gefunden.")
+
+    return freq, phase
+
+
+# 4) Gruppieren nach Frequenz
+
+def group_by_frequency(freq, rel_tol=FREQ_REL_TOL):
+    """
+    Fasst Messpunkte mit (relativ) gleicher Frequenz zusammen.
+
+    :return: Liste von Index-Arrays, aufsteigend nach Frequenz sortiert
+    """
+    order = np.argsort(freq)
+    groups = []
+    current = [order[0]]
+    f_start = freq[order[0]]
+
+    for idx in order[1:]:
+        if freq[idx] <= f_start * (1.0 + rel_tol):
+            current.append(idx)
+        else:
+            groups.append(np.array(current))
+            current = [idx]
+            f_start = freq[idx]
+    groups.append(np.array(current))
+    return groups
+
+
+# 5) Statistik Typ A
+
+def _wrap180(deg):
+    # faltet Winkeldifferenzen in den Bereich [-180, +180) Grad
+    return (np.asarray(deg, dtype=float) + 180.0) % 360.0 - 180.0
+
+
+def type_a_statistics(phase_deg):
+    """
+    Typ-A-Auswertung fuer eine Frequenz.
+
+    :return: (mean, s, u_A, n)   mean/s/u_A in Grad; s und u_A = NaN bei n = 1
+    """
+    phase_deg = np.asarray(phase_deg, dtype=float)
+    n = len(phase_deg)
+
+    # Arithmetischer Mittelwert, robust gegen 360/0-Ueberlauf:
+    ref = phase_deg[0]
+    mean = (ref + np.mean(_wrap180(phase_deg - ref))) % 360.0
+
+    if n < 2:
+        return mean, np.nan, np.nan, n
+
+    dev = _wrap180(phase_deg - mean)              # x_i - x_mean
+    s = np.sqrt(np.sum(dev ** 2) / (n - 1))       # empirische Standardabweichung
+    u_a = s / np.sqrt(n)                          # Standardunsicherheit des Mittelwerts
+    return mean, s, u_a, n
+
+
+def compute_type_a(paths, rel_tol=FREQ_REL_TOL):
+    """
+    Liest eine oder mehrere CSV-Dateien und berechnet pro Frequenz
+    Mittelwert, Standardabweichung s und Standardunsicherheit u_A.
+
+    :return: dict mit den Ergebnisarrays (aufsteigend nach Frequenz) und
+             den Rohdaten fuer die Darstellung
+    """
+    if isinstance(paths, (str, os.PathLike)):
+        paths = [paths]
+    if not paths:
+        raise ValueError("Keine Datei übergeben.")
+
+    freq_all, phase_all = [], []
+    for p in paths:
+        f, ph = read_snap_csv(p)
+        freq_all.append(f)
+        phase_all.append(ph)
+    freq_all = np.concatenate(freq_all)
+    phase_all = np.concatenate(phase_all)
+
+    groups = group_by_frequency(freq_all, rel_tol)
+
+    freq_mean, phase_mean, s_arr, u_arr, n_arr = [], [], [], [], []
+    for g in groups:
+        m, s, u, n = type_a_statistics(phase_all[g])
+        freq_mean.append(np.mean(freq_all[g]))
+        phase_mean.append(m)
+        s_arr.append(s)
+        u_arr.append(u)
+        n_arr.append(n)
+
+    return {
+        "freq": np.array(freq_mean),
+        "phase_mean": np.array(phase_mean),
+        "phase_std": np.array(s_arr),         # s
+        "u_A": np.array(u_arr),               # s / sqrt(n)
+        "n": np.array(n_arr, dtype=int),
+        "raw_freq": freq_all,
+        "raw_phase": phase_all,
+        "files": [os.path.basename(p) for p in paths],
+    }
+
+
+# 6) Ausgabe: Tabelle, Export, Plot
+
+def print_table(res):
+    print(f"\nDateien: {', '.join(res['files'])}")
+    print(f"{'f in Hz':>10} {'n':>4} {'Mittelwert °':>13} {'s in °':>9} {'u_A in °':>9}")
+    print("-" * 50)
+    for f, n, m, s, u in zip(res["freq"], res["n"], res["phase_mean"],
+                             res["phase_std"], res["u_A"]):
+        print(f"{f:10.5g} {n:4d} {m:13.3f} {s:9.3f} {u:9.3f}")
+
+    n_unique = np.unique(res["n"])
+    if len(n_unique) > 1:
+        print(f"\n[Hinweis] Die Anzahl der Messwerte pro Frequenz ist nicht einheitlich "
+              f"(n = {', '.join(map(str, n_unique))}).")
+
+
+def export_results_csv(res, path):
+    # Trennzeichen ';' (deutsches Excel), Dezimalpunkt
+    with open(path, "w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f, delimiter=";")
+        w.writerow(["Frequenz_Hz", "n", "Phase_Mittelwert_deg", "s_deg", "u_A_deg"])
+        for row in zip(res["freq"], res["n"], res["phase_mean"], res["phase_std"], res["u_A"]):
+            w.writerow(row)
+
+
+def plot_type_a(res, rel_tol=FREQ_REL_TOL):
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 9), sharex=True)
+
+    ax1.plot(res["raw_freq"], res["raw_phase"], ".", color="lightgray",
+             label="Einzelmesswerte")
+    ax1.errorbar(res["freq"], res["phase_mean"], yerr=res["phase_std"],
+                 fmt="o-", capsize=3, label="Mittelwert ± s")
+    ax1.set_ylabel("Phase in °")
+    ax1.set_title("Phase vs. Frequenz mit Streuung (Typ A)")
+    ax1.grid(True, which="both", alpha=0.4)
+    ax1.legend()
+
+    ax2.plot(res["freq"], res["phase_std"], "s-", label="s (Streuung der Einzelwerte)")
+    ax2.plot(res["freq"], res["u_A"], "^-", label=r"$u_A = s/\sqrt{n}$ (Unsicherheit des Mittelwerts)")
+    ax2.set_xscale("log")
+    ax2.set_xlabel("Frequenz in Hz (log-Skala)")
+    ax2.set_ylabel("in °")
+    ax2.grid(True, which="both", alpha=0.4)
+    ax2.legend()
+
+    plt.tight_layout()
+    plt.show()
+
+
+# 7) Physikalisches Modell und Fit (Modell identisch zu v8)
+
+def thermal_effusivity(k, rho, C):
+    """b = sqrt(rho * k * C)   [Waermeeindringkoeffizient / Effusivitaet]"""
+    return np.sqrt(rho * k * C)
+
+
+def surface_temperature_phase(freq, d, k_L, b_S, rho_L, C_L):
+    """Phase (in Grad) der komplexen Oberflaechentemperatur."""
+    omega = 2.0 * np.pi * np.asarray(freq, dtype=float)
+    alpha_L = k_L / (rho_L * C_L)
+    b_L = thermal_effusivity(k_L, rho_L, C_L)
+
+    mu_L = np.sqrt(2.0 * alpha_L / omega)      # thermische Diffusionslaenge
+    sigma_L = (1.0 + 1j) / mu_L                # komplexe Waermewellenzahl
+
+    R = (b_S - b_L) / (b_S + b_L)              # Reflexionskoeffizient
+    x = np.exp(-2.0 * sigma_L * d)             # gedaempfte Waermewelle (Weg 2d)
+
+    T0 = -1.0 / sigma_L * (1.0 + R * x) / (1.0 - R * x)
+    return np.rad2deg(np.angle(T0))
+
+
+def make_phase_signal_model(b_S, rho_S, C_S, layer_rho=None, layer_C=None):
+    """Modellfunktion Phi(freq, d, k_L) = phi_ref - phi_probe fuer curve_fit."""
+    rho_L = layer_rho if layer_rho is not None else rho_S
+    C_L = layer_C if layer_C is not None else C_S
+
+    def phi_ref(freq):
+        return surface_temperature_phase(freq, 0.0, 1.0, b_S, rho_L, C_L)
+
+    def Phi_model(freq, d, k_L):
+        phi_probe = surface_temperature_phase(freq, d, k_L, b_S, rho_L, C_L)
+        return phi_ref(freq) - phi_probe
+
+    return Phi_model
+
+
+def unwrap_phase_deg(phase_deg):
+    # Entfaltet die (nach Frequenz sortierte) Phase in Grad
+    return np.rad2deg(np.unwrap(np.deg2rad(phase_deg)))
+
+
+def match_frequency_grids(res_ref, res_probe, rel_tol=FREQ_REL_TOL):
+    """
+    Ordnet jeder Probenfrequenz die zugehoerige Referenzfrequenz zu
+    (relative Abweichung <= rel_tol). Keine Interpolation, es werden nur
+    tatsaechlich gemessene Frequenzen verwendet.
+
+    :return: (idx_ref, idx_probe) als Index-Listen
+    """
+    f_r, f_p = res_ref["freq"], res_probe["freq"]
+    idx_r, idx_p = [], []
+    for ip, fp in enumerate(f_p):
+        ir = int(np.argmin(np.abs(f_r / fp - 1.0)))
+        if abs(f_r[ir] / fp - 1.0) <= rel_tol and ir not in idx_r:
+            idx_r.append(ir)
+            idx_p.append(ip)
+
+    if len(idx_r) < 3:
+        raise ValueError(
+            f"Nur {len(idx_r)} gemeinsame Frequenzen zwischen Referenz und Probe gefunden "
+            f"(Toleranz {rel_tol*100:.1f} %). Wurden beide mit demselben Sweep gemessen?")
+
+    n_lost = max(len(f_r), len(f_p)) - len(idx_r)
+    if n_lost > 0:
+        print(f"[Hinweis] {n_lost} Frequenz(en) ohne Gegenstück in Referenz bzw. Probe "
+              f"wurden nicht verwendet.")
+    return idx_r, idx_p
+
+
+def fit_layer_parameters(freq_hz, Phi_deg, b_S, rho_S, C_S, sigma=None,
+                         d0=5e-6, kL0=10.0,
+                         d_bounds=(0.1e-6, 100e-6),
+                         kL_bounds=(0.5, 100.0)):
+    """
+    Nichtlineare Kleinste-Quadrate-Anpassung. Mit sigma (Standardunsicherheit
+    pro Messpunkt in Grad) wird gewichtet und die Parameterunsicherheit
+    ergibt sich aus diesen Unsicherheiten (absolute_sigma=True).
+    """
+    model_func = make_phase_signal_model(b_S, rho_S, C_S)
+    popt, pcov = curve_fit(
+        model_func, freq_hz, Phi_deg,
+        p0=[d0, kL0],
+        sigma=sigma, absolute_sigma=sigma is not None,
+        bounds=([d_bounds[0], kL_bounds[0]], [d_bounds[1], kL_bounds[1]]),
+        maxfev=20000,
+    )
+    perr = np.sqrt(np.diag(pcov))
+    return popt[0], popt[1], perr[0], perr[1], model_func
+
+
+def fit_means(res_ref, res_probe, k_S=42.0, rho_S=7800.0, C_S=460.0,
+              weighted=True, rel_tol=FREQ_REL_TOL):
+    """
+    Fit durch die Mittelwerte von Referenz und Probe.
+
+    :param res_ref, res_probe: Ergebnisse von compute_type_a()
+    :param weighted: True -> Gewichtung mit 1/u_Phi (faellt automatisch auf
+                     ungewichtet zurueck, wenn ein u_A fehlt oder 0 ist)
+    :return: dict mit Fitergebnis und allen Plot-Daten
+    """
+    b_S = thermal_effusivity(k_S, rho_S, C_S)
+
+    # Entfalten ueber die gesamte Frequenzachse, danach gemeinsame Frequenzen waehlen
+    ref_unwr = unwrap_phase_deg(res_ref["phase_mean"])
+    probe_unwr = unwrap_phase_deg(res_probe["phase_mean"])
+    idx_r, idx_p = match_frequency_grids(res_ref, res_probe, rel_tol)
+
+    freq = 0.5 * (res_ref["freq"][idx_r] + res_probe["freq"][idx_p])
+    phi_ref = ref_unwr[idx_r]
+    phi_probe = probe_unwr[idx_p]
+    Phi = phi_ref - phi_probe
+
+    # Kombinierte Standardunsicherheit der Differenz
+    u_phi = np.sqrt(res_ref["u_A"][idx_r] ** 2 + res_probe["u_A"][idx_p] ** 2)
+
+    sigma = None
+    if weighted:
+        if np.all(np.isfinite(u_phi)) and np.all(u_phi > 0):
+            sigma = u_phi
+        else:
+            print("[Hinweis] u_A fehlt (n = 1) oder ist 0 - es wird UNGEWICHTET gefittet.")
+
+    d_fit, kL_fit, d_err, kL_err, model_func = fit_layer_parameters(
+        freq, Phi, b_S, rho_S, C_S, sigma=sigma)
+
+    Phi_fit = model_func(freq, d_fit, kL_fit)
+    residual = Phi - Phi_fit
+    chi2_red = None
+    if sigma is not None:
+        chi2_red = float(np.sum((residual / sigma) ** 2) / (len(freq) - 2))
+
+    freq_fine = np.logspace(np.log10(freq.min()), np.log10(freq.max()), 500)
+
+    return {
+        "d_fit_um": d_fit * 1e6, "d_err_um": d_err * 1e6,
+        "kL_fit": kL_fit, "kL_err": kL_err,
+        "weighted": sigma is not None, "chi2_red": chi2_red,
+        "freq": freq, "Phi": Phi, "u_phi": u_phi,
+        "Phi_fit": Phi_fit, "residual": residual,
+        "phi_ref": phi_ref, "phi_probe": phi_probe,
+        "n_ref": res_ref["n"][idx_r], "n_probe": res_probe["n"][idx_p],
+        "freq_fine": freq_fine, "Phi_fit_curve": model_func(freq_fine, d_fit, kL_fit),
+    }
+
+
+def print_fit_result(fit):
+    print("\n" + "=" * 54)
+    print("Ergebnis (Fit durch die Mittelwerte):")
+    print(f"  Schichtdicke        d   = {fit['d_fit_um']:.2f} ± {fit['d_err_um']:.2f} µm")
+    print(f"  Wärmeleitfähigkeit  k_L = {fit['kL_fit']:.2f} ± {fit['kL_err']:.2f} W/(m·K)")
+    print(f"  Fit {'gewichtet (1/u_Phi)' if fit['weighted'] else 'ungewichtet'}, "
+          f"{len(fit['freq'])} Frequenzen")
+    if fit["chi2_red"] is not None:
+        print(f"  reduziertes chi² = {fit['chi2_red']:.2f}  (≈ 1: Modell und u_A passen zusammen)")
+    print("=" * 54)
+
+
+def export_fit_csv(fit, path):
+    with open(path, "w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f, delimiter=";")
+        w.writerow(["Frequenz_Hz", "n_ref", "n_probe", "Phase_ref_Mittel_deg",
+                    "Phase_probe_Mittel_deg", "Phi_deg", "u_Phi_deg", "Phi_Fit_deg", "Residuum_deg"])
+        for row in zip(fit["freq"], fit["n_ref"], fit["n_probe"], fit["phi_ref"],
+                       fit["phi_probe"], fit["Phi"], fit["u_phi"], fit["Phi_fit"], fit["residual"]):
+            w.writerow(row)
+
+
+def plot_fit(res_ref, res_probe, fit):
+    fig, (ax1, ax2, ax3) = plt.subplots(
+        3, 1, figsize=(8.5, 12), gridspec_kw={"height_ratios": [3, 3, 1.4]})
+
+    # 1) Rohdaten: Einzelmesswerte, Mittelwert und Streuung s
+    for res, name, col in ((res_ref, "Referenz", "tab:blue"), (res_probe, "Probe", "tab:orange")):
+        ax1.plot(res["raw_freq"], res["raw_phase"], ".", color=col, alpha=0.25, ms=4)
+        ax1.errorbar(res["freq"], res["phase_mean"], yerr=res["phase_std"], fmt="o-",
+                     color=col, capsize=3, ms=4, label=f"{name}: Mittelwert ± s")
+    ax1.set_xscale("log")
+    ax1.set_xlabel("Frequenz in Hz (log-Skala)")
+    ax1.set_ylabel("Phase in °")
+    ax1.set_title("Einzelwerte (blass), Mittelwert ± Streuung s")
+    ax1.grid(True, which="both", alpha=0.4)
+    ax1.legend()
+
+    # 2) Phi = phi_ref - phi_probe (Mittelwerte) und Fit
+    x = np.sqrt(2 * np.pi * fit["freq"])
+    x_fine = np.sqrt(2 * np.pi * fit["freq_fine"])
+    ax2.errorbar(x, fit["Phi"], yerr=fit["u_phi"], fmt="o", capsize=3, color="tab:green",
+                 label=r"Mittelwerte $\Phi=\bar\varphi_{ref}-\bar\varphi_{probe}$ ± $u_\Phi$")
+    ax2.plot(x_fine, fit["Phi_fit_curve"], "--", color="k", label="Fit durch die Mittelwerte")
+    ax2.set_xlabel(r"$\sqrt{\omega}$ in $\sqrt{Hz}$")
+    ax2.set_ylabel("Phasendifferenz $\\Phi$ in °")
+    ax2.set_title(f"d = {fit['d_fit_um']:.2f} ± {fit['d_err_um']:.2f} µm,  "
+                  f"k_L = {fit['kL_fit']:.2f} ± {fit['kL_err']:.2f} W/(m·K)")
+    ax2.grid(True)
+    ax2.legend()
+
+    # 3) Residuen in Einheiten von u_Phi
+    if fit["weighted"]:
+        ax3.errorbar(x, fit["residual"], yerr=fit["u_phi"], fmt="o", capsize=3, color="tab:green")
+    else:
+        ax3.plot(x, fit["residual"], "o", color="tab:green")
+    ax3.axhline(0, color="k", lw=1)
+    ax3.set_xlabel(r"$\sqrt{\omega}$ in $\sqrt{Hz}$")
+    ax3.set_ylabel("Mittelwert − Fit in °")
+    ax3.set_title("Residuen (Balken: ±$u_\\Phi$)")
+    ax3.grid(True)
+
+    plt.tight_layout()
+    plt.show()
+
+
+# 8) Einstiegsfunktionen fuer die GUI (analog zu start_PhaseFreq)
+
+def start_Messunsicherheit(paths, rel_tol: float = FREQ_REL_TOL):
+    """
+    Nur Typ-A-Auswertung.
+    :param paths: Pfad oder Liste von Pfaden zu SNAP-Log-CSV-Dateien
+    :return: Ergebnis-dict (siehe compute_type_a)
+    """
+    return compute_type_a(paths, rel_tol=rel_tol)
+
+
+def start_Messunsicherheit_Fit(ref_paths, probe_paths,
+                               k_S: float = 42.0, rho_S: float = 7800.0, C_S: float = 460.0,
+                               weighted: bool = True):
+    """
+    Typ-A-Auswertung von Referenz und Probe + Fit durch die Mittelwerte.
+
+    :param ref_paths:   Pfad(e) der Referenzmessung (unnitriert)
+    :param probe_paths: Pfad(e) der Probenmessung (nitriert)
+    :return: dict mit "ref" (Typ-A-Ergebnis), "probe" (Typ-A-Ergebnis) und "fit"
+    """
+    res_ref = compute_type_a(ref_paths)
+    res_probe = compute_type_a(probe_paths)
+    fit = fit_means(res_ref, res_probe, k_S, rho_S, C_S, weighted=weighted)
+    return {"ref": res_ref, "probe": res_probe, "fit": fit}
+
+
+# 9) Gesamtablauf
+
+if __name__ == "__main__":
+    # Materialparameter des Substrats (z.B. 42CrMo4), wie in v8
+    k_S, rho_S, C_S = 42.0, 7800.0, 460.0
+
+    print("1) Bitte Messdatei auswählen "
+          "(mehrere Sweeps/Dateien: Mehrfachauswahl mit Strg/Shift)...")
+    ref_paths = select_files_via_explorer("Messdatei auswählen")
+    if not ref_paths:
+        print("[Abbruch] Es wurde keine Messdatei ausgewählt.")
+        sys.exit()
+
+    try:
+        res_ref = compute_type_a(ref_paths)
+    except (FileNotFoundError, InvalidFileTypeError, InvalidFileContentError) as e:
+        print(f"\n[Fehler beim Einlesen] {e}")
+        sys.exit(1)
+
+    print("\n=== REFERENZ ===")
+    print_table(res_ref)
+
+
+    if res_ref["n"].max() < 2:
+        print("\n[Warnung] Pro Frequenz liegt nur EIN Messwert vor - Streuung und u_A "
+              "sind nicht berechenbar. Bitte mehrere Sweeps (mehrere Dateien oder "
+              "wiederholte Sweeps in einer Datei) auswählen.")
+        sys.exit(1)
+
+    try:
+        fit = fit_means(res_ref, k_S, rho_S, C_S, weighted=True)
+    except Exception as e:
+        print(f"\n[Fehler bei der Auswertung] {e}")
+        sys.exit(1)
+
+    print_fit_result(fit)
+
+    plot_fit(res_ref, fit)

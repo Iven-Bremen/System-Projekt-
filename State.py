@@ -53,6 +53,7 @@ AVAILABLE_COM_PORTS = []
 SIGNAL_MAGNITUDE = 0.0
 SIGNAL_PHASE = 0.0
 CALCULATION_STATUS = "IDLE"
+live_sweep_data = None
 _values_lock = threading.Lock()
 
 def update_values(values: dict[str, object]) -> None:
@@ -70,6 +71,7 @@ def update_values(values: dict[str, object]) -> None:
 	global LCT, XTA, LVA, XTCA, XTVA, LCA, XTT, LTM, GT, GS, GVN, LMDX, L
 	global OSTECH_STATUS, AVAILABLE_COM_PORTS
 	global SIGNAL_MAGNITUDE, SIGNAL_PHASE, CALCULATION_STATUS
+	global live_sweep_data
 	with _values_lock:
 		for name, value in values.items():
 			if name in globals():

@@ -28,6 +28,19 @@ Ablauf:
         u_Phi = sqrt(u_A,ref^2 + u_A,probe^2).
      Der Fit (d, k_L) wird mit 1/u_Phi gewichtet; Plot mit Streuung,
      Mittelwerten, Fitkurve und Residuen.
+
+Skript-Ablauf (python SWP_Streuung_Messunsicherheit_TypA_v3.py):
+  * Es wird nur EINE Messdatei ausgewaehlt (Wiederholungssweeps in dieser Datei).
+  * Ausgabe: Tabelle, optionaler CSV-Export und EIN Plot mit dieser Datei
+    (Einzelwerte, Mittelwert +- s; darunter s und u_A ueber der Frequenz).
+  * Die Schichtdicke (Fit von Phi = phi_ref - phi_probe) braucht zusaetzlich eine
+    Referenzmessung. Mit MIT_REFERENZ_FIT = True fragt das Skript danach (wie bisher).
+
+Datenquellen (v3):
+  * Referenz (unnitriert): immer aus CSV-Datei(en) (Explorer).
+  * Probe (nitriert): bevorzugt LIVE aus dem laufenden Sweep (LiveSweepData).
+    Liegen keine Live-Daten vor, wird NoLiveDataError geworfen, gemeldet
+    und trotzdem der Explorer fuer eine Probendatei geoeffnet.
 """
 
 import os
@@ -40,6 +53,8 @@ from scipy.optimize import curve_fit
 # Tkinter fuer den Datei-Explorer
 import tkinter as tk
 from tkinter import filedialog
+
+ve
 
 
 # 0) Eigene Exceptions / Konstanten
@@ -69,6 +84,10 @@ SNAP_PARAM_FREQ = 9    # Reference Frequency
 # Lock-in-Jitter der Ist-Frequenz liegt bei < 0,1 %.)
 FREQ_REL_TOL = 0.02
 
+# False: nur EINE Datei -> Typ-A-Auswertung (Mittelwert, s, u_A) und ein Plot.
+# True : zusaetzlich Referenzdatei waehlen und die Schichtdicke fitten (wie bisher).
+MIT_REFERENZ_FIT = False
+
 
 # 1) Dateiauswahl (mehrere Dateien moeglich)
 
@@ -83,6 +102,19 @@ def select_files_via_explorer(title="CSV-Dateien auswählen"):
     )
     root.destroy()
     return list(paths)
+
+
+def select_file_via_explorer(title="CSV-Datei auswählen"):
+    # Oeffnet einen Explorer fuer genau EINE Datei. :return: Pfad oder "" bei Abbruch
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes("-topmost", True)
+    path = filedialog.askopenfilename(
+        title=title,
+        filetypes=[("CSV-Dateien", "*.csv")],
+    )
+    root.destroy()
+    return path
 
 
 def select_save_path_via_explorer(default_name):
@@ -264,26 +296,13 @@ def type_a_statistics(phase_deg):
     return mean, s, u_a, n
 
 
-def compute_type_a(paths, rel_tol=FREQ_REL_TOL):
+def _type_a_from_arrays(freq_all, phase_all, files, rel_tol=FREQ_REL_TOL):
     """
-    Liest eine oder mehrere CSV-Dateien und berechnet pro Frequenz
+    Gemeinsamer Kern: gruppiert nach Frequenz und berechnet pro Gruppe
     Mittelwert, Standardabweichung s und Standardunsicherheit u_A.
-
-    :return: dict mit den Ergebnisarrays (aufsteigend nach Frequenz) und
-             den Rohdaten fuer die Darstellung
     """
-    if isinstance(paths, (str, os.PathLike)):
-        paths = [paths]
-    if not paths:
-        raise ValueError("Keine Datei übergeben.")
-
-    freq_all, phase_all = [], []
-    for p in paths:
-        f, ph = read_snap_csv(p)
-        freq_all.append(f)
-        phase_all.append(ph)
-    freq_all = np.concatenate(freq_all)
-    phase_all = np.concatenate(phase_all)
+    freq_all = np.asarray(freq_all, dtype=float)
+    phase_all = np.asarray(phase_all, dtype=float)
 
     groups = group_by_frequency(freq_all, rel_tol)
 
@@ -304,8 +323,70 @@ def compute_type_a(paths, rel_tol=FREQ_REL_TOL):
         "n": np.array(n_arr, dtype=int),
         "raw_freq": freq_all,
         "raw_phase": phase_all,
-        "files": [os.path.basename(p) for p in paths],
+        "files": list(files),
     }
+
+
+def compute_type_a(paths, rel_tol=FREQ_REL_TOL):
+    """
+    Liest eine oder mehrere CSV-Dateien und berechnet pro Frequenz
+    Mittelwert, Standardabweichung s und Standardunsicherheit u_A.
+
+    :return: dict mit den Ergebnisarrays (aufsteigend nach Frequenz) und
+             den Rohdaten fuer die Darstellung
+    """
+    if isinstance(paths, (str, os.PathLike)):
+        paths = [paths]
+    if not paths:
+        raise ValueError("Keine Datei übergeben.")
+
+    freq_all, phase_all = [], []
+    for p in paths:
+        f, ph = read_snap_csv(p)
+        freq_all.append(f)
+        phase_all.append(ph)
+
+    return _type_a_from_arrays(np.concatenate(freq_all), np.concatenate(phase_all),
+                               [os.path.basename(p) for p in paths], rel_tol)
+
+
+def compute_type_a_live(live_source=live_sweep, rel_tol=FREQ_REL_TOL):
+    """
+    Wie compute_type_a(), aber mit den Live-Daten des laufenden Sweeps.
+
+    :raises NoLiveDataError: wenn keine Live-Daten vorliegen
+    """
+    freq, phase = live_source.get_points()          # wirft NoLiveDataError
+    return _type_a_from_arrays(freq, phase, ["LIVE-Sweep"], rel_tol)
+
+
+def load_probe_result(live_source=live_sweep, select_func=None, warn_func=print,
+                      rel_tol=FREQ_REL_TOL):
+    """
+    Datenimport der nitrierten Probe:
+      1) Live-Daten aus dem Sweep (live_source)
+      2) Gibt es keine: NoLiveDataError wird geworfen und gemeldet (warn_func),
+         danach wird TROTZDEM der Explorer fuer eine Probendatei geoeffnet.
+
+    :param select_func: Funktion(title) -> Liste von Pfaden. Standard: eigener
+                        Explorer. In der GUI wird filedialog.askopenfilenames
+                        uebergeben, damit kein zweites Tk-Hauptfenster entsteht.
+    :return: (Typ-A-Ergebnis, Quelle) mit Quelle "live" oder "datei"
+    :raises NoLiveDataError: wenn weder Live-Daten noch eine Datei vorliegen
+    """
+    if select_func is None:
+        select_func = select_files_via_explorer
+
+    try:
+        return compute_type_a_live(live_source, rel_tol), "live"
+    except NoLiveDataError as e:
+        warn_func(f"[Keine Live-Daten] {e}\nBitte stattdessen eine Datei der "
+                  f"nitrierten Probe auswählen.")
+        paths = select_func("Probenmessung (nitriert) auswählen")
+        if not paths:
+            raise NoLiveDataError(
+                "Keine Live-Daten und keine Probendatei ausgewählt.") from e
+        return compute_type_a(list(paths), rel_tol), "datei"
 
 
 # 6) Ausgabe: Tabelle, Export, Plot
@@ -333,15 +414,32 @@ def export_results_csv(res, path):
             w.writerow(row)
 
 
-def plot_type_a(res, rel_tol=FREQ_REL_TOL):
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 9), sharex=True)
+def plot_type_a(res, title=None, show=True, figsize=(8, 9)):
+    """
+    EIN Datensatz: oben Einzelmesswerte und Mittelwert +- s, unten s und u_A
+    ueber der Frequenz.
+
+    :param title: Titel des oberen Diagramms (Standard: Dateiname)
+    :param show:  True -> eigenes Matplotlib-Fenster; False -> nur Figure zurueckgeben
+    :return: matplotlib Figure
+    """
+    if show:
+        fig = plt.figure(figsize=figsize)
+    else:
+        from matplotlib.figure import Figure     # ohne pyplot -> kein Extra-Fenster
+        fig = Figure(figsize=figsize)
+    ax1, ax2 = fig.subplots(2, 1, sharex=True)
+
+    if title is None:
+        title = f"Phase vs. Frequenz mit Streuung (Typ A) - {', '.join(res['files'])}"
 
     ax1.plot(res["raw_freq"], res["raw_phase"], ".", color="lightgray",
              label="Einzelmesswerte")
     ax1.errorbar(res["freq"], res["phase_mean"], yerr=res["phase_std"],
                  fmt="o-", capsize=3, label="Mittelwert ± s")
+    ax1.set_xscale("log")
     ax1.set_ylabel("Phase in °")
-    ax1.set_title("Phase vs. Frequenz mit Streuung (Typ A)")
+    ax1.set_title(title)
     ax1.grid(True, which="both", alpha=0.4)
     ax1.legend()
 
@@ -353,8 +451,10 @@ def plot_type_a(res, rel_tol=FREQ_REL_TOL):
     ax2.grid(True, which="both", alpha=0.4)
     ax2.legend()
 
-    plt.tight_layout()
-    plt.show()
+    fig.tight_layout()
+    if show:
+        plt.show()
+    return fig
 
 
 # 7) Physikalisches Modell und Fit (Modell identisch zu v8)
@@ -526,9 +626,18 @@ def export_fit_csv(fit, path):
             w.writerow(row)
 
 
-def plot_fit(res_ref, res_probe, fit):
-    fig, (ax1, ax2, ax3) = plt.subplots(
-        3, 1, figsize=(8.5, 12), gridspec_kw={"height_ratios": [3, 3, 1.4]})
+def plot_fit(res_ref, res_probe, fit, show=True, figsize=(8.5, 12)):
+    """
+    :param show: True -> eigenes Matplotlib-Fenster (Skript);
+                 False -> nur Figure zurueckgeben (z.B. zum Einbetten in die GUI)
+    :return: matplotlib Figure
+    """
+    if show:
+        fig = plt.figure(figsize=figsize)
+    else:
+        from matplotlib.figure import Figure     # ohne pyplot -> kein Extra-Fenster
+        fig = Figure(figsize=figsize)
+    ax1, ax2, ax3 = fig.subplots(3, 1, gridspec_kw={"height_ratios": [3, 3, 1.4]})
 
     # 1) Rohdaten: Einzelmesswerte, Mittelwert und Streuung s
     for res, name, col in ((res_ref, "Referenz", "tab:blue"), (res_probe, "Probe", "tab:orange")):
@@ -566,8 +675,10 @@ def plot_fit(res_ref, res_probe, fit):
     ax3.set_title("Residuen (Balken: ±$u_\\Phi$)")
     ax3.grid(True)
 
-    plt.tight_layout()
-    plt.show()
+    fig.tight_layout()
+    if show:
+        plt.show()
+    return fig
 
 
 # 8) Einstiegsfunktionen fuer die GUI (analog zu start_PhaseFreq)
@@ -581,71 +692,88 @@ def start_Messunsicherheit(paths, rel_tol: float = FREQ_REL_TOL):
     return compute_type_a(paths, rel_tol=rel_tol)
 
 
-def start_Messunsicherheit_Fit(ref_paths, probe_paths,
+def start_Messunsicherheit_Fit(ref_paths, probe_paths=None,
                                k_S: float = 42.0, rho_S: float = 7800.0, C_S: float = 460.0,
-                               weighted: bool = True):
+                               weighted: bool = True,
+                               live_source=live_sweep, select_func=None, warn_func=print):
     """
     Typ-A-Auswertung von Referenz und Probe + Fit durch die Mittelwerte.
 
-    :param ref_paths:   Pfad(e) der Referenzmessung (unnitriert)
-    :param probe_paths: Pfad(e) der Probenmessung (nitriert)
-    :return: dict mit "ref" (Typ-A-Ergebnis), "probe" (Typ-A-Ergebnis) und "fit"
+    :param ref_paths:   Pfad(e) der Referenzmessung (unnitriert), immer Datei
+    :param probe_paths: None (Standard) -> Probe LIVE aus dem Sweep, bei fehlenden
+                        Live-Daten Warnung + Explorer (siehe load_probe_result).
+                        Pfad(e) angegeben -> Probe aus Datei.
+    :param select_func: Explorer-Funktion fuer den Fallback (GUI: filedialog)
+    :param warn_func:   Funktion(msg) fuer die Meldung "keine Live-Daten"
+    :return: dict mit "ref", "probe" (Typ-A-Ergebnisse), "fit", "probe_source"
     """
     res_ref = compute_type_a(ref_paths)
-    res_probe = compute_type_a(probe_paths)
+    if probe_paths is not None:
+        res_probe, source = compute_type_a(probe_paths), "datei"
+    else:
+        res_probe, source = load_probe_result(live_source, select_func, warn_func)
     fit = fit_means(res_ref, res_probe, k_S, rho_S, C_S, weighted=weighted)
-    return {"ref": res_ref, "probe": res_probe, "fit": fit}
+    return {"ref": res_ref, "probe": res_probe, "fit": fit, "probe_source": source}
 
 
 # 9) Gesamtablauf
+
+def _warn_if_single_values(res):
+    if res["n"].max() < 2:
+        print("\n[Warnung] Pro Frequenz liegt nur EIN Messwert vor - Streuung und u_A "
+              "sind nicht berechenbar. Bitte eine Datei mit mehreren Sweeps auswählen.")
+        return True
+    return False
+
 
 if __name__ == "__main__":
     # Materialparameter des Substrats (z.B. 42CrMo4), wie in v8
     k_S, rho_S, C_S = 42.0, 7800.0, 460.0
 
-    print("1) Bitte REFERENZ-Dateien (unnitriert) auswählen "
-          "(mehrere Sweeps/Dateien: Mehrfachauswahl mit Strg/Shift)...")
-    ref_paths = select_files_via_explorer("1. Referenzmessung (unnitriert) auswählen")
-    if not ref_paths:
-        print("[Abbruch] Es wurde keine Referenzdatei ausgewählt.")
-        sys.exit()
-
-    print("2) Bitte PROBEN-Dateien (nitriert) auswählen...")
-    probe_paths = select_files_via_explorer("2. Probenmessung (nitriert) auswählen")
-    if not probe_paths:
-        print("[Abbruch] Es wurde keine Probendatei ausgewählt.")
+    print("Bitte EINE Messdatei (CSV mit mehreren Sweeps) auswählen...")
+    path = select_file_via_explorer("Messdatei auswählen")
+    if not path:
+        print("[Abbruch] Es wurde keine Datei ausgewählt.")
         sys.exit()
 
     try:
-        res_ref = compute_type_a(ref_paths)
-        res_probe = compute_type_a(probe_paths)
+        res = compute_type_a([path])
     except (FileNotFoundError, InvalidFileTypeError, InvalidFileContentError) as e:
         print(f"\n[Fehler beim Einlesen] {e}")
         sys.exit(1)
 
-    print("\n=== REFERENZ ===")
-    print_table(res_ref)
-    print("\n=== PROBE ===")
-    print_table(res_probe)
-
-    if min(res_ref["n"].max(), res_probe["n"].max()) < 2:
-        print("\n[Warnung] Pro Frequenz liegt nur EIN Messwert vor - Streuung und u_A "
-              "sind nicht berechenbar. Bitte mehrere Sweeps (mehrere Dateien oder "
-              "wiederholte Sweeps in einer Datei) auswählen.")
+    print_table(res)
+    if _warn_if_single_values(res):
         sys.exit(1)
 
+    if not MIT_REFERENZ_FIT:
+        save_path = select_save_path_via_explorer(
+            os.path.splitext(res["files"][0])[0] + "_TypA.csv")
+        if save_path:
+            export_results_csv(res, save_path)
+            print(f"Ergebnis gespeichert: {save_path}")
+        plot_type_a(res)
+        sys.exit()
+
+    # --- optional: Schichtdicke mit Referenzmessung (wie bisher) ---
+    print("\nFür die Schichtdicke wird zusätzlich die REFERENZ (unnitriert) benötigt...")
+    ref_paths = select_files_via_explorer("Referenzmessung (unnitriert) auswählen")
+    if not ref_paths:
+        print("[Abbruch] Es wurde keine Referenzdatei ausgewählt.")
+        sys.exit()
     try:
-        fit = fit_means(res_ref, res_probe, k_S, rho_S, C_S, weighted=True)
+        res_ref = compute_type_a(ref_paths)
+        if _warn_if_single_values(res_ref):
+            sys.exit(1)
+        fit = fit_means(res_ref, res, k_S, rho_S, C_S, weighted=True)
     except Exception as e:
         print(f"\n[Fehler bei der Auswertung] {e}")
         sys.exit(1)
 
     print_fit_result(fit)
-
     save_path = select_save_path_via_explorer(
-        os.path.splitext(res_probe["files"][0])[0] + "_Fit.csv")
+        os.path.splitext(res["files"][0])[0] + "_Fit.csv")
     if save_path:
         export_fit_csv(fit, save_path)
         print(f"Ergebnis gespeichert: {save_path}")
-
-    plot_fit(res_ref, res_probe, fit)
+    plot_fit(res_ref, res, fit)

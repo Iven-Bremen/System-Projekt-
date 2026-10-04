@@ -9,6 +9,7 @@ from tkinter.constants import DISABLED
 import datetime
 import shutil
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
@@ -22,7 +23,12 @@ import SimGuiUpdatet
 from State import scan_com_ports
 import GUIErrorHandler
 
+
+# Imports: für Calculations im Reiter "Experiment"
 import SWP_Calculation_PhaseVsFrequenz_v8 as PhasFreq_v8
+import SWP_Streuung_Messunsicherheit_TypA_v6 as SWP_SM_v6
+
+
 
 # Externe Bibliotheken mit Fallback-Mechanismus
 try:
@@ -255,7 +261,7 @@ def open_file_dialog():
     )
     if file_path:
         current_file_path = file_path
-        lbl_file_status.config(text=os.path.basename(current_file_path))
+        Iclbl_file_status.config(text=os.path.basename(current_file_path))
 
 
 # GUI-Refresh Job Referenz
@@ -629,6 +635,204 @@ entry_sweep_end.insert(0, "100000.0")
 entry_sweep_end.grid(row=1, column=1, sticky="w", padx=5, pady=5)
 
 
+
+
+
+def starte_pvf_analyse():
+    """Run Calculations: Berechnet die Schichtdicke / Phase vs. Frequenz."""
+    global fig_pvf, canvas_pvf
+
+    # 1. Nutzer nach der Referenzdatei fragen
+    path_to_ref = filedialog.askopenfilename(
+        title="Referenzmessung auswählen (unnitriert)",
+        filetypes=[("Text/CSV Files", "*.txt *.csv"), ("All files", "*.*")]
+    )
+    if not path_to_ref:
+        return  # Abbruch durch Nutzer
+
+    # 2. Live-Daten beziehen (oder Datei als Fallback)
+    probe_data = get_live_or_fallback_probe_data()
+    if probe_data is None:
+        return
+
+    if isinstance(probe_data, dict):
+        State.update_values({
+            "live_sweep_data": {
+                "f_probe": probe_data.get("f_probe") or probe_data.get("frequency"),
+                "phase_probe": probe_data.get("phase_probe") or probe_data.get("phase")
+            }
+        })
+
+    # 3. Berechnung über PhasFreq_v8 starten
+    try:
+        results = PhasFreq_v8.start_PhaseFreq(path_to_ref, probe_data)
+        # print("GESAMTE KEYS IN RESULTS:", results.keys())
+        pdata = results.get("plot_data", {})
+
+        # 1. Figure & Axes initialisieren bzw. bestehende säubern
+        # --- FIGURE INITIALISIEREN & VORBEREITEN ---
+        if fig_pvf is None:
+            fig_pvf = plt.Figure(figsize=(6, 5), dpi=100)
+        else:
+            fig_pvf.clf()
+
+        ax_raw = fig_pvf.add_subplot(211)
+        ax_fit = fig_pvf.add_subplot(212)
+
+        # --- OBERER PLOT: Rohdaten (Log-Skala) ---
+        if "f_ref" in pdata and "phase_ref_unwr" in pdata:
+            ref_label = pdata.get("ref_filename", "Referenz (unnitriert)")
+            ax_raw.plot(pdata["f_ref"], pdata["phase_ref_unwr"], "o-", label=f"Reference: File One (Untreated)", markersize=4)
+
+        if "f_probe" in pdata and "phase_probe_unwr" in pdata:
+            probe_label = pdata.get("probe_filename", "Probe (nitriert)")
+            ax_raw.plot(pdata["f_probe"], pdata["phase_probe_unwr"], "s--", label=f"Sample: File Two (Treated)", markersize=4)
+
+        ax_raw.set_xscale("log")
+        ax_raw.set_xlabel("Frequency in Hz")
+        ax_raw.set_ylabel("Phase in °")
+        ax_raw.set_title("Unwrapped Raw Phase Data")
+        ax_raw.grid(True, which="both", linestyle="--", alpha=0.5)
+        ax_raw.legend(loc="best")
+
+        # --- UNTERER PLOT: Phasendifferenz vs. sqrt(omega) ---
+        if "freq_common" in pdata and "Phi" in pdata:
+            sqrt_omega_common = np.sqrt(2 * np.pi * np.array(pdata["freq_common"]))
+            ax_fit.plot(sqrt_omega_common, pdata["Phi"], "o",
+                        label=r"Messdaten $\Phi(\omega) = \Phi_{ref} - \Phi_{probe}$", alpha=0.8, markersize=4)
+
+        if "freq_fine" in pdata and "Phi_fit_curve" in pdata:
+            sqrt_omega_fine = np.sqrt(2 * np.pi * np.array(pdata["freq_fine"]))
+            ax_fit.plot(sqrt_omega_fine, pdata["Phi_fit_curve"], "--", color="orange",
+                        label="angepasste Modellfunktion", linewidth=1.5)
+
+        ax_fit.set_xscale("linear")
+        ax_fit.set_xlabel(r"$\sqrt{\omega}$ in $\sqrt{Hz}$")
+        ax_fit.set_ylabel(r"Phase difference $\Phi$ in °")
+
+        # Werte direkt aus results auslesen
+        d_um = results.get("d_fit_um")
+        kL_fit = results.get("kL_fit")
+
+        # Falls sie als Arrays/Listen vorliegen, das erste Element nehmen
+        if hasattr(d_um, "__len__") and len(d_um) > 0:
+            d_um = d_um[0]
+        if hasattr(kL_fit, "__len__") and len(kL_fit) > 0:
+            kL_fit = kL_fit[0]
+
+        # Titel setzen
+        if d_um is not None and kL_fit is not None:
+            ax_fit.set_title(
+                rf"$\text{{Layer thickness}} = {float(d_um):.2f}\ \mu\mathrm{{m}},\quad \text{{Thermal conductivity of the Layer}} = {float(kL_fit):.2f}\ \mathrm{{\frac{{W}}{{m\cdot K}}}}$"
+            )
+        else:
+            ax_fit.set_title("Fit-Ergebnisse")
+
+        ax_fit.grid(True, linestyle="--", alpha=0.5)
+        ax_fit.legend(loc="best")
+
+        fig_pvf.tight_layout()
+
+
+        # --- CANVAS AKTUALISIEREN ---
+        if canvas_pvf is None:
+            from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+            canvas_pvf = FigureCanvasTkAgg(fig_pvf, master=frame_plot_pvf)
+            canvas_pvf.get_tk_widget().pack(fill="both", expand=True)
+
+        canvas_pvf.draw()
+
+    except Exception as e:
+        print(f"Fehler beim Plottem: {e}")
+
+
+def parse_ptr_log_csv(filepath):
+    """
+    Liest PTR-Log-CSVs mit 'Message' und 'Value' Spalten ein und extrahiert
+    ein Numpy-Array mit Spalte 0 = Frequenz, Spalte 1 = Phase.
+    """
+    df = pd.read_csv(filepath)
+
+    # Prüfen, ob das Log-Format vorliegt
+    if 'Message' in df.columns and 'Value' in df.columns:
+        # Frequenzen und Phasen filtern und in Floats umwandeln
+        freqs = df[df['Message'] == 'FREQ']['Value'].astype(float).values
+        phases = df[df['Message'] == 'PHAS']['Value'].astype(float).values
+
+        if len(freqs) == len(phases) and len(freqs) > 0:
+            # Zusammenfügen zu N x 2 Array [[f1, p1], [f2, p2], ...]
+            return np.column_stack((freqs, phases))
+        else:
+            raise ValueError(
+                f"Anzahl Frequenzwerte ({len(freqs)}) und Phasenwerte ({len(phases)}) stimmt nicht überein.")
+
+    # Fallback für normale 2-Spalten-CSVs ohne 'Message'/'Value' Header
+    else:
+        df_numeric = df.select_dtypes(include=['number'])
+        return df_numeric.to_numpy(dtype=float)
+
+
+def get_live_sweep_data():
+    """
+    Holt Live-Daten aus State.live_sweep_data.
+    Wirft eine Exception, wenn keine Daten da sind.
+    """
+    live_data = getattr(State, "live_sweep_data", None)
+
+    # Sicherstellen, dass wirklich valide Daten vorhanden sind
+    if live_data is None:
+        raise ConnectionError("Keine Live-Messdaten im Speicher (None).")
+
+    # Falls live_data eine leere Liste oder ein leeres Array ist
+    if hasattr(live_data, "__len__") and len(live_data) == 0:
+        raise ConnectionError("Live-Messdaten-Puffer ist leer.")
+
+    return live_data
+
+
+def starte_messunsicherheit_analyse():
+    """Button-Handler für 'Run Uncertainty'"""
+    global canvas_pvf
+    data_to_analyze = None
+
+    # 1. VERSUCH: Live-Daten laden
+    try:
+        data_to_analyze = get_live_sweep_data()
+    except Exception as live_err:
+        print(f"[Info] Keinen Live-Puffer gefunden ({live_err}). Fallback zur Dateiauswahl.")
+
+    # 2. FALLBACK: Wenn keine Live-Daten im RAM vorliegen -> Dateiauswahl
+    if data_to_analyze is None:
+        data_to_analyze = filedialog.askopenfilename(
+            title="Messdatei auswählen",
+            filetypes=[("CSV Files", "*.csv"), ("Text Files", "*.txt"), ("All files", "*.*")]
+        )
+        if not data_to_analyze:
+            return  # Nutzer hat abgebrochen
+
+    # 3. BERECHNUNG UND PLOTTING MIT v6
+    try:
+        # v6 aufrufen
+        res, fit = SWP_SM_v6.start_Messunsicherheit(data_to_analyze)
+        fig = SWP_SM_v6.plot_results(res, fit, show=False)
+
+        # Alten Canvas im Plot-Frame löschen
+        if canvas_pvf is not None:
+            canvas_pvf.get_tk_widget().destroy()
+
+        # Canvas WICHTIG in 'frame_plot_pvf' platzieren!
+        canvas_pvf = FigureCanvasTkAgg(fig, master=frame_plot_pvf)
+        canvas_pvf.draw()
+        canvas_pvf.get_tk_widget().pack(fill="both", expand=True)
+
+        plt.close(fig)  # Speicher freigeben
+
+    except (SWP_SM_v6.InvalidFileTypeError, SWP_SM_v6.InvalidFileContentError) as gate_err:
+        messagebox.showerror("Ungültiges Dateiformat", f"SNAP-Format Fehler:\n{gate_err}")
+    except Exception as e:
+        messagebox.showerror("Fehler bei Messunsicherheit", f"Berechnung fehlgeschlagen:\n{e}")
+
+
 def apply_sweep_settings():
     """Liest und überprüft die Parameter für den Frequenz-Sweep."""
     f_start = read_numeric_entry(entry_sweep_start, "Start Frequency", 0.001, 102000)
@@ -641,10 +845,35 @@ btn_apply_sweep = tk.Button(frame_sweep, text="✔ Set Sweep Parameters", font=(
                             fg="white", command=apply_sweep_settings)
 btn_apply_sweep.grid(row=2, column=0, columnspan=2, pady=10, sticky="ew")
 
-# Untertab 2.2: Results (Calculations & Fit)
+
+# --- Untertab 2.2: Results (Calculations & Fit) ---
 tab_exp_results = tk.Frame(exp_notebook, bg="#252526")
-exp_notebook.add(tab_exp_results, text="")
-reg_ui((exp_notebook, tab_exp_results), "Results", "tab_text")
+exp_notebook.add(tab_exp_results, text="Results")
+reg_ui(tab_exp_results, "Ergebnisse", "Results")
+
+
+def import_data_file_callback():
+    from tkinter import filedialog, messagebox
+    import os, shutil
+
+    file_path = filedialog.askopenfilename(
+        title="Import CSV Log File",
+        filetypes=[("CSV Files", "*.csv"), ("All files", "*.*")]
+    )
+    if file_path:
+        try:
+            dest_path = os.path.join(LOG_DIR, os.path.basename(file_path))
+            shutil.copy(file_path, dest_path)
+            messagebox.showinfo("Import", f"CSV file successfully imported: {os.path.basename(file_path)}")
+            lbl_file_status.config(text=os.path.basename(file_path), fg="white")
+        except Exception as e:
+            messagebox.showerror("Import Error", f"Failed to import CSV: {e}")
+
+
+# --- Obere Steuerungsleiste im Subtab ---
+frame_top_bar = tk.Frame(tab_exp_results, bg="#1e1e1e")
+frame_top_bar.pack(side="top", fill="x", padx=10, pady=5)
+
 
 paned_stats = ttk.PanedWindow(tab_exp_results, orient="horizontal")
 paned_stats.pack(fill="both", expand=True, padx=5, pady=5)
@@ -665,14 +894,26 @@ paned_stats.add(frame_stats_work, weight=4)
 frame_stats_top = tk.Frame(frame_stats_work, bg="#252526")
 frame_stats_top.pack(fill="x", pady=10)
 
-btn_load = tk.Button(frame_stats_top, font=("Consolas", 9, "bold"), bg="#007acc", fg="white", padx=10, pady=5,
-                     command=open_file_dialog)
-btn_load.pack(side="left", padx=10)
-reg_ui(btn_load, "📁 Import Data File")
+btn_run_calc = tk.Button(
+    frame_stats_top,
+    text="Run Calculations",
+    font=("Consolas", 9, "bold"),
+    bg="#007acc",
+    fg="white",
+    command=starte_pvf_analyse
+)
+btn_run_calc.pack(side="left", padx=10)
 
-lbl_file_status = tk.Label(frame_stats_top, font=("Consolas", 9), bg="#252526", fg="#aaaaaa")
-lbl_file_status.pack(side="left", padx=10)
-reg_ui(lbl_file_status, "No file loaded")
+btn_run_uncertainty = tk.Button(
+    frame_stats_top,
+    text="Run Uncertainty",
+    font=("Consolas", 9, "bold"),
+    bg="#007acc",
+    fg="white",
+    command=starte_messunsicherheit_analyse
+)
+btn_run_uncertainty.pack(side="left", padx=10)
+
 
 frame_plot_pvf = tk.Frame(frame_stats_work, bg="#1e1e1e", bd=2, relief="sunken")
 frame_plot_pvf.pack(fill="both", expand=True, padx=10, pady=5)
@@ -682,69 +923,33 @@ ax_pvf = None
 canvas_pvf = None
 
 
-def starte_pvf_analyse():
-    """Startet die Berechnung und grafische Auswertung der Phase-vs-Frequenz-Messdaten."""
-    global fig_pvf, ax_pvf, canvas_pvf
+def get_live_or_fallback_probe_data():
+    """
+    Sucht nach Live-Daten im Speicher (State.live_sweep_data).
+    Gibt die Live-Daten zurück oder öffnet als Fallback den Datei-Explorer.
+    """
+    live_data = getattr(State, "live_sweep_data", None)
 
-    path_to_ref = filedialog.askopenfilename(
-        title="1. Select Reference Measurement File (unnitriert)",
-        filetypes=[("Text Files", "*.txt *.csv"), ("All files", "*.*")]
+    if live_data is not None:
+        return live_data
+
+    # Fallback: Keine Live-Daten vorhanden
+    messagebox.showwarning(
+        "Keine Live-Messdaten",
+        "Es wurden keine aktuellen Sweep-Messdaten im Speicher gefunden.\n"
+        "Bitte wähle manuell die Messdatei der Nitrierschicht (Probe) aus."
     )
-    if not path_to_ref:
-        return
-
     path_to_probe = filedialog.askopenfilename(
-        title="2. Select Probe Measurement File (nitriert)",
-        filetypes=[("Text Files", "*.txt *.csv"), ("All files", "*.*")]
+        title="Messdatei der Nitrierschicht (Probe) auswählen",
+        filetypes=[("Text/CSV Files", "*.txt *.csv"), ("All files", "*.*")]
     )
-    if not path_to_probe:
-        return
+    return path_to_probe if path_to_probe else None
 
-    try:
-        results = PhasFreq_v8.start_PhaseFreq(path_to_ref, path_to_probe)
-
-        pdata = results["plot_data"]
-
-        if fig_pvf is None:
-            fig_pvf = plt.Figure(figsize=(6, 5), dpi=100)
-        else:
-            fig_pvf.clf()
-
-        ax_raw = fig_pvf.add_subplot(211)
-        ax_fit = fig_pvf.add_subplot(212)
-
-        ax_raw.plot(pdata["f_ref"], pdata["phase_ref_unwr"], "o-", label=f"Ref: {pdata['ref_filename']}")
-        ax_raw.plot(pdata["f_probe"], pdata["phase_probe_unwr"], "s--", label=f"Probe: {pdata['probe_filename']}")
-        ax_raw.set_xscale("log")
-        ax_raw.set_title("Unwrapped Raw Phase Data")
-        ax_raw.grid(True)
-        ax_raw.legend()
-
-        ax_fit.plot(pdata["f_ref"], pdata["delta_phase"], "g^", label="Delta Phase")
-        ax_fit.set_xscale("log")
-        ax_fit.set_title("Phase Difference")
-        ax_fit.grid(True)
-        ax_fit.legend()
-
-        fig_pvf.tight_layout()
-
-        if canvas_pvf is not None:
-            canvas_pvf.get_tk_widget().destroy()
-
-        canvas_pvf = FigureCanvasTkAgg(fig_pvf, master=frame_plot_pvf)
-        canvas_pvf.draw()
-        canvas_pvf.get_tk_widget().pack(fill="both", expand=True)
-
-        messagebox.showinfo("Analysis Complete", "Phase vs. Frequency calculation finished successfully.")
-
-    except Exception as e:
-        messagebox.showerror("Analysis Error", f"An error occurred during analysis:\n{e}")
-
-
+'''
 btn_calc = tk.Button(frame_stats_top, text="⚡ Run Calculations", font=("Consolas", 9, "bold"), bg="#2e7d32", fg="white",
                      padx=10, pady=5, command=starte_pvf_analyse)
 btn_calc.pack(side="left", padx=10)
-
+'''
 # ------------------------------------------
 # 3. TAB: LOGS
 # ------------------------------------------
@@ -1470,76 +1675,100 @@ for idx, p in enumerate(params_list):
 
 def update_laser_display_mode(event=None):
     """Aktualisiert die angezeigten Parameter anhand des Hardware-Layouts."""
-    mode_str = combo_layout.get()
-    lbl_ov_laser_layout_val.config(text=mode_str)
+    try:
+        mode_str = combo_layout.get()
+        if lbl_ov_laser_layout_val.winfo_exists():
+            lbl_ov_laser_layout_val.config(text=mode_str)
+    except Exception:
+        mode_str = ""
 
+    # 1. Entferne vorherige Grid-Zuordnungen
     for k in lcd_vars:
-        lcd_vars[k].grid_remove()
+        try:
+            if lcd_vars[k].winfo_exists():
+                lcd_vars[k].grid_remove()
+        except Exception:
+            pass
 
-    status = State.OSTECH_STATUS
-    laser_is_on = bool(State.L)
+    status = getattr(State, "OSTECH_STATUS", {})
+    laser_is_on = bool(getattr(State, "L", False))
+
     display_values = {
         "Laser Status": "ON" if laser_is_on else "OFF",
-        "Mode": "LMDX" if State.LMDX else "Local",
+        "Mode": "LMDX" if getattr(State, "LMDX", False) else "Local",
         "TEC1 Status": "OK" if status.get("lt_sensor_ok", False) else "ERROR",
         "TEC2 Status": "OK" if status.get("ct_sensor_ok", False) else "ERROR",
-        "LCT": f"{State.LCT:.3f} mA",
-        "LCB": f"{State.LCA:.3f} mA",
-        "LVA": f"{State.LVA:.3f} V",
-        "TA": f"{State.XTA:.2f} °C",
-        "TT": f"{State.XTT:.2f} °C",
-        "TCA": f"{State.XTCA:.3f} mA",
-        "TVA": f"{State.XTVA:.3f} V",
-        "TCL": f"{State.LTM:.2f} °C",
-        "LTA": f"{State.XTA:.2f} °C",
-        "CTA": f"{State.XTCA:.3f} mA",
-        "LTT": f"{State.XTT:.2f} °C",
-        "LTCA": f"{State.XTCA:.3f} mA",
-        "CTT": f"{State.GT:.2f} °C",
-        "CTCA": f"{State.XTCA:.3f} mA",
+        "LCT": f"{getattr(State, 'LCT', 0):.3f} mA",
+        "LCB": f"{getattr(State, 'LCA', 0):.3f} mA",
+        "LVA": f"{getattr(State, 'LVA', 0):.3f} V",
+        "TA": f"{getattr(State, 'XTA', 0):.2f} °C",
+        "TT": f"{getattr(State, 'XTT', 0):.2f} °C",
+        "TCA": f"{getattr(State, 'XTCA', 0):.3f} mA",
+        "TVA": f"{getattr(State, 'XTVA', 0):.3f} V",
+        "TCL": f"{getattr(State, 'LTM', 0):.2f} °C",
+        "LTA": f"{getattr(State, 'XTA', 0):.2f} °C",
+        "CTA": f"{getattr(State, 'XTCA', 0):.3f} mA",
+        "LTT": f"{getattr(State, 'XTT', 0):.2f} °C",
+        "LTCA": f"{getattr(State, 'XTCA', 0):.3f} mA",
+        "CTT": f"{getattr(State, 'GT', 0):.2f} °C",
+        "CTCA": f"{getattr(State, 'XTCA', 0):.3f} mA",
         "Error#": "ERROR" if status.get("lc_error", False) else "--",
         "Interlock": "OK" if status.get("interlock_ok", False) else "OPEN",
     }
-    for name, value in display_values.items():
-        lcd_vars[name].config(text=f"{name}: {value}")
 
-    if "(a)" in mode_str:
-        lbl_lcd_main.config(text=f"{State.LCA:.3f} mA")
-        lbl_ov_laser_main_val.config(text=f"{State.LCA:.3f} mA")
-        active = ["Laser Status", "Mode", "LCT", "LCB", "LVA", "TA", "Error#", "Interlock"]
-    elif "(b)" in mode_str:
-        lbl_lcd_main.config(text=f"{State.LCA:.3f} mA")
-        lbl_ov_laser_main_val.config(text=f"{State.LCA:.3f} mA")
-        active = ["Laser Status", "TEC1 Status", "LCT", "TA", "LVA", "TT", "Mode", "TCA", "Error#", "Interlock"]
-    elif "(c)" in mode_str:
-        lbl_lcd_main.config(text=f"{State.LCA:.3f} mA")
-        lbl_ov_laser_main_val.config(text=f"{State.LCA:.3f} mA")
-        active = ["Laser Status", "TEC1 Status", "TEC2 Status", "LCT", "LTA", "LVA", "CTA", "Mode", "Error#",
-                  "Interlock"]
-    elif "(d)" in mode_str:
-        lbl_lcd_main.config(text=f"{State.GT:.2f} °C")
-        lbl_ov_laser_main_val.config(text=f"{State.GT:.2f} °C")
-        active = ["TEC1 Status", "TT", "TVA", "TCA", "TCL", "Error#", "Interlock"]
-    elif "(e)" in mode_str:
-        lbl_lcd_main.config(text=f"{State.GT:.2f} °C   {State.GT:.2f} °C")
-        lbl_ov_laser_main_val.config(text=f"{State.GT:.2f} °C   {State.GT:.2f} °C")
-        active = ["TEC1 Status", "TEC2 Status", "LTT", "CTT", "LTCA", "CTCA", "Error#", "Interlock"]
-    else:
+    # 2. Werte auf LCD-Labels schreiben (abgesichert)
+    for name, value in display_values.items():
+        if name in lcd_vars:
+            try:
+                widget = lcd_vars[name]
+                if widget.winfo_exists():
+                    widget.config(text=f"{name}: {value}")
+            except Exception:
+                pass
+
+    # 3. Layout-Modus bestimmen
+    lca_val = f"{getattr(State, 'LCA', 0):.3f} mA"
+    gt_val = f"{getattr(State, 'GT', 0):.2f} °C"
+
+    try:
+        if "(a)" in mode_str:
+            if lbl_lcd_main.winfo_exists(): lbl_lcd_main.config(text=lca_val)
+            if lbl_ov_laser_main_val.winfo_exists(): lbl_ov_laser_main_val.config(text=lca_val)
+            active = ["Laser Status", "Mode", "LCT", "LCB", "LVA", "TA", "Error#", "Interlock"]
+        elif "(b)" in mode_str:
+            if lbl_lcd_main.winfo_exists(): lbl_lcd_main.config(text=lca_val)
+            if lbl_ov_laser_main_val.winfo_exists(): lbl_ov_laser_main_val.config(text=lca_val)
+            active = ["Laser Status", "TEC1 Status", "LCT", "TA", "LVA", "TT", "Mode", "TCA", "Error#", "Interlock"]
+        elif "(c)" in mode_str:
+            if lbl_lcd_main.winfo_exists(): lbl_lcd_main.config(text=lca_val)
+            if lbl_ov_laser_main_val.winfo_exists(): lbl_ov_laser_main_val.config(text=lca_val)
+            active = ["Laser Status", "TEC1 Status", "TEC2 Status", "LCT", "LTA", "LVA", "CTA", "Mode", "Error#",
+                      "Interlock"]
+        elif "(d)" in mode_str:
+            if lbl_lcd_main.winfo_exists(): lbl_lcd_main.config(text=gt_val)
+            if lbl_ov_laser_main_val.winfo_exists(): lbl_ov_laser_main_val.config(text=gt_val)
+            active = ["TEC1 Status", "TT", "TVA", "TCA", "TCL", "Error#", "Interlock"]
+        elif "(e)" in mode_str:
+            double_gt = f"{gt_val}   {gt_val}"
+            if lbl_lcd_main.winfo_exists(): lbl_lcd_main.config(text=double_gt)
+            if lbl_ov_laser_main_val.winfo_exists(): lbl_ov_laser_main_val.config(text=double_gt)
+            active = ["TEC1 Status", "TEC2 Status", "LTT", "CTT", "LTCA", "CTCA", "Error#", "Interlock"]
+        else:
+            active = []
+    except Exception:
         active = []
 
+    # 4. Aktive Labels neu anordnen
     for idx, p in enumerate(active):
-        r = idx // 4
-        c = idx % 4
-        lcd_vars[p].grid(row=r, column=c, sticky="ew", padx=5, pady=2)
-
-
-combo_layout.bind("<<ComboboxSelected>>", update_laser_display_mode)
-
-# Laser Sicherheitskontrolle
-var_goggles = tk.BooleanVar(value=False)
-var_interlock = tk.BooleanVar(value=False)
-var_beampath = tk.BooleanVar(value=False)
-var_warning = tk.BooleanVar(value=False)
+        if p in lcd_vars:
+            try:
+                widget = lcd_vars[p]
+                if widget.winfo_exists():
+                    r = idx // 4
+                    c = idx % 4
+                    widget.grid(row=r, column=c, sticky="ew", padx=5, pady=2)
+            except Exception:
+                pass
 
 
 def check_laser_safety():
@@ -1558,6 +1787,13 @@ def check_laser_safety():
         frame_lmenu.pack_forget()
         lbl_disabled_banner.pack(fill="both", expand=True, padx=20, pady=40)
         lbl_safety_status.config(text=" ⚠️ INTERLOCKED ⚠️ \nChecklist Incomplete", bg="#c62828", fg="#ffffff")
+
+
+# Laser Sicherheitskontrolle
+var_goggles = tk.BooleanVar(value=False)
+var_interlock = tk.BooleanVar(value=False)
+var_beampath = tk.BooleanVar(value=False)
+var_warning = tk.BooleanVar(value=False)
 
 
 frame_safety = tk.LabelFrame(tab_ostech_main, text=" Laser Security Checklist ", font=("Consolas", 9, "bold"),
