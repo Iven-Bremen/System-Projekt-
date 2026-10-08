@@ -261,7 +261,7 @@ def open_file_dialog():
     )
     if file_path:
         current_file_path = file_path
-        Iclbl_file_status.config(text=os.path.basename(current_file_path))
+        #Iclbl_file_status.config(text=os.path.basename(current_file_path))
 
 
 # GUI-Refresh Job Referenz
@@ -868,7 +868,7 @@ def import_data_file_callback():
             dest_path = os.path.join(LOG_DIR, os.path.basename(file_path))
             shutil.copy(file_path, dest_path)
             messagebox.showinfo("Import", f"CSV file successfully imported: {os.path.basename(file_path)}")
-            lbl_file_status.config(text=os.path.basename(file_path), fg="white")
+            #lbl_file_status.config(text=os.path.basename(file_path), fg="white")
         except Exception as e:
             messagebox.showerror("Import Error", f"Failed to import CSV: {e}")
 
@@ -1918,12 +1918,19 @@ def apply_laser_settings():
     """Liest und speichert veränderte Laser-Parameter."""
     values = (
         read_numeric_entry(entry_lct, "LCT", 0, 100),
+        Send.set(Send.OSTechS.LCT, 5.0),
         read_numeric_entry(entry_lcl, "LCL", 0, 100),
+        Send.set(Send.OSTechS.LCL, 6.0),
         read_numeric_entry(entry_lvc, "LVC", 0, 100),
+        Send.set(Send.OSTechS.LVC, 5.0),
         read_numeric_entry(entry_lclm, "LCLM", 0, 100),
+        Send.set(Send.OSTechS.LCLM),
         read_numeric_entry(entry_ltm, "LTM", -273.15, 200),
+        Send.set(Send.OSTechS.LTM, 20.0),
         read_numeric_entry(entry_lmw, "LMW", 0, 100000),
+        Send.set(Send.OSTechS.LMW, 40.0),
         read_numeric_entry(entry_lmp, "LMP", 0, 100000),
+        Send.set(Send.OSTechS.LMP, 5)
     )
     if any(value is None for value in values):
         return
