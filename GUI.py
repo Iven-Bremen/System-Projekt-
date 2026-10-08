@@ -1844,17 +1844,23 @@ frame_lmenu = tk.LabelFrame(tab_ostech_laser, text=" Laser Menu Parameters ", fo
                             bg="#1e1e1e", fg="#00ffcc", padx=10, pady=10)
 frame_lmenu.columnconfigure((0, 1, 2), weight=1)
 
-tk.Label(frame_lmenu, text="LCL (Laser Current Limit - A):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(
+tk.Label(frame_lmenu, text="LCT (Laser Current Target - A):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(
     row=0, column=0, sticky="w", pady=2)
+entry_lct = tk.Entry(frame_lmenu, font=("Consolas", 9))
+entry_lct.insert(0, "5")
+entry_lct.grid(row=1, column=0, sticky="ew", padx=5)
+
+tk.Label(frame_lmenu, text="LCL (Laser Current Limit - A):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(
+    row=2, column=0, sticky="w", pady=2)
 entry_lcl = tk.Entry(frame_lmenu, font=("Consolas", 9))
 entry_lcl.insert(0, "6.300")
-entry_lcl.grid(row=1, column=0, sticky="ew", padx=5)
+entry_lcl.grid(row=3, column=0, sticky="ew", padx=5)
 
 tk.Label(frame_lmenu, text="LVC (Compliance Voltage - V):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(
-    row=2, column=0, sticky="w", pady=2)
+    row=2, column=1, sticky="w", pady=2)
 entry_lvc = tk.Entry(frame_lmenu, font=("Consolas", 9))
 entry_lvc.insert(0, "3.00")
-entry_lvc.grid(row=3, column=0, sticky="ew", padx=5)
+entry_lvc.grid(row=3, column=1, sticky="ew", padx=5)
 
 tk.Label(frame_lmenu, text="LCLM (Avg Current Limit - A):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(
     row=4, column=0, sticky="w", pady=2)
@@ -1881,12 +1887,12 @@ combo_mod_mode.current(1)
 combo_mod_mode.grid(row=1, column=1, sticky="ew", padx=5)
 
 tk.Label(frame_lmenu, text="LMW (Modulation Width - ms):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(row=2,
-                                                                                                                  column=1,
+                                                                                                                  column=2,
                                                                                                                   sticky="w",
                                                                                                                   pady=2)
 entry_lmw = tk.Entry(frame_lmenu, font=("Consolas", 9))
 entry_lmw.insert(0, "1.000")
-entry_lmw.grid(row=3, column=1, sticky="ew", padx=5)
+entry_lmw.grid(row=3, column=2, sticky="ew", padx=5)
 
 tk.Label(frame_lmenu, text="LMP (Modulation Period - ms):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(
     row=4, column=1, sticky="w", pady=2)
@@ -1905,12 +1911,13 @@ combo_pc.grid(row=1, column=2, sticky="ew", padx=5)
 
 chk_lg = tk.Checkbutton(frame_lmenu, text="LG (Gate Option Enabled)", bg="#1e1e1e", fg="#ffffff", selectcolor="#2b2b2b",
                         activebackground="#1e1e1e", activeforeground="#ffffff")
-chk_lg.grid(row=3, column=2, sticky="w", padx=5)
+chk_lg.grid(row=5, column=2, sticky="w", padx=5)
 
 
 def apply_laser_settings():
     """Liest und speichert veränderte Laser-Parameter."""
     values = (
+        read_numeric_entry(entry_lct, "LCT", 0, 100),
         read_numeric_entry(entry_lcl, "LCL", 0, 100),
         read_numeric_entry(entry_lvc, "LVC", 0, 100),
         read_numeric_entry(entry_lclm, "LCLM", 0, 100),
@@ -1928,6 +1935,8 @@ def apply_laser_settings():
 def reset_laser_defaults():
     """Setzt alle Laser-Einstellungen auf Standardwerte zurück."""
     if messagebox.askyesno("Reset", "Laser-Parameter auf Werkseinstellungen zurücksetzen?"):
+        entry_lct.delete(0, tk.END)
+        entry_lct.insert(0, "5.00")
         entry_lcl.delete(0, tk.END)
         entry_lcl.insert(0, "6.300")
         entry_lvc.delete(0, tk.END)
