@@ -316,10 +316,10 @@ status_labels_laser = []
 def update_status_indicators():
     """Aktualisiert alle visuellen Verbindungs-Labels im Interface."""
     for lbl in status_labels_lockin:
-        lbl.config(text="🟢 Verbunden" if is_lockin_connected else "🔴 Nicht Verbunden",
+        lbl.config(text="🟢 Connected" if is_lockin_connected else "🔴 Disconnected",
                    fg="#00ff00" if is_lockin_connected else "#ff4444")
     for lbl in status_labels_laser:
-        lbl.config(text="🟢 Verbunden" if is_laser_connected else "🔴 Nicht Verbunden",
+        lbl.config(text="🟢 Connected" if is_laser_connected else "🔴 Disconnected",
                    fg="#00ff00" if is_laser_connected else "#ff4444")
 
 
@@ -404,7 +404,7 @@ def create_lockin_control_bar(parent):
                                command=disconnect_all_hardware)
     btn_disconnect.pack(side="left", padx=5)
 
-    lbl_status = tk.Label(frame, text="🔴 Nicht Verbunden", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#ff4444")
+    lbl_status = tk.Label(frame, text="🔴 Disconnected", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#ff4444")
     lbl_status.pack(side="right", padx=10)
     status_labels_lockin.append(lbl_status)
     return frame
@@ -440,7 +440,7 @@ def create_laser_control_bar(parent):
                                command=disconnect_all_hardware)
     btn_disconnect.pack(side="left", padx=5)
 
-    lbl_status = tk.Label(frame, text="🔴 Nicht Verbunden", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#ff4444")
+    lbl_status = tk.Label(frame, text="🔴 Disconnected", font=("Consolas", 9, "bold"), bg="#1e1e1e", fg="#ff4444")
     lbl_status.pack(side="right", padx=10)
     status_labels_laser.append(lbl_status)
     return frame
@@ -456,7 +456,7 @@ def toggle_laser():
         if not is_emergency_bypass:
             if not is_laser_connected or Komunikation.OSTECH is None:
                 raise RuntimeError("OStech Laser Controller ist nicht verbunden.")
-            Komunikation.send_OSTECH("L", 1 if new_state else 0)
+            Send.send(Send.OSTechS.LS)
 
         # Lokalen Status aktualisieren & Button-Design anpassen
         State.L = 1 if new_state else 0
@@ -523,14 +523,14 @@ frame_overview_status.pack(fill="x", padx=10, pady=5)
 
 tk.Label(frame_overview_status, text="Lock-in-Amplifier:", bg="#1e1e1e", fg="#aaaaaa",
          font=("Consolas", 10, "bold")).grid(row=0, column=0, sticky="w", padx=10, pady=5)
-lbl_status_ov_lockin = tk.Label(frame_overview_status, text="🔴 Nicht Verbunden", font=("Consolas", 10, "bold"),
+lbl_status_ov_lockin = tk.Label(frame_overview_status, text="🔴 Disconnected", font=("Consolas", 10, "bold"),
                                 bg="#1e1e1e", fg="#ff4444")
 lbl_status_ov_lockin.grid(row=0, column=1, sticky="w", padx=10, pady=5)
 status_labels_lockin.append(lbl_status_ov_lockin)
 
 tk.Label(frame_overview_status, text="Laser Controller:", bg="#1e1e1e", fg="#aaaaaa",
          font=("Consolas", 10, "bold")).grid(row=0, column=2, sticky="w", padx=(30, 10), pady=5)
-lbl_status_ov_laser = tk.Label(frame_overview_status, text="🔴 Nicht Verbunden", font=("Consolas", 10, "bold"),
+lbl_status_ov_laser = tk.Label(frame_overview_status, text="🔴 Disconnected", font=("Consolas", 10, "bold"),
                                bg="#1e1e1e", fg="#ff4444")
 lbl_status_ov_laser.grid(row=0, column=3, sticky="w", padx=10, pady=5)
 status_labels_laser.append(lbl_status_ov_laser)
@@ -986,7 +986,7 @@ entry_log_name.insert(0, default_log_filename)
 entry_log_name.pack(side="left", padx=5)
 
 entry_manual_note = ttk.Entry(frame_log_ctrl_main, width=40)
-entry_manual_note.insert(0, "Nachricht eingeben...")
+entry_manual_note.insert(0, "Insert message...")
 entry_manual_note.pack(side="left", padx=5)
 
 
