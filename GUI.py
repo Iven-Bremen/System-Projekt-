@@ -1847,7 +1847,7 @@ frame_lmenu.columnconfigure((0, 1, 2), weight=1)
 tk.Label(frame_lmenu, text="LCT (Laser Current Target - A):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(
     row=0, column=0, sticky="w", pady=2)
 entry_lct = tk.Entry(frame_lmenu, font=("Consolas", 9))
-entry_lct.insert(0, "5")
+entry_lct.insert(0, "5.0") #Send.set(Send.OSTechS.LCT, 5.0) da muss ein update hin
 entry_lct.grid(row=1, column=0, sticky="ew", padx=5)
 
 tk.Label(frame_lmenu, text="LCL (Laser Current Limit - A):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(
