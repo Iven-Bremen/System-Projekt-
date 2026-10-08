@@ -1,0 +1,9 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-18,12:57:57,407,GUI,GUI,Info,Button clicked,CLICK,Connect Lock-In,,,,
+2026-09-18,12:57:57,537,Comm,COM3,Info,Try connect,SUCCESS,"*IDN? -> Stanford_Research_Systems,SR830,s/n46328,ver1.07",SR830,,,
+2026-09-18,12:57:59,647,Comm,COM4,Info,Try connect,SUCCESS,GVN -> !�K,OSTECH,,,
+2026-09-18,12:57:59,699,Comm,SR830,Info,Device assigned,COM3,*IDN? scan,,,,
+2026-09-18,12:57:59,700,Comm,OSTECH,Info,Device assigned,COM4,GVN scan,,,,
+2026-09-18,12:57:59,777,Comm,SR830,Info,Device assigned,"Stanford_Research_Systems,SR830,s/n46328,ver1.07",COM3,,,,
+2026-09-18,12:58:03,814,Comm,OSTECH,Info,Device assigned,!�K,COM4,,,,
+2026-09-18,12:58:07,469,SYSTEM,SYSTEM,Info,Foreground Shutdown,GUI closed, ,,,,

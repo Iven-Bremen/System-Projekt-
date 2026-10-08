@@ -297,7 +297,11 @@ class OSTechG:
         actual_type = command_info.type if return_type is None else return_type
         command_name = getattr(command_info, "command", str(command_info))
         Log.Log("Send", "OSTech", "Running", command_name, "read request", "query")
+<<<<<<< HEAD
         return Komunikation.ask_OSTECH(command_info, return_type=actual_type)
+=======
+        return Komunikation.ask_OSTech(command_info, return_type=actual_type)
+>>>>>>> 03be69e3dbcab74f9ba51a4797c1bdd92a339685
 
     @classmethod
     def all(cls):

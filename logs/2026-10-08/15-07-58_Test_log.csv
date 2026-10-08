@@ -1,0 +1,13 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-10-08,15:07:58,306,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-10-08,15:07:58,307,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-10-08,15:07:58,308,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-10-08,15:07:58,308,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-10-08,15:07:58,320,OUTPUT,TERMINAL,OUTPUT,"['COM5', 'COM4', 'COM6', 'COM7']",,,,,,
+2026-10-08,15:07:58,320,Sys,SYSTEM,Info,COM-Port Scan,"['COM5', 'COM4', 'COM6', 'COM7']",Startup,,,,
+2026-10-08,15:07:58,322,Calc,CALCULATION,Info,calculation ready,No calculations configured,STARTER,,,,
+2026-10-08,15:07:59,765,Gui,GUI,Start,Starting GUI,,,,,,
+2026-10-08,15:07:59,782,OUTPUT,TERMINAL,OUTPUT,"['COM5', 'COM4', 'COM6', 'COM7']",,,,,,
+2026-10-08,15:07:59,782,Sys,SYSTEM,Info,Port check after GUI startup,"['COM5', 'COM4', 'COM6', 'COM7']",Active ports,,,,
+2026-10-08,15:08:03,853,Gui,Button,Info,Button clicked,🔌 Connect,,,,,
+2026-10-08,15:08:16,745,Comm,COM5,Warning,Try connect,FAILED,"could not open port 'COM5': OSError(22, 'Das Zeitlimit für die Semaphore wurde erreicht.', None, 121)",SR830,,,

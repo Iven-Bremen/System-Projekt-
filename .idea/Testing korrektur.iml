@@ -4,6 +4,7 @@
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
     </content>
+<<<<<<< HEAD
     <orderEntry type="jdk" jdkName="~\Desktop\Testing korrektur\.venv" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
@@ -11,4 +12,9 @@
   <component name="PyDocumentationSettings" />
   <component name="ReSTService" />
   <component name="TestRunnerService" />
+=======
+    <orderEntry type="jdk" jdkName="Python 3.14 (PythonProject)" jdkType="Python SDK" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+>>>>>>> 03be69e3dbcab74f9ba51a4797c1bdd92a339685
 </module>

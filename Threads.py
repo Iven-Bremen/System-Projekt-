@@ -190,11 +190,9 @@ class CommunicationThreads:
     """Owns and coordinates every background communication worker.
 
     The coordinator starts logging and GUI message consumers before producers,
-    then starts optional command processing and both device loops. It can also
-    host a calculation runner when a caller explicitly provides one, although
-    the normal application startup owns its idle calculation thread in
-    ``Starter.py``. Every result is fan-out published to logging and GUI
-    queues. ``stop`` reverses that ownership order and joins all workers.
+    then starts optional command processing and only the device loops that are
+    actually enabled. A device that is not connected must not leak a worker
+    thread or a stale status update into the communication pipeline.
     """
 
     def __init__(
@@ -206,11 +204,13 @@ class CommunicationThreads:
         gui_interval_ms=0,
         command_runner=None,
         calculation_runner=None,
+        sr830_enabled=True,
+        ostech_enabled=True,
     ):
         self.logging = MessageThread("LoggingThread", log_handler)
         self.gui = MessageThread("GuiThread", gui_handler, gui_interval_ms)
-        self.sr830 = DeviceThread("SR830Thread", sr830_runner, self._publish)
-        self.ostech = DeviceThread("OSTECHThread", ostech_runner, self._publish)
+        self.sr830 = DeviceThread("SR830Thread", sr830_runner, self._publish) if sr830_enabled else None
+        self.ostech = DeviceThread("OSTECHThread", ostech_runner, self._publish) if ostech_enabled else None
         self.commands = CommandThread(command_runner, self._publish) if command_runner else None
         self.calculations = (
             CalculationThread(calculation_runner, self._publish)
@@ -237,20 +237,24 @@ class CommunicationThreads:
         self.gui.publish(message)
 
     def start(self):
-        """Start consumers first, then commands, calculations, and devices."""
+        """Start consumers first, then commands, calculations, and enabled devices."""
         self.logging.start()
         self.gui.start()
         if self.commands:
             self.commands.start()
         if self.calculations:
             self.calculations.start()
-        self.sr830.start()
-        self.ostech.start()
+        if self.sr830 is not None:
+            self.sr830.start()
+        if self.ostech is not None:
+            self.ostech.start()
 
     def stop(self):
         """Stop producers before consumers and join every owned thread."""
-        self.sr830.stop()
-        self.ostech.stop()
+        if self.sr830 is not None:
+            self.sr830.stop()
+        if self.ostech is not None:
+            self.ostech.stop()
         if self.commands:
             self.commands.stop()
         if self.calculations:
