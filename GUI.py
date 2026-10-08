@@ -446,17 +446,20 @@ def create_laser_control_bar(parent):
     return frame
 
 def toggle_laser():
-    """Schaltet den Laser ein oder aus und sendet den Befehl an den OStech-Controller."""
-    # Aktuellen Zustand aus dem State abfragen oder umkehren
+    """Schaltet den Laser ein oder aus und sendet den passenden OStech-Befehl."""
     current_state = bool(getattr(State, "L", False))
     new_state = not current_state
 
     try:
-        # Sende-Befehl an den OStech Laser-Controller (1 = AN, 0 = AUS)
         if not is_emergency_bypass:
             if not is_laser_connected or Komunikation.OSTECH is None:
                 raise RuntimeError("OStech Laser Controller ist nicht verbunden.")
-            Send.send(Send.OSTechS.LS)
+
+            # Beim Starten wird die Laser-Ausgabe aktiviert, beim Ausschalten gestoppt.
+            if new_state:
+                Send.run(Send.OSTechS.LGR)
+            else:
+                Send.run(Send.OSTechS.L)
 
         # Lokalen Status aktualisieren & Button-Design anpassen
         State.L = 1 if new_state else 0
