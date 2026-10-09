@@ -1,0 +1,12 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-10-09,15:56:48,791,Gui,Button,Info,Button clicked,❌ Disconnect Lock-In,,,,,
+2026-10-09,15:56:50,878,Gui,Button,Info,Button clicked,❌ Disconnect Lock-In,,,,,
+2026-10-09,15:56:51,033,Gui,Button,Info,Button clicked,❌ Disconnect Lock-In,,,,,
+2026-10-09,15:56:51,181,Gui,Button,Info,Button clicked,❌ Disconnect Lock-In,,,,,
+2026-10-09,15:56:51,307,Gui,Button,Info,Button clicked,❌ Disconnect Lock-In,,,,,
+2026-10-09,15:56:51,455,Gui,Button,Info,Button clicked,❌ Disconnect Lock-In,,,,,
+2026-10-09,15:56:51,598,Gui,Button,Info,Button clicked,❌ Disconnect Lock-In,,,,,
+2026-10-09,15:56:51,822,Gui,Button,Info,Button clicked,❌ Disconnect Lock-In,,,,,
+2026-10-09,15:56:53,050,Gui,Button,Info,Button clicked,🔌 Connect Lock-In,,,,,
+2026-10-09,15:57:05,952,Comm,COM5,Warning,Try connect,FAILED,"could not open port 'COM5': OSError(22, 'Das Zeitlimit für die Semaphore wurde erreicht.', None, 121)",SR830,,,
+2026-10-09,15:57:18,765,Comm,COM5,Warning,Try connect,FAILED,"could not open port 'COM5': OSError(22, 'Das Zeitlimit für die Semaphore wurde erreicht.', None, 121)",OSTECH,,,
