@@ -1,0 +1,5 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-10-09,16:22:21,823,Gui,Button,Info,Button clicked,🔌 Connect Lock-In,,,,,
+2026-10-09,16:22:22,008,Comm,COM6,Info,Try connect,SUCCESS,"*IDN? -> Stanford_Research_Systems,SR830,s/n46328,ver1.07",SR830,,,
+2026-10-09,16:22:24,179,Comm,COM7,Warning,Try connect,FAILED,GVN -> ,OSTECH,,,
+2026-10-09,16:22:37,126,Comm,COM5,Warning,Try connect,FAILED,"could not open port 'COM5': OSError(22, 'Das Zeitlimit für die Semaphore wurde erreicht.', None, 121)",OSTECH,,,
