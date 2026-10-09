@@ -1847,25 +1847,29 @@ frame_lmenu.columnconfigure((0, 1, 2), weight=1)
 tk.Label(frame_lmenu, text="LCT (Laser Current Target - A):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(
     row=0, column=0, sticky="w", pady=2)
 entry_lct = tk.Entry(frame_lmenu, font=("Consolas", 9))
-entry_lct.insert(0, "5.0") #Send.set(Send.OSTechS.LCT, 5.0) da muss ein update hin
+entry_lct.insert(0, "3.0")
+lct_value = entry_lct.get()
 entry_lct.grid(row=1, column=0, sticky="ew", padx=5)
 
 tk.Label(frame_lmenu, text="LCL (Laser Current Limit - A):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(
     row=2, column=0, sticky="w", pady=2)
 entry_lcl = tk.Entry(frame_lmenu, font=("Consolas", 9))
 entry_lcl.insert(0, "6.300")
+lcl_value = float(entry_lcl.get())
 entry_lcl.grid(row=3, column=0, sticky="ew", padx=5)
 
 tk.Label(frame_lmenu, text="LVC (Compliance Voltage - V):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(
     row=2, column=1, sticky="w", pady=2)
 entry_lvc = tk.Entry(frame_lmenu, font=("Consolas", 9))
 entry_lvc.insert(0, "3.00")
+lvc_value = float(entry_lvc.get())
 entry_lvc.grid(row=3, column=1, sticky="ew", padx=5)
 
 tk.Label(frame_lmenu, text="LCLM (Avg Current Limit - A):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(
     row=4, column=0, sticky="w", pady=2)
 entry_lclm = tk.Entry(frame_lmenu, font=("Consolas", 9))
 entry_lclm.insert(0, "6.300")
+lclm_value = float(entry_lclm.get())
 entry_lclm.grid(row=5, column=0, sticky="ew", padx=5)
 
 tk.Label(frame_lmenu, text="LTM (Max Temp Limit - °C):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(row=6,
@@ -1874,6 +1878,7 @@ tk.Label(frame_lmenu, text="LTM (Max Temp Limit - °C):", bg="#1e1e1e", fg="#aaa
                                                                                                                 pady=2)
 entry_ltm = tk.Entry(frame_lmenu, font=("Consolas", 9))
 entry_ltm.insert(0, "33.0")
+ltm_value = float(entry_ltm.get())
 entry_ltm.grid(row=7, column=0, sticky="ew", padx=5)
 
 tk.Label(frame_lmenu, text="Modulation Mode:", bg="#1e1e1e", fg="#00ffcc", font=("Consolas", 9, "bold")).grid(row=0,
@@ -1892,12 +1897,14 @@ tk.Label(frame_lmenu, text="LMW (Modulation Width - ms):", bg="#1e1e1e", fg="#aa
                                                                                                                   pady=2)
 entry_lmw = tk.Entry(frame_lmenu, font=("Consolas", 9))
 entry_lmw.insert(0, "1.000")
+lmw_value = float(entry_lmw.get())
 entry_lmw.grid(row=3, column=2, sticky="ew", padx=5)
 
 tk.Label(frame_lmenu, text="LMP (Modulation Period - ms):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(
     row=4, column=1, sticky="w", pady=2)
 entry_lmp = tk.Entry(frame_lmenu, font=("Consolas", 9))
 entry_lmp.insert(0, "2.000")
+lmp_value = float(entry_lmp.get())
 entry_lmp.grid(row=5, column=1, sticky="ew", padx=5)
 
 tk.Label(frame_lmenu, text="PC (Pulse Count Mode):", bg="#1e1e1e", fg="#aaaaaa", font=("Consolas", 8)).grid(row=0,
@@ -1918,19 +1925,19 @@ def apply_laser_settings():
     """Liest und speichert veränderte Laser-Parameter."""
     values = (
         read_numeric_entry(entry_lct, "LCT", 0, 100),
-        Send.set(Send.OSTechS.LCT, 5.0),
+        Send.send(Send.OSTechS.LCT, lct_value),
         read_numeric_entry(entry_lcl, "LCL", 0, 100),
-        Send.set(Send.OSTechS.LCL, 6.0),
+        Send.send(Send.OSTechS.LCL, lcl_value),
         read_numeric_entry(entry_lvc, "LVC", 0, 100),
-        Send.set(Send.OSTechS.LVC, 5.0),
+        Send.send(Send.OSTechS.LVC, lvc_value),
         read_numeric_entry(entry_lclm, "LCLM", 0, 100),
-        Send.set(Send.OSTechS.LCLM),
+        Send.send(Send.OSTechS.LCLM, lclm_value),
         read_numeric_entry(entry_ltm, "LTM", -273.15, 200),
-        Send.set(Send.OSTechS.LTM, 20.0),
+        Send.send(Send.OSTechS.LTM, ltm_value),
         read_numeric_entry(entry_lmw, "LMW", 0, 100000),
-        Send.set(Send.OSTechS.LMW, 40.0),
+        Send.send(Send.OSTechS.LMW, lmw_value),
         read_numeric_entry(entry_lmp, "LMP", 0, 100000),
-        Send.set(Send.OSTechS.LMP, 5)
+        Send.send(Send.OSTechS.LMP, lmp_value)
     )
     if any(value is None for value in values):
         return

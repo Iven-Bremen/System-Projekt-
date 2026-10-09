@@ -317,7 +317,7 @@ class OSTechG:
 class OSTechS:
     """Set-only OSTech commands: configuration and action commands[cite: 2]."""
 
-    L = OSTechCommandInfo("L", None, "", "laser stop")
+    L = OSTechCommandInfo("L", None, "", "laser start/stop")
     LS = L  # Backwards-compatible alias for the laser-stop command.
     LTM = OSTechCommandInfo("LTM", float, "°C", "laser temperature maximum (-99 to 200)")
     LGR = OSTechCommandInfo("LGR", None, "", "gate option run/enable")
@@ -327,6 +327,7 @@ class OSTechS:
     LCT = OSTechCommandInfo("LCT", float, "mA", "current target")
     LCB = OSTechCommandInfo("LCB", float, "mA", "base or bias current")
     LVC = OSTechCommandInfo("LVC", float, "V", "compliance voltage (1.3 to 6)")
+    LCLM = OSTechCommandInfo("LCLM", float, "mA", "limit for average laser current")
 
     LPCT = OSTechCommandInfo("LPCT", float, "uA", "laser photo current target (0 to 20)")
     LPT  = OSTechCommandInfo("LPT", float, "W", "laser power target")
