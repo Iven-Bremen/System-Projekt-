@@ -389,8 +389,7 @@ def ask_OSTECH(command: str, value=None, return_type=str):
         return _convert_response(response, return_type)
 
 
-<<<<<<< HEAD
-=======
+
 def ask_OSTech(command: str, value=None, return_type=str):
     """Compatibility alias kept for the Send-layer metadata API."""
     return ask_OSTECH(command, value=value, return_type=return_type)
@@ -409,7 +408,7 @@ def send_ostech_command(command: str):
     with OSTECH_LOCK:
         OSTECH.write(f"{resolved_command}\r".encode("ascii"))
         OSTECH.flush()
->>>>>>> 03be69e3dbcab74f9ba51a4797c1bdd92a339685
+
 
 
 def send_OSTECH(command: str, value=None):
