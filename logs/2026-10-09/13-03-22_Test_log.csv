@@ -1,0 +1,5 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-10-09,13:03:22,297,Gui,Button,Info,Button clicked,Run Calculations,,,,,
+2026-10-09,13:03:26,240,Gui,Button,Info,Button clicked,Run Uncertainty,,,,,
+2026-10-09,13:03:40,592,Gui,Button,Info,Button clicked,✔ Set Sweep Parameters,,,,,
+2026-10-09,13:04:51,918,Gui,Button,Info,Button clicked,✔ Set Sweep Parameters,,,,,

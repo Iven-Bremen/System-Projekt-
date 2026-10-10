@@ -1,0 +1,8 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-10-09,15:45:11,596,Gui,Button,Info,Button clicked,Protective googles on?,,,,,
+2026-10-09,15:45:12,096,Gui,Button,Info,Button clicked,Door-Interlock / Hardware-Interlock closed,,,,,
+2026-10-09,15:45:12,554,Gui,Button,Info,Button clicked,Beam path secured,,,,,
+2026-10-09,15:45:13,097,Gui,Button,Info,Button clicked,Laser warning light active & emergency shutdown in reach,,,,,
+2026-10-09,15:45:25,526,Gui,Button,Info,Button clicked,🔌 Connect Lock-In,,,,,
+2026-10-09,15:45:38,473,Comm,COM5,Warning,Try connect,FAILED,"could not open port 'COM5': OSError(22, 'Das Zeitlimit für die Semaphore wurde erreicht.', None, 121)",SR830,,,
+2026-10-09,15:45:51,320,Comm,COM5,Warning,Try connect,FAILED,"could not open port 'COM5': OSError(22, 'Das Zeitlimit für die Semaphore wurde erreicht.', None, 121)",OSTECH,,,
