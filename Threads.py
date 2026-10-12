@@ -83,7 +83,7 @@ class MessageThread:
         self._messages = queue.Queue()
         self._handler = handler
         self._interval_ms = interval_ms
-        self._stop_requested = threading.Event()
+        self.stop_requested = threading.Event()
         self.thread = threading.Thread(target=self._run, name=name)
 
     def publish(self, message):
@@ -96,7 +96,7 @@ class MessageThread:
 
     def stop(self):
         """Wake the consumer with a sentinel and wait for clean termination."""
-        self._stop_requested.set()
+        self.stop_requested.set()
         self._messages.put(None)
         if self.thread.is_alive():
             self.thread.join()
@@ -109,7 +109,7 @@ class MessageThread:
                 return
             self._handler(message)
             if self._interval_ms > 0:
-                self._stop_requested.wait(self._interval_ms / 1000)
+                self.stop_requested.wait(self._interval_ms / 1000)
 
 
 class CommandThread:
