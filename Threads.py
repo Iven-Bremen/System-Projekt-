@@ -55,10 +55,20 @@ class DeviceThread:
         self.thread.start()
 
     def stop(self):
-        """Request cancellation and wait until the device loop has returned."""
-        self.stop_requested.set()
-        if self.thread.is_alive():
-            self.thread.join()
+        """Wake the consumer with a sentinel and wait for clean termination."""
+        if self._stop_requested.is_set():
+            return
+        self._stop_requested.set()
+        try:
+            self._messages.put(None)
+        except Exception:
+            pass
+
+        if self.thread.is_alive() and threading.current_thread() != self.thread:
+            try:
+                self.thread.join(timeout=1.0)
+            except Exception:
+                pass
 
     def _run(self):
         try:
@@ -83,7 +93,7 @@ class MessageThread:
         self._messages = queue.Queue()
         self._handler = handler
         self._interval_ms = interval_ms
-        self.stop_requested = threading.Event()
+        self._stop_requested = threading.Event()
         self.thread = threading.Thread(target=self._run, name=name)
 
     def publish(self, message):
@@ -96,10 +106,15 @@ class MessageThread:
 
     def stop(self):
         """Wake the consumer with a sentinel and wait for clean termination."""
+        if self.stop_requested.is_set():
+            return
         self.stop_requested.set()
-        self._messages.put(None)
-        if self.thread.is_alive():
-            self.thread.join()
+
+        if self.thread.is_alive() and threading.current_thread() != self.thread:
+            try:
+                self.thread.join(timeout=1.0)
+            except Exception:
+                pass
 
     def _run(self):
         """Consume messages in FIFO order until the sentinel is received."""
@@ -109,7 +124,7 @@ class MessageThread:
                 return
             self._handler(message)
             if self._interval_ms > 0:
-                self.stop_requested.wait(self._interval_ms / 1000)
+                self._stop_requested.wait(self._interval_ms / 1000)
 
 
 class CommandThread:
