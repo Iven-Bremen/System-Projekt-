@@ -411,44 +411,108 @@ def create_laser_control_bar(parent):
     status_labels_laser.append(lbl_status)
     return frame
 
+LASER_VERIFY_DELAY_MS = 1500   # so lange auf den GS-Readback warten (Polling + Settings-Refresh)
+
+
 def toggle_laser():
-    """Schaltet den Laser ein oder aus und sendet die Befehle via Send.py."""
+    """Schaltet den Laser ein/aus.
+
+    AUS:  zuerst LS senden, danach erst Sweep beenden (Plot asynchron).
+    EIN:  Sweep vorbereiten, LR senden, dann per Readback (GS -> lc_on) pruefen,
+          ob das Geraet den Befehl wirklich angenommen hat. Erst danach startet der Sweep.
+    Alle Fehler werden geloggt und als Dialog angezeigt.
+    """
     current_state = bool(getattr(State, "L", False))
     new_state = not current_state
 
-    # Laser aus -> laufenden Sweep beenden
+    # ------------------------------------------------------------------
+    # AUSSCHALTEN: Laser hat Prioritaet, Sweep-Aufraeumen kommt danach
+    # ------------------------------------------------------------------
     if not new_state:
-        stop_sweep()
+        try:
+            if not is_emergency_bypass:
+                if not is_laser_connected or Komunikation.OSTECH is None:
+                    raise RuntimeError("OStech Laser Controller ist nicht verbunden.")
+                Send.set(Send.OSTechS.L, 0)
+            State.L = 0
+            update_laser_toggle_button(False)
+            Log.Log("Gui", "Laser", "Info", "Laser Power", "Laser set to AUSGESCHALTET")
+            update_overview_log("Laser AUS (LS gesendet).")
+        except Exception as error:
+            Log.Log("Gui", "Laser", "Error", "toggle_laser", f"LS: {type(error).__name__}: {error}")
+            messagebox.showerror("Laser Fehler", f"LS fehlgeschlagen:\n{error}\n\n"
+                                                 "Bei Bedarf Not-Aus am Geraet benutzen.")
+        finally:
+            try:
+                stop_sweep(update_plot=False)
+                # Fit/Plot nicht synchron im Klick-Handler ausfuehren
+                root.after(50, lambda: _update_live_plot(preliminary=False))
+            except Exception as error:
+                Log.Log("Gui", "Sweep", "Error", "stop_sweep", f"{type(error).__name__}: {error}")
+        return
 
-    # Laser an -> Sweep vorbereiten (Parameter, Geraete, Referenz). Ohne Geraet wird
-    # der Nutzer aufgefordert, eine alte Datei zu verwenden; der Laser startet dann nicht.
-    sweep_cfg = None
-    if new_state and not is_emergency_bypass and var_sweep_with_laser.get():
-        sweep_cfg = prepare_sweep()
-        if sweep_cfg is None:
-            return
-
+    # ------------------------------------------------------------------
+    # EINSCHALTEN
+    # ------------------------------------------------------------------
     try:
+        # 1. Sweep vorbereiten (Parameter, Geraete, Referenz) - jetzt innerhalb des try
+        sweep_cfg = None
+        if not is_emergency_bypass and var_sweep_with_laser.get():
+            sweep_cfg = prepare_sweep()
+            if sweep_cfg is None:
+                update_overview_log("Laserstart abgebrochen (Sweep-Vorbereitung fehlgeschlagen/abgebrochen).")
+                Log.Log("Gui", "Laser", "Warning", "toggle_laser", "Start abgebrochen: prepare_sweep() = None")
+                return
+
+        # 2. Verbindung pruefen und LR senden
         if not is_emergency_bypass:
             if not is_laser_connected or Komunikation.OSTECH is None:
                 raise RuntimeError("OStech Laser Controller ist nicht verbunden.")
+            Send.set(Send.OSTechS.L, 1)
 
-            # L ist ein Schalter: 1 -> "LR" (run), 0 -> "LS" (stop).
-            # Die Gate-Option (LG) wird NUR ueber die Checkbox in "Apply Laser Settings" gesetzt.
-            Send.set(Send.OSTechS.L, 1 if new_state else 0)
+        State.L = 1
+        update_laser_toggle_button(True)
+        Log.Log("Gui", "Laser", "Info", "Laser Power", "LR gesendet, warte auf Bestaetigung")
+        update_overview_log("LR gesendet, pruefe Geraetestatus ...")
 
-        State.L = 1 if new_state else 0
-        update_laser_toggle_button(new_state)
+    except Exception as error:
+        State.L = 0
+        update_laser_toggle_button(False)
+        Log.Log("Gui", "Laser", "Error", "toggle_laser", f"{type(error).__name__}: {error}")
+        messagebox.showerror("Laser Fehler", f"Fehler beim Starten des Lasers:\n{error}")
+        return
 
-        if new_state and sweep_cfg is not None:
-            start_sweep(sweep_cfg)
+    # 3. Readback pruefen (nicht blockierend) und erst dann Sweep starten
+    def verify_laser_started():
+        try:
+            if not is_emergency_bypass:
+                status = getattr(State, "OSTECH_STATUS", {}) or {}
+                if not status.get("lc_on", False):
+                    State.L = 0
+                    update_laser_toggle_button(False)
+                    reason = (f"Interlock OK: {status.get('interlock_ok')}, "
+                              f"Fehlerbit: {status.get('lc_error')}, "
+                              f"Treiber-Versorgung OK: {status.get('driver_supply_ok')}, "
+                              f"Treiber-Temp OK: {status.get('driver_temperature_ok')}")
+                    Log.Log("Gui", "Laser", "Error", "toggle_laser", f"Geraet hat LR nicht angenommen ({reason})")
+                    update_overview_log(f"LASER START FEHLGESCHLAGEN: {reason}")
+                    messagebox.showerror(
+                        "Laser startet nicht",
+                        "Das Geraet meldet nach LR nicht 'Laser an'.\n\n" + reason +
+                        "\n\nPruefe Interlock, Fehlerstatus, LCT/LCL und Modulationsmodus "
+                        "(zum Testen: CW Mode).")
+                    return
 
-        status_text = "EINGESCHALTET" if new_state else "AUSGESCHALTET"
-        messagebox.showinfo("Laser Controller", f"Laser wurde {status_text}.")
-        Log.Log("Gui", "Laser", "Info", "Laser Power", f"Laser set to {status_text}")
+            update_overview_log("Laser AN (vom Geraet bestaetigt).")
+            Log.Log("Gui", "Laser", "Info", "Laser Power", "Laser set to EINGESCHALTET (bestaetigt)")
 
-    except Exception as e:
-        messagebox.showerror("Laser Fehler", f"Fehler beim Umschalten des Lasers:\n{e}")
+            if sweep_cfg is not None:
+                start_sweep(sweep_cfg)
+        except Exception as error:
+            Log.Log("Gui", "Laser", "Error", "verify_laser_started", f"{type(error).__name__}: {error}")
+            messagebox.showerror("Laser Fehler", f"Fehler nach dem Laserstart:\n{error}")
+
+    root.after(LASER_VERIFY_DELAY_MS, verify_laser_started)
 
 def update_laser_toggle_button(is_on):
     """Aktualisiert Text und Farbe des Laser-Start/Stopp-Knopfs."""
