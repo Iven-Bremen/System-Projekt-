@@ -455,14 +455,15 @@ def toggle_laser():
     # EINSCHALTEN
     # ------------------------------------------------------------------
     try:
-        # 1. Sweep vorbereiten (Parameter, Geraete, Referenz) - jetzt innerhalb des try
+        # 1. Optional: Sweep vorbereiten (Parameter, Geraete, Referenz).
+        #    Der Laser ist unabhaengig vom Sweep: scheitert die Vorbereitung, startet
+        #    der Laser trotzdem, nur ohne Sweep.
         sweep_cfg = None
         if not is_emergency_bypass and var_sweep_with_laser.get():
-            sweep_cfg = prepare_sweep()
+            sweep_cfg = prepare_sweep(offer_fallback=False)
             if sweep_cfg is None:
-                update_overview_log("Laserstart abgebrochen (Sweep-Vorbereitung fehlgeschlagen/abgebrochen).")
-                Log.Log("Gui", "Laser", "Warning", "toggle_laser", "Start abgebrochen: prepare_sweep() = None")
-                return
+                update_overview_log("Sweep nicht vorbereitet - Laser startet trotzdem ohne Sweep.")
+                Log.Log("Gui", "Laser", "Warning", "toggle_laser", "Laserstart ohne Sweep: prepare_sweep() = None")
 
         # 2. Verbindung pruefen und LR senden
         if not is_emergency_bypass:
@@ -680,7 +681,7 @@ chk_sweep_log = tk.Checkbutton(frame_sweep, text="Logarithmic spacing", variable
                                activebackground="#1e1e1e", activeforeground="#ffffff")
 chk_sweep_log.grid(row=3, column=0, columnspan=2, sticky="w", padx=5, pady=5)
 
-var_sweep_with_laser = tk.BooleanVar(value=True)
+var_sweep_with_laser = tk.BooleanVar(value=False)   # Laser/Lock-in laufen standardmaessig ohne Sweep
 chk_sweep_with_laser = tk.Checkbutton(frame_sweep, text="Start sweep when laser is switched on",
                                       variable=var_sweep_with_laser, font=("Consolas", 9), bg="#1e1e1e",
                                       fg="#ffffff", selectcolor="#1e1e1e", activebackground="#1e1e1e",
@@ -797,12 +798,15 @@ def offer_old_file_fallback(reason):
         starte_pvf_analyse(force_file=True)
 
 
-def prepare_sweep():
-    """Vor dem Laserstart: Parameter, beide Geraete und Referenzdatei klaeren.
+def prepare_sweep(offer_fallback=True):
+    """Vor einem Sweep: Parameter, beide Geraete und Referenzdatei klaeren.
 
-    Rueckgabe: SweepConfig (Sweep kann starten) oder None (ungueltige Eingabe,
-    Geraet fehlt bzw. antwortet nicht - dann wurde bereits der Fallback auf eine
-    alte Datei angeboten - oder Abbruch).
+    ``offer_fallback=True``: bei fehlendem Geraet wird die Auswertung einer alten
+    Messdatei angeboten (manueller Sweep). ``False``: nur eine Warnung (Laserstart,
+    der unabhaengig vom Sweep weiterlaeuft).
+
+    Rueckgabe: SweepConfig (Sweep kann starten) oder None (ungueltige Eingabe oder
+    Geraet fehlt bzw. antwortet nicht).
     """
     global _sweep_ref_path, _sweep_ref_cache
     cfg = read_sweep_config()
@@ -812,7 +816,11 @@ def prepare_sweep():
         Sweep.preflight(require_laser=True)
     except (Sweep.NoDeviceError, Sweep.SweepError) as error:
         Log.Log("Gui", "Sweep", "Warning", "Sweep", "preflight failed", str(error))
-        offer_old_file_fallback(str(error))
+        if offer_fallback:
+            offer_old_file_fallback(str(error))
+        else:
+            messagebox.showwarning("Sweep nicht moeglich",
+                                   f"{error}\n\nDer Laser wird ohne Sweep gestartet.")
         return None
     ref = filedialog.askopenfilename(
         title="Referenzmessung auswählen (unnitriert) – Abbrechen = nur aufzeichnen",
@@ -1070,6 +1078,42 @@ btn_apply_sweep.grid(row=5, column=0, columnspan=2, pady=10, sticky="ew")
 lbl_sweep_status = tk.Label(frame_sweep, text="Sweep: idle", font=("Consolas", 9), bg="#1e1e1e", fg="#aaaaaa",
                             anchor="w")
 lbl_sweep_status.grid(row=6, column=0, columnspan=2, sticky="ew", padx=5)
+
+
+def start_sweep_manual():
+    """Button-Handler: Sweep unabhaengig vom Laser-Schalter starten.
+
+    Laser und Lock-in muessen verbunden sein (Preflight). Ist der Laser aus, wird
+    nachgefragt, weil ohne Anregung nur Rauschen gemessen wird.
+    """
+    if _sweep_runner is not None and _sweep_runner.is_running:
+        messagebox.showinfo("Sweep", "Der Sweep laeuft bereits.")
+        return
+    if not getattr(State, "L", False) and not is_emergency_bypass:
+        if not messagebox.askyesno(
+                "Laser ist aus",
+                "Der Laser ist ausgeschaltet - der Lock-in sieht dann kein Signal und die "
+                "Phase ist reines Rauschen.\n\nSweep trotzdem starten?"):
+            return
+    cfg = prepare_sweep(offer_fallback=True)
+    if cfg is not None:
+        start_sweep(cfg)
+
+
+def stop_sweep_manual():
+    """Button-Handler: laufenden Sweep beenden; Laser und Lock-in bleiben unveraendert."""
+    stop_sweep(update_plot=True)
+
+
+frame_sweep_buttons = tk.Frame(frame_sweep, bg="#1e1e1e")
+frame_sweep_buttons.grid(row=7, column=0, columnspan=2, sticky="ew", padx=5, pady=(5, 5))
+frame_sweep_buttons.columnconfigure((0, 1), weight=1)
+btn_start_sweep = tk.Button(frame_sweep_buttons, text="▶ Start Sweep", font=("Consolas", 9, "bold"),
+                            bg="#2e7d32", fg="white", command=start_sweep_manual)
+btn_start_sweep.grid(row=0, column=0, sticky="ew", padx=(0, 3))
+btn_stop_sweep = tk.Button(frame_sweep_buttons, text="⏹ Stop Sweep", font=("Consolas", 9, "bold"),
+                           bg="#c62828", fg="white", command=stop_sweep_manual)
+btn_stop_sweep.grid(row=0, column=1, sticky="ew", padx=(3, 0))
 
 tab_exp_results = tk.Frame(exp_notebook, bg="#252526")
 exp_notebook.add(tab_exp_results, text="Results")
@@ -2027,7 +2071,20 @@ def apply_laser_settings():
         return
 
     if messagebox.askyesno("Bestätigung", "Sollen die eingegebenen Laser-Parameter an den Controller übertragen werden?"):
+        external_mod = None
         try:
+            # Externe Modulation (LMAX/LMDX) VOR dem Senden pruefen: ist sie nicht nutzbar
+            # oder nicht angeschlossen, wird eine ModulationUnavailableError geworfen und
+            # am Geraet bleibt alles unveraendert (kein kurzer CW-Zustand durch das
+            # Zuruecksetzen der Modi weiter unten).
+            mod_choice = combo_mod_mode.get()
+            if "LMAX" in mod_choice:
+                external_mod = "LMAX"
+            elif "LMDX" in mod_choice:
+                external_mod = "LMDX"
+            if external_mod is not None:
+                Sweep.check_external_modulation(external_mod)
+
             # Reihenfolge: erst Limits, dann Zielwert (sonst kann LCT > altes LCL abgelehnt werden).
             # Die GUI-Felder sind in A, das OSTECH erwartet mA -> *1000.
             Send.set(Send.OSTechS.LCL, v_lcl * 1000.0)
@@ -2058,8 +2115,46 @@ def apply_laser_settings():
             Send.set(Send.OSTechS.LG, 1 if var_lg.get() else 0)
 
             messagebox.showinfo("Laser Controller", "Laser-Einstellungen erfolgreich aktualisiert.")
+
+            # Readback: das Geraet muss den externen Modus im Statuswort bestaetigen.
+            if external_mod is not None:
+                root.after(LASER_VERIFY_DELAY_MS,
+                           lambda mode=external_mod: _verify_external_modulation_after_apply(mode))
+        except Sweep.ModulationUnavailableError as e:
+            Log.Log("Gui", "Laser", "Error", "Modulation", f"{type(e).__name__}: {e}")
+            update_overview_log(f"MODULATION NICHT NUTZBAR: {e}")
+            messagebox.showerror("Modulationsmodus nicht nutzbar",
+                                 f"{e}\n\nEs wurde nichts an den Laser-Controller gesendet.")
         except Exception as e:
             messagebox.showerror("Fehler", f"Übertragung fehlgeschlagen: {e}")
+
+
+def _verify_external_modulation_after_apply(mode):
+    """Prueft nach dem Senden, ob der Laser den externen Modus bestaetigt.
+
+    Meldet das Geraet den Modus nicht, wurden die Modi vorher bereits zurueckgesetzt
+    (= CW). Laeuft der Laser dabei, wird er aus Sicherheitsgruenden gestoppt, damit er
+    nicht unmoduliert mit vollem Strom weiterlaeuft.
+    """
+    try:
+        Sweep.verify_external_modulation(mode)
+    except Sweep.ModulationUnavailableError as e:
+        Log.Log("Gui", "Laser", "Error", "Modulation", f"{type(e).__name__}: {e}")
+        update_overview_log(f"MODULATION NICHT BESTAETIGT: {e}")
+        laser_stopped = False
+        try:
+            if getattr(State, "L", False) and not is_emergency_bypass and Komunikation.OSTECH is not None:
+                Send.set(Send.OSTechS.L, 0)
+                State.L = 0
+                update_laser_toggle_button(False)
+                stop_sweep(update_plot=False)
+                laser_stopped = True
+        except Exception as stop_error:
+            Log.Log("Gui", "Laser", "Error", "Modulation", f"LS fehlgeschlagen: {stop_error}")
+        extra = "\n\nDer Laser wurde aus Sicherheitsgruenden gestoppt." if laser_stopped else ""
+        messagebox.showerror("Modulationsmodus nicht bestaetigt", f"{e}{extra}")
+    except Exception as e:
+        Log.Log("Gui", "Laser", "Error", "Modulation", f"Readback: {type(e).__name__}: {e}")
 
 def reset_laser_defaults():
     if messagebox.askyesno("Reset", "Laser-Parameter auf Werkseinstellungen zurücksetzen?"):

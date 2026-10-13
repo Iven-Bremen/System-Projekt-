@@ -130,11 +130,44 @@ def _port_open(port) -> bool:
     return port is not None and getattr(port, "is_open", True)
 
 
-def preflight(require_laser: bool = True) -> None:
-    """Prueft VOR dem Laserstart, ob ein Sweep wirklich moeglich ist.
+def _raise_if_not_connected(missing: list[str]) -> None:
+    if missing:
+        ports = State.AVAILABLE_COM_PORTS
+        hint = "kein COM-Port gefunden" if not ports else f"gefundene COM-Ports: {ports}"
+        raise NoDeviceError(f"Nicht verbunden: {', '.join(missing)} ({hint}).")
 
-    - SR830 (und bei ``require_laser`` auch der OSTECH) muss verbunden sein
-    - der SR830 muss antworten und auf interner Referenz stehen
+
+def check_lockin_ready() -> None:
+    """Prueft, ob der SR830 fuer einen Sweep nutzbar ist (unabhaengig vom Laser).
+
+    :raises NoDeviceError: SR830 nicht verbunden bzw. Port nicht offen
+    :raises SweepError: SR830 antwortet nicht oder steht auf externer Referenz
+    """
+    _raise_if_not_connected([] if _port_open(Komunikation.SR830) else ["SR830 (Lock-in)"])
+    try:
+        _hw_check_reference_internal()
+        _hw_time_constant_s()
+    except SweepError:
+        raise
+    except Exception as error:
+        raise SweepError(f"Der SR830 antwortet nicht korrekt: {type(error).__name__}: {error}")
+
+
+def check_laser_connected() -> None:
+    """Prueft, ob der OSTECH-Laser-Controller verbunden ist (unabhaengig vom Lock-in).
+
+    :raises NoDeviceError: OSTECH nicht verbunden bzw. Port nicht offen
+    """
+    _raise_if_not_connected([] if _port_open(Komunikation.OSTECH) else ["OSTECH (Laser)"])
+
+
+def preflight(require_laser: bool = True) -> None:
+    """Prueft, ob ein Sweep wirklich moeglich ist.
+
+    Setzt sich aus den unabhaengig nutzbaren Einzelpruefungen
+    ``check_lockin_ready()`` und (bei ``require_laser``) ``check_laser_connected()``
+    zusammen. Beide Geraete koennen auch ohne Sweep benutzt werden; diese Funktion
+    wird nur vor einem Sweep aufgerufen.
 
     :raises NoDeviceError: Geraet fehlt bzw. Port nicht offen
     :raises SweepError: Geraet vorhanden, aber nicht nutzbar (keine Antwort, externe Referenz)
@@ -144,17 +177,106 @@ def preflight(require_laser: bool = True) -> None:
         missing.append("SR830 (Lock-in)")
     if require_laser and not _port_open(Komunikation.OSTECH):
         missing.append("OSTECH (Laser)")
-    if missing:
-        ports = State.AVAILABLE_COM_PORTS
-        hint = "kein COM-Port gefunden" if not ports else f"gefundene COM-Ports: {ports}"
-        raise NoDeviceError(f"Nicht verbunden: {', '.join(missing)} ({hint}).")
-    try:
-        _hw_check_reference_internal()
-        _hw_time_constant_s()
-    except SweepError:
-        raise
-    except Exception as error:
-        raise SweepError(f"Der SR830 antwortet nicht korrekt: {type(error).__name__}: {error}")
+    _raise_if_not_connected(missing)
+    check_lockin_ready()
+
+
+# ---------------------------------------------------------------------------
+# Externe Modulation des Lasers (LMAX analog / LMDX digital)
+# ---------------------------------------------------------------------------
+# Der OSTECH kann nicht erkennen, ob an AMOD/DMOD ein Kabel steckt; er meldet
+# nur im Statuswort (GS), ob der Modus aktiv ist (0x0080 = LMAX ON, 0x0040 = LMDX ON).
+# "Nutzbar/angeschlossen" wird daher so geprueft:
+#   1. Laser-Controller verbunden,
+#   2. LMAX: die Signalquelle (SR830 Sine Out -> AMOD) ist verbunden und liefert Spannung,
+#   3. nach dem Senden: das Geraet bestaetigt den Modus im Statuswort (Readback).
+# Der SR830 kann Sine Out nicht auf exakt 0 V setzen (Minimum 4 mV), deshalb eine Schwelle.
+SINE_OUT_MIN_ACTIVE_V = 0.01
+
+EXTERNAL_MODULATION_MODES = {
+    "LMAX": "External Modulation (analog, AMOD)",
+    "LMDX": "External Modulation (digital, DMOD)",
+}
+# Moegliche Schluessel des dekodierten Statusworts (State.OSTECH_STATUS / State.GS).
+# Falls Komunikation.py die Bits anders benennt, hier die Namen ergaenzen.
+_MODULATION_STATUS_KEYS = {
+    "LMAX": ("lmax_on", "LMAX_ON", "LMAX", "lmax"),
+    "LMDX": ("lmdx_on", "LMDX_ON", "LMDX", "lmdx"),
+}
+
+
+class ModulationUnavailableError(RuntimeError):
+    """Externer Modulationsmodus (LMAX/LMDX) ist nicht nutzbar bzw. nicht angeschlossen."""
+
+
+def _normalize_modulation_mode(mode: str) -> str:
+    key = str(mode).strip().upper()
+    if key not in EXTERNAL_MODULATION_MODES:
+        raise ValueError(f"Unbekannter externer Modulationsmodus '{mode}' (erlaubt: LMAX, LMDX).")
+    return key
+
+
+def check_external_modulation(mode: str) -> None:
+    """Prueft VOR dem Senden, ob ein externer Modulationsmodus nutzbar ist.
+
+    :param mode: ``"LMAX"`` (analog) oder ``"LMDX"`` (digital)
+    :raises ModulationUnavailableError: Laser nicht verbunden, bei LMAX zusaetzlich
+        Signalquelle (SR830) nicht verbunden bzw. Sine Out aus
+    """
+    key = _normalize_modulation_mode(mode)
+    label = EXTERNAL_MODULATION_MODES[key]
+    if not _port_open(Komunikation.OSTECH):
+        raise ModulationUnavailableError(
+            f"{label} ({key}) nicht nutzbar: Der OSTECH-Laser-Controller ist nicht verbunden.")
+    if key == "LMAX":
+        if not _port_open(Komunikation.SR830):
+            raise ModulationUnavailableError(
+                f"{label} (LMAX) nicht nutzbar: Die Signalquelle (SR830 Sine Out -> AMOD) "
+                "ist nicht verbunden.")
+        try:
+            level = float(Send.read("SLVL?", return_type=str).strip())
+        except Exception as error:
+            raise ModulationUnavailableError(
+                f"{label} (LMAX) nicht nutzbar: Der SR830 antwortet nicht auf SLVL? "
+                f"({type(error).__name__}: {error}).")
+        if level < SINE_OUT_MIN_ACTIVE_V:
+            raise ModulationUnavailableError(
+                f"{label} (LMAX) nicht nutzbar: Sine Out des SR830 steht auf {level:.3f} V (AUS), "
+                "am AMOD-Eingang liegt kein Modulationssignal an. "
+                "Zuerst 'Start Sine Out' bzw. 'Apply Reference' ausfuehren.")
+
+
+def modulation_mode_confirmed(mode: str):
+    """Liest aus dem dekodierten Geraetestatus, ob der Modus aktiv ist.
+
+    :return: True/False, oder None, wenn der Status keinen passenden Schluessel enthaelt
+        (dann kann das Geraet den Modus nicht bestaetigen - kein Fehler).
+    """
+    key = _normalize_modulation_mode(mode)
+    for source in (getattr(State, "OSTECH_STATUS", None), getattr(State, "GS", None)):
+        if not isinstance(source, dict):
+            continue
+        for name in _MODULATION_STATUS_KEYS[key]:
+            if name in source:
+                return bool(source[name])
+    return None
+
+
+def verify_external_modulation(mode: str) -> None:
+    """Prueft NACH dem Senden, ob der Laser-Controller den Modus bestaetigt.
+
+    :raises ModulationUnavailableError: Geraet meldet den Modus nicht als aktiv
+    """
+    key = _normalize_modulation_mode(mode)
+    confirmed = modulation_mode_confirmed(key)
+    if confirmed is None:
+        Log.Log("Calc", "Laser", "Warning", "Modulation",
+                f"{key}: Statuswort enthaelt kein Bit fuer diesen Modus - nicht bestaetigt")
+        return
+    if not confirmed:
+        raise ModulationUnavailableError(
+            f"{EXTERNAL_MODULATION_MODES[key]} ({key}): Der Laser-Controller meldet den Modus "
+            "nicht als aktiv (Status GS). Modus nicht verfuegbar oder Befehl nicht angenommen.")
 
 
 # ---------------------------------------------------------------------------
