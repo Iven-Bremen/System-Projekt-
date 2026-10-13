@@ -180,8 +180,9 @@ def change_language(lang_code):
 # ==========================================
 # HARDWARE VARIABLEN & STEUERUNG
 # ==========================================
-LOCK_IN_AMPLIFIER_PORT = Komunikation.DEFAULT_SR830_PORT
-LASER_PORT = Komunikation.DEFAULT_OSTECH_PORT
+LOCK_IN_AMPLIFIER_PORT, LASER_PORT = Starter.get_preferred_com_ports()
+entry_com_lockin = None
+entry_com_laser = None
 
 current_file_path = None
 is_lockin_connected = False
@@ -194,14 +195,14 @@ def restart_communication_threads():
     stop_communication_threads()
     if is_lockin_connected or is_laser_connected:
         try:
-            communication_threads = Komunikation.start_threaded_measurement()
+            communication_threads = Komunikation.start_communication_loop()
         except Exception as e:
             Log.Log("Gui", "CommThreads", "Error", "Start Threads", str(e))
 
 def stop_communication_threads():
     global communication_threads
     if communication_threads is not None:
-        communication_threads.stop()
+        Komunikation.stop_communication_loop()
         communication_threads = None
 
 def get_available_com_ports():
@@ -291,6 +292,9 @@ def connect_lockin():
     if sr830_dev is not None:
         LOCK_IN_AMPLIFIER_PORT = Komunikation.SR830_PORT
         is_lockin_connected = True
+        if entry_com_lockin is not None:
+            entry_com_lockin.delete(0, tk.END)
+            entry_com_lockin.insert(0, LOCK_IN_AMPLIFIER_PORT)
     else:
         is_lockin_connected = False
     restart_communication_threads()
@@ -315,6 +319,9 @@ def connect_laser():
     if ostech_dev is not None:
         LASER_PORT = Komunikation.OSTECH_PORT
         is_laser_connected = True
+        if entry_com_laser is not None:
+            entry_com_laser.delete(0, tk.END)
+            entry_com_laser.insert(0, LASER_PORT)
     else:
         is_laser_connected = False
     restart_communication_threads()
@@ -345,19 +352,20 @@ def disconnect_all_hardware():
 # HARDWARE STEUERUNGSLEISTEN
 # ------------------------------------------
 def create_lockin_control_bar(parent):
+    global entry_com_lockin
     frame = tk.LabelFrame(parent, text=" Lock-In Connection Control ", font=("Consolas", 10, "bold"),
                           bg="#1e1e1e", fg="#00ffcc", padx=10, pady=8)
     frame.pack(fill="x", padx=10, pady=5)
 
     tk.Label(frame, text="COM Port:", bg="#1e1e1e", fg="#ffffff", font=("Consolas", 9, "bold")).pack(side="left", padx=5)
 
-    entry_com = ttk.Entry(frame, width=12)
-    entry_com.insert(0, LOCK_IN_AMPLIFIER_PORT if LOCK_IN_AMPLIFIER_PORT else "COM3")
-    entry_com.pack(side="left", padx=5)
+    entry_com_lockin = ttk.Entry(frame, width=12)
+    entry_com_lockin.insert(0, LOCK_IN_AMPLIFIER_PORT)
+    entry_com_lockin.pack(side="left", padx=5)
 
     def do_connect():
         global LOCK_IN_AMPLIFIER_PORT
-        LOCK_IN_AMPLIFIER_PORT = entry_com.get().strip()
+        LOCK_IN_AMPLIFIER_PORT = entry_com_lockin.get().strip()
         connect_lockin()
 
     btn_connect = tk.Button(frame, text="🔌 Connect Lock-In", font=("Consolas", 8, "bold"), bg="#2e7d32", fg="white",
@@ -374,19 +382,20 @@ def create_lockin_control_bar(parent):
     return frame
 
 def create_laser_control_bar(parent):
+    global entry_com_laser
     frame = tk.LabelFrame(parent, text=" Laser Connection Control ", font=("Consolas", 10, "bold"),
                           bg="#1e1e1e", fg="#00ffcc", padx=10, pady=8)
     frame.pack(fill="x", padx=10, pady=5)
 
     tk.Label(frame, text="COM Port:", bg="#1e1e1e", fg="#ffffff", font=("Consolas", 9, "bold")).pack(side="left", padx=5)
 
-    entry_com = ttk.Entry(frame, width=12)
-    entry_com.insert(0, LASER_PORT if LASER_PORT else "COM4")
-    entry_com.pack(side="left", padx=5)
+    entry_com_laser = ttk.Entry(frame, width=12)
+    entry_com_laser.insert(0, LASER_PORT)
+    entry_com_laser.pack(side="left", padx=5)
 
     def do_connect():
         global LASER_PORT
-        LASER_PORT = entry_com.get().strip()
+        LASER_PORT = entry_com_laser.get().strip()
         connect_laser()
 
     btn_connect = tk.Button(frame, text="🔌 Connect Laser", font=("Consolas", 8, "bold"), bg="#2e7d32", fg="white",

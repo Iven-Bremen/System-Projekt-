@@ -88,12 +88,10 @@ def _compact_gui_entry(raw_message, fallback_tag="LOG"):
 
 
 def gui_live_log_filter(formatted_message):
-    """Zentrale Sichtbarkeitsregel fuer das GUI-Live-Log.
-
-    Alle Eintraege ausser ``Running`` werden immer angezeigt. Bei ``Running``
-    werden nur definierte relevante Befehle erlaubt, damit der Live-Log nicht
-    mit polling- und status-Noise ueberschwemm wird.
-    """
+    """Central visibility rule for the GUI Live Log."
+    "All entries except 'Running' are always displayed. 
+    For 'Running', only defined relevant commands are allowed 
+    so that the live log is not flooded with polling and status noise."""
     if not isinstance(formatted_message, str):
         return True
     if "| Running |" not in formatted_message:
@@ -512,13 +510,12 @@ def Log(Category: str, TAG: str, State: str, Message: str, Value: str, Info: str
             pass
 
 def Look_Up_CSV(Category: str, TAG: str, Message: str, State: str = " "):
-    """Sucht passende Eintraege in der aktuell verwendeten CSV-Datei.
+    """Searches for matching entries in the currently used CSV file.
 
-    `Category`, `TAG` und `Message` werden immer exakt verglichen. Wenn
-    `State` leer oder nur aus Leerzeichen besteht, wird jeder Status akzeptiert;
-    andernfalls muss auch der Status exakt passen. Zur weiteren Verarbeitung
-    werden nur die angeforderten Datenfelder als Liste von Dictionaries
-    zurueckgegeben.
+    'Category', 'TAG', and 'Message' are always compared exactly. 
+    If 'State' is empty or consists only of spaces, any status is accepted; otherwise, 
+    the status must also match exactly. For further processing, 
+    only the requested data fields are returned as a list of dictionaries."
     """
     log_path = _get_active_log_path()
     result = []
@@ -541,18 +538,18 @@ def Look_Up_CSV(Category: str, TAG: str, Message: str, State: str = " "):
 
 
 def Merge_Look_Up_CSV(first_lookup, second_lookup):
-    """Fuehrt zwei Look-Up-Ergebnisse nach ihrem Zeitstempel zusammen.
+    """Merges two look-up results according to their timestamp.
 
-    Die Argumente sind die Listen, die `Look_Up_CSV()` zurueckgibt. Bei jedem
-    Schritt wird der zeitlich aeltere Eintrag uebernommen. Ist der erste
-    Zeitstempel kleiner, kommt der Eintrag aus `first_lookup`; andernfalls
-    kommt er aus `second_lookup`. Bei gleichem Zeitstempel wird also der
+    The arguments are the lists returned by `Look_Up_CSV()`. At each step,
+    the temporally older entry is taken. If the first timestamp is smaller,
+    the entry from `first_lookup` is used; otherwise, the entry from
+    `second_lookup` is used. If the timestamps are equal, the entry from
+    `second_lookup` is used.
     zweite Eintrag zuerst genommen.
 
-    Jeder zurueckgegebene Eintrag erhaelt das zusaetzliche Feld `Source` mit
-    dem Wert `1` oder `2`, damit erkennbar bleibt, aus welcher Suche er
-    stammt. Beide Eingabelisten werden dabei nicht veraendert.
-    """
+    Each returned entry receives the additional field 'Source' with the value 
+    '1' or '2' so that it remains clear which search it came from. 
+    Both input lists are not modified in the process."""
     def timestamp(row):
         try:
             return datetime.strptime(

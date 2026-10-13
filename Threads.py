@@ -47,28 +47,16 @@ class DeviceThread:
         self.thread = threading.Thread(target=self._run, name=name)
 
     def start(self):
-        """Start the worker exactly once.
-
-        The thread object cannot be started a second time. The coordinator
-        therefore owns the lifecycle and calls this method only during startup.
-        """
+        """Start the worker exactly once."""
         self.thread.start()
 
     def stop(self):
-        """Wake the consumer with a sentinel and wait for clean termination."""
-        if self._stop_requested.is_set():
+        """Request termination and wait briefly for the device loop to exit."""
+        if self.stop_requested.is_set():
             return
-        self._stop_requested.set()
-        try:
-            self._messages.put(None)
-        except Exception:
-            pass
-
+        self.stop_requested.set()
         if self.thread.is_alive() and threading.current_thread() != self.thread:
-            try:
-                self.thread.join(timeout=1.0)
-            except Exception:
-                pass
+            self.thread.join(timeout=1.0)
 
     def _run(self):
         try:
@@ -106,9 +94,10 @@ class MessageThread:
 
     def stop(self):
         """Wake the consumer with a sentinel and wait for clean termination."""
-        if self.stop_requested.is_set():
+        if self._stop_requested.is_set():
             return
-        self.stop_requested.set()
+        self._stop_requested.set()
+        self._messages.put(None)
 
         if self.thread.is_alive() and threading.current_thread() != self.thread:
             try:

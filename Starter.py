@@ -19,6 +19,8 @@ import threading
 import time
 import State
 from Komunikation import (
+    DEFAULT_OSTECH_PORT,
+    DEFAULT_SR830_PORT,
     ask_OSTECH,
     ask_SR830,
     close_devices,
@@ -85,6 +87,19 @@ def get_available_com_ports():
     else:
         print(ports)
     return ports
+
+
+def get_preferred_com_ports(ports=None):
+    """Choose distinct GUI defaults from the startup scan, retaining known defaults when present."""
+    available = list(ports if ports is not None else State.AVAILABLE_COM_PORTS)
+    sr830_port = DEFAULT_SR830_PORT if DEFAULT_SR830_PORT in available else (
+        available[0] if available else DEFAULT_SR830_PORT
+    )
+    other_ports = [port for port in available if port != sr830_port]
+    ostech_port = DEFAULT_OSTECH_PORT if DEFAULT_OSTECH_PORT in other_ports else (
+        other_ports[0] if other_ports else DEFAULT_OSTECH_PORT
+    )
+    return sr830_port, ostech_port
 
 def init_hardware():
     """Start logging and perform the initial non-invasive port scan.

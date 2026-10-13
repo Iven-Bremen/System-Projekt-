@@ -58,27 +58,27 @@ OSTechCommandInfo = namedtuple("OSTechCommandInfo", ["command", "type", "unit", 
 class SR830G:
     """Query-only SR830 commands: read-only / monitoring commands."""
 
-    OUTP_X = SR830CommandInfo("OUTP? 1", float, "V", "Liest X-Wert")
-    OUTP_Y = SR830CommandInfo("OUTP? 2", float, "V", "Liest Y-Wert")
-    OUTP_R = SR830CommandInfo("OUTP? 3", float, "V", "Liest R-Wert (Magnitude)")
-    OUTP_THETA = SR830CommandInfo("OUTP? 4", float, "deg", "Liest Theta (Phase)")
+    OUTP_X = SR830CommandInfo("OUTP? 1", float, "V", "Reads X-value")
+    OUTP_Y = SR830CommandInfo("OUTP? 2", float, "V", "Reads Y-value")
+    OUTP_R = SR830CommandInfo("OUTP? 3", float, "V", "Reads R-value (Magnitude)")
+    OUTP_THETA = SR830CommandInfo("OUTP? 4", float, "deg", "Reads Theta (Phase)")
 
-    OUTR_CH1 = SR830CommandInfo("OUTR? 1", float, "", "Liest CH1 Display")
-    OUTR_CH2 = SR830CommandInfo("OUTR? 2", float, "", "Liest CH2 Display")
+    OUTR_CH1 = SR830CommandInfo("OUTR? 1", float, "", "Reads CH1 Display")
+    OUTR_CH2 = SR830CommandInfo("OUTR? 2", float, "", "Reads CH2 Display")
 
-    OAUX_IN1 = SR830CommandInfo("OAUX? 1", float, "V", "Liest Aux Input 1")
-    OAUX_IN2 = SR830CommandInfo("OAUX? 2", float, "V", "Liest Aux Input 2")
-    OAUX_IN3 = SR830CommandInfo("OAUX? 3", float, "V", "Liest Aux Input 3")
-    OAUX_IN4 = SR830CommandInfo("OAUX? 4", float, "V", "Liest Aux Input 4")
+    OAUX_IN1 = SR830CommandInfo("OAUX? 1", float, "V", "Reads Aux Input 1")
+    OAUX_IN2 = SR830CommandInfo("OAUX? 2", float, "V", "Reads Aux Input 2")
+    OAUX_IN3 = SR830CommandInfo("OAUX? 3", float, "V", "Reads Aux Input 3")
+    OAUX_IN4 = SR830CommandInfo("OAUX? 4", float, "V", "Reads Aux Input 4")
 
-    SNAP_XY = SR830CommandInfo("SNAP? 1,2", str, "V, V", "Gleichzeitiges Lesen von X und Y")
-    SNAP_R_THETA = SR830CommandInfo("SNAP? 3,4", str, "V, deg", "Gleichzeitiges Lesen von R und Theta")
-    SNAP_XY_R_TH = SR830CommandInfo("SNAP? 1,2,3,4", str, "V, V, V, deg", "Liest X, Y, R und Theta")
-    SNAP_ALL_MAIN = SR830CommandInfo("SNAP? 1,2,3,4,10,11", str, "V, V, V, deg, V, V", "Liest X, Y, R, Theta, CH1 und CH2")
-    SNAP_AUX_FREQ = SR830CommandInfo("SNAP? 5,6,7,8,9", str, "V, V, V, V, Hz", "Liest Aux1, Aux2, Aux3, Aux4 und RefFreq")
+    SNAP_XY = SR830CommandInfo("SNAP? 1,2", str, "V, V", "Reads X-value and Y-value")
+    SNAP_R_THETA = SR830CommandInfo("SNAP? 3,4", str, "V, deg", "Reads R-value and Theta")
+    SNAP_XY_R_TH = SR830CommandInfo("SNAP? 1,2,3,4", str, "V, V, V, deg", "Reads X, Y, R and Theta")
+    SNAP_ALL_MAIN = SR830CommandInfo("SNAP? 1,2,3,4,10,11", str, "V, V, V, deg, V, V", "Reads X, Y, R, Theta, CH1 and CH2")
+    SNAP_AUX_FREQ = SR830CommandInfo("SNAP? 5,6,7,8,9", str, "V, V, V, V, Hz", "Reads Aux1, Aux2, Aux3, Aux4 and RefFreq")
 
-    SPTS = SR830CommandInfo("SPTS?", int, "points", "Liest Anzahl der gespeicherten Datenpunkte")
-    IDN = SR830CommandInfo("*IDN?", str, "", "Liest die Geräte-Identifikation")
+    SPTS = SR830CommandInfo("SPTS?", int, "points", "Reads number of stored data points")
+    IDN = SR830CommandInfo("*IDN?", str, "", "Reads device identification")
 
     # ERRS? und LIAS? sind keine Konfigurationsbefehle, sondern reine Statusabfragen.
     # Sie liefern interne Zustandsbytes des SR830 und werden daher in der API als
@@ -87,8 +87,8 @@ class SR830G:
     #
     # Der eigentliche serielle Austausch passiert in Komunikation.ask_SR830().
     # Diese Klasse hier beschreibt nur die Bedeutung des Befehls und dessen Typ.
-    ERRS = SR830CommandInfo("ERRS?", int, "", "Liest das Error Status Byte")
-    LIAS = SR830CommandInfo("LIAS?", int, "", "Liest das LIA Status Byte")
+    ERRS = SR830CommandInfo("ERRS?", int, "", "Reads das Error Status Byte")
+    LIAS = SR830CommandInfo("LIAS?", int, "", "Reads das LIA Status Byte")
 
     @staticmethod
     def read(command_info, return_type=None):

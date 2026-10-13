@@ -740,12 +740,21 @@ def start_communication_loop(*, tick_ms=DEFAULT_TICK_MS, cycles=DEFAULT_CYCLES, 
     """Start or reuse the global communication pipeline for the currently open devices."""
     global _ACTIVE_COMMUNICATION_THREADS
     if _ACTIVE_COMMUNICATION_THREADS is not None:
-        running = []
-        if getattr(_ACTIVE_COMMUNICATION_THREADS, "sr830", None) is not None:
-            running.append(_ACTIVE_COMMUNICATION_THREADS.sr830.thread.is_alive())
-        if getattr(_ACTIVE_COMMUNICATION_THREADS, "ostech", None) is not None:
-            running.append(_ACTIVE_COMMUNICATION_THREADS.ostech.thread.is_alive())
-        if any(running):
+        expected = {"sr830": SR830 is not None, "ostech": OSTECH is not None}
+        active = _ACTIVE_COMMUNICATION_THREADS
+        same_devices = all(
+            (getattr(active, name, None) is not None) == enabled
+            for name, enabled in expected.items()
+        )
+        all_running = all(
+            not enabled or (
+                getattr(active, name, None) is not None
+                and active_worker.thread.is_alive()
+            )
+            for name, enabled in expected.items()
+            for active_worker in [getattr(active, name, None)]
+        )
+        if same_devices and all_running and any(expected.values()):
             return _ACTIVE_COMMUNICATION_THREADS
         stop_communication_loop()
 

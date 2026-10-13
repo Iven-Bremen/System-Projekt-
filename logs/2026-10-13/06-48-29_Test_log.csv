@@ -1,0 +1,9 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-10-13,06:48:29,433,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-10-13,06:48:29,433,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-10-13,06:48:29,434,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-10-13,06:48:29,434,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-10-13,06:48:29,440,OUTPUT,TERMINAL,OUTPUT,No COM ports available,,,,,,
+2026-10-13,06:48:29,449,Sys,SYSTEM,Info,COM-Port Scan,[],Startup,,,,
+2026-10-13,06:48:29,458,Calc,CALCULATION,Info,calculation ready,No calculations configured,STARTER,,,,
+2026-10-13,06:48:30,588,Sys,GUI,Error,GUI konnte nicht gestartet werden,ModuleNotFoundError: No module named 'pandas',GUI,,,,
