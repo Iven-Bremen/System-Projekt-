@@ -1,0 +1,6 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-10-12,15:00:24,648,Gui,Button,Info,Button clicked,🔌 Connect Lock-In,,,,,
+2026-10-12,15:00:24,668,Comm,COM3,Warning,Try connect,FAILED,"could not open port 'COM3': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)",SR830,,,
+2026-10-12,15:00:28,250,Comm,COM6,Warning,Try connect,FAILED,Keine SR830-Antwort auf *IDN? (erhalten: ''),SR830,,,
+2026-10-12,15:00:31,819,Comm,COM7,Warning,Try connect,FAILED,Keine SR830-Antwort auf *IDN? (erhalten: ''),SR830,,,
+2026-10-12,15:00:44,707,Comm,COM5,Warning,Try connect,FAILED,"could not open port 'COM5': OSError(22, 'Das Zeitlimit für die Semaphore wurde erreicht.', None, 121)",SR830,,,

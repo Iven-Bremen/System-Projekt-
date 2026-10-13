@@ -1,0 +1,5 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-10-12,14:34:22,939,Gui,Button,Info,Button clicked,🧬 Digital Twin,,,,,
+2026-10-12,14:35:09,175,Gui,Button,Info,Button clicked,🔌 Connect Lock-In,,,,,
+2026-10-12,14:35:09,227,Comm,COM3,Warning,Try connect,FAILED,"could not open port 'COM3': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)",SR830,,,
+2026-10-12,14:35:22,116,Comm,COM5,Warning,Try connect,FAILED,"could not open port 'COM5': OSError(22, 'Das Zeitlimit für die Semaphore wurde erreicht.', None, 121)",SR830,,,
