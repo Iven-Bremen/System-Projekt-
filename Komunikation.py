@@ -82,10 +82,10 @@ OSTECH_SETTING_QUERIES = (
     ("LMW", "LMW", float, None), ("LMP", "LMP", float, None),
     ("LMDIC", "LMDIC", int, None), ("LZTR", "LZTR", float, None),
     ("LTM", "LTM", float, "LTM"),
-    ("1TT", "1TT", float, "XTT"), ("1TLU", "1TLU", float, None),
-    ("1TLL", "1TLL", float, None), ("1TCL", "1TCL", float, None),
-    ("1TCCK", "1TCCK", float, None), ("1TCCN", "1TCCN", float, None),
-    ("1TCCV", "1TCCV", float, None),
+    ("1TT", "xTT", float, "XTT"), ("1TLU", "xTLU", float, None),
+    ("1TLL", "xTLL", float, None), ("1TCL", "xTCL", float, None),
+    ("1TCCK", "xTCCK", float, None), ("1TCCN", "xTCCN", float, None),
+    ("1TCCV", "xTCCV", float, None),
     ("PP", "PP", int, None), ("GFD", "GFD", float, None),
 )
 # Schalter, die aus GS/GM (Bits) abgeleitet werden, plus Werte aus dem Dauer-Polling.
@@ -163,23 +163,22 @@ class OSTECHResult:
 class OSTECHCommand(Enum):
     """Supported OSTECH measurement commands (binary-mode reads).
 
-    ``x`` aus dem Handbuch ist durch ``1`` (erster TEC / Laser-TEC) ersetzt.
-    Die Namen (XTA, XTCA ...) bleiben bewusst gleich, weil ``State`` und GUI
-    diese Namen verwenden.
+    The controller expects the literal ``x`` selector for TEC commands.
+    Public names (XTA, XTCA, ...) stay unchanged for ``State`` and the GUI.
     """
 
     # Regelmaessige Messwerte
     LCT = OSTECHCommandInfo("LCT", float, "mA")
-    XTA = OSTECHCommandInfo("1TA", float, "C")
+    XTA = OSTECHCommandInfo("xTA", float, "C")
     LVA = OSTECHCommandInfo("LVA", float, "V")
-    XTCA = OSTECHCommandInfo("1TCA", float, "mA")
-    XTVA = OSTECHCommandInfo("1TVA", float, "V")
+    XTCA = OSTECHCommandInfo("xTCA", float, "mA")
+    XTVA = OSTECHCommandInfo("xTVA", float, "V")
     LCA = OSTECHCommandInfo("LCA", float, "mA")
     GT = OSTECHCommandInfo("GT", float, "C")
     GS = OSTECHCommandInfo("GS", int)
     GM = OSTECHCommandInfo("GM", int)
     # Einmalige Startabfragen
-    XTT = OSTECHCommandInfo("1TT", float, "C")
+    XTT = OSTECHCommandInfo("xTT", float, "C")
     LTM = OSTECHCommandInfo("LTM", float, "C")
     GVN = OSTECHCommandInfo("GVN", int)
 

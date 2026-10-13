@@ -265,10 +265,10 @@ class OSTechG:
     LPCA = OSTechCommandInfo("LPCA", float, "uA", "laser photo current actual")
     LPA  = OSTechCommandInfo("LPA", float, "W", "laser power actual")
 
-    # --- Temperature and TEC 1 Actuals (Präfix 1 für Sensor/TEC 1)[cite: 2] ---
-    T1A  = OSTechCommandInfo("1TA", float, "°C", "actual temperature (TEC 1)")
-    T1CA = OSTechCommandInfo("1TCA", float, "mA", "actual current (TEC 1)")
-    T1VA = OSTechCommandInfo("1TVA", float, "V", "actual voltage (TEC 1)")
+    # --- TEC actual values use the controller's literal x selector ---
+    T1A  = OSTechCommandInfo("xTA", float, "°C", "actual temperature (TEC 1)")
+    T1CA = OSTechCommandInfo("xTCA", float, "mA", "actual current (TEC 1)")
+    T1VA = OSTechCommandInfo("xTVA", float, "V", "actual voltage (TEC 1)")
 
     GT   = OSTechCommandInfo("GT", float, "°C", "device temperature (head)")
     GS   = OSTechCommandInfo("GS", int, "", "get status (Bitmask)")
@@ -340,18 +340,18 @@ class OSTechS:
     PLS = OSTechCommandInfo("PLS", None, "", "pilot laser stop")
     PP  = OSTechCommandInfo("PP", int, "", "pilot laser modulation (0 to 16)")
 
-    # --- Temperature Controller TEC 1 (Präfix 1)[cite: 2] ---
-    T1C = OSTechCommandInfo("1TC", bool, "", "temperature controller 1 stop/run (S/R)")
-    T1CR = OSTechCommandInfo("1TCR", None, "", "temperature controller 1 run")
-    T1CS = OSTechCommandInfo("1TCS", None, "", "temperature controller 1 stop")
-    T1TT = OSTechCommandInfo("1TT", float, "°C", "temperature target TEC 1")
-    T1TLU = OSTechCommandInfo("1TLU", float, "°C", "upper temperature limit TEC 1")
-    T1TLL = OSTechCommandInfo("1TLL", float, "°C", "lower temperature limit TEC 1")
-    T1CL = OSTechCommandInfo("1TCL", float, "mA", "current limit TEC 1")
+    # --- Temperature controller TEC commands use the literal x selector ---
+    T1C = OSTechCommandInfo("xTC", bool, "", "temperature controller 1 stop/run (S/R)")
+    T1CR = OSTechCommandInfo("xTCR", None, "", "temperature controller 1 run")
+    T1CS = OSTechCommandInfo("xTCS", None, "", "temperature controller 1 stop")
+    T1TT = OSTechCommandInfo("xTT", float, "°C", "temperature target TEC 1")
+    T1TLU = OSTechCommandInfo("xTLU", float, "°C", "upper temperature limit TEC 1")
+    T1TLL = OSTechCommandInfo("xTLL", float, "°C", "lower temperature limit TEC 1")
+    T1CL = OSTechCommandInfo("xTCL", float, "mA", "current limit TEC 1")
     
-    T1CCK = OSTechCommandInfo("1TCCK", float, "", "PID parameter: gain factor TEC 1")
-    T1CCN = OSTechCommandInfo("1TCCN", float, "s", "PID parameter: reset time TEC 1")
-    T1CCV = OSTechCommandInfo("1TCCV", float, "s", "PID parameter: rate time TEC 1")
+    T1CCK = OSTechCommandInfo("xTCCK", float, "", "PID parameter: gain factor TEC 1")
+    T1CCN = OSTechCommandInfo("xTCCN", float, "s", "PID parameter: reset time TEC 1")
+    T1CCV = OSTechCommandInfo("xTCCV", float, "s", "PID parameter: rate time TEC 1")
 
     GF  = OSTechCommandInfo("GF", float, "V", "fan voltage (1.2 to 24)")
     GFD = OSTechCommandInfo("GFD", float, "V", "default fan voltage")
@@ -471,7 +471,7 @@ _OSTECH_ACTION_DESIRED = {
     "LGR": ("LG", True), "LGS": ("LG", False),
     "LMDIR": ("LMDI", True), "LMDIS": ("LMDI", False),
     "PLR": ("PL", True), "PLS": ("PL", False),
-    "1TCR": ("1TC", True), "1TCS": ("1TC", False),
+    "xTCR": ("1TC", True), "xTCS": ("1TC", False),
 }
 
 
