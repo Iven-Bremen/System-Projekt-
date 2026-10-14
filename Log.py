@@ -161,7 +161,6 @@ def make_log_path(prefix="M", base_name=None):
     date_folder = now.strftime("%Y-%m-%d")
     time_str = now.strftime("%H-%M-%S")
     
-    
     log_dir = os.path.join("logs", date_folder)
     os.makedirs(log_dir, exist_ok=True)
 
@@ -176,18 +175,7 @@ def make_log_path(prefix="M", base_name=None):
 
 
 def _get_active_log_path():
-    """Liefert den aktiven Log-Pfad und erzeugt ihn beim ersten Aufruf.
-
-    Wird noch keine Datei verwendet, legt die Funktion automatisch eine
-    Messdatei an. Danach liefert sie immer denselben Pfad zurueck, damit eine
-    laufende Sitzung nicht versehentlich auf mehrere Dateien verteilt wird.
-    Diese Funktion ist intern und wird normalerweise nicht direkt aufgerufen.
-
-        The first caller creates the session file and its header. Later callers
-        receive the same path, which is important when messages arrive from
-        several worker threads: one application run must not silently split its
-        records across multiple CSV files.
-    """
+    """Liefert den aktiven Log-Pfad und erzeugt ihn beim ersten Aufruf."""
     global _CURRENT_SESSION_LOG_PATH
     if _CURRENT_SESSION_LOG_PATH is None:
         _CURRENT_SESSION_LOG_PATH = make_log_path("M")
@@ -196,28 +184,12 @@ def _get_active_log_path():
 
 
 def get_csv_writer(f):
-    """Erzeugt den gemeinsamen CSV-Schreiber fuer alle Logdateien.
-
-    `f` ist eine bereits geoeffnete Textdatei. Der Rueckgabewert ist ein
-    `csv.writer` mit dem zentral festgelegten Trennzeichen. Alle Schreibwege
-    verwenden diesen Helfer, damit jede CSV-Datei gleich aufgebaut ist.
-    """
+    """Erzeugt den gemeinsamen CSV-Schreiber fuer alle Logdateien."""
     return csv.writer(f, delimiter=CSV_DELIMITER, quoting=csv.QUOTE_MINIMAL)
 
 
 def ensure_log_file(csv_path):
-    """Stellt sicher, dass `csv_path` eine verwendbare CSV-Datei bezeichnet.
-
-    Der benoetigte Ordner und die Datei werden angelegt, falls sie fehlen.
-    Bei einer neuen oder leeren Datei wird ausserdem die Kopfzeile aus
-    `CSV_COLUMNS_NEW` geschrieben. Bereits vorhandene Logdaten werden nicht
-    ueberschrieben. Der Rueckgabewert ist `True` bei einer neuen Datei,
-    ansonsten `False`.
-
-        Header creation and the existence/size check are protected by the same
-        re-entrant lock as row writes. The re-entrant lock is intentional because
-        this helper is called from already locked write paths.
-    """
+    """Stellt sicher, dass `csv_path` eine verwendbare CSV-Datei bezeichnet."""
     directory = os.path.dirname(csv_path)
     if directory:
         os.makedirs(directory, exist_ok=True)
@@ -231,16 +203,7 @@ def ensure_log_file(csv_path):
 
 
 def insert_session_separator(csv_path, mode="HARDWARE"):
-    """Schreibt den Beginn einer neuen Sitzung in die CSV-Datei.
-
-    `csv_path` ist der Pfad der aktiven CSV-Datei. `mode` beschreibt, wie die
-    Sitzung gestartet wurde, zum Beispiel `HARDWARE` oder `SIMULATION`.
-    Der Eintrag ist eine normale, auswertbare CSV-Zeile mit den Pflichtwerten
-    `SESSION`, `SYSTEM`, dem Sitzungsmodus und `Session started`.
-
-    Frueher wurden hier mehrere leere Trennzeilen geschrieben. Das wurde
-    bewusst entfernt, weil leere CSV-Zeilen die spaetere Auswertung stoeren.
-    """
+    """Schreibt den Beginn einer neuen Sitzung in die CSV-Datei."""
     with _LOG_LOCK:
         ensure_log_file(csv_path)
         with open(csv_path, mode="a", newline="", encoding="utf-8") as f:
@@ -254,22 +217,7 @@ def insert_session_separator(csv_path, mode="HARDWARE"):
 
 
 def _append_row(csv_path, row):
-    """Speichert eine vorbereitete CSV-Zeile, wenn sie gueltig ist.
-
-    `csv_path` bezeichnet die Zieldatei und `row` muss eine vollstaendige Liste
-    in der Reihenfolge von `CSV_COLUMNS_NEW` sein. Vor dem Schreiben werden
-    `Category`, `Tag`, `State` und `Message` geprueft. Ist eines dieser Felder
-    leer, wird nichts geschrieben und `False` zurueckgegeben. Bei Erfolg ist
-    der Rueckgabewert `True`.
-
-    Diese zentrale Pruefung verhindert, dass einzelne Aufrufer versehentlich
-    unbrauchbare oder teilweise leere Logzeilen in die CSV-Datei schreiben.
-
-        The whole open-write-close operation is one critical section. This is
-        preferable to keeping a file handle open because each worker can finish a
-        complete record without sharing mutable CSV-writer state with another
-        worker.
-    """
+    """Speichert eine vorbereitete CSV-Zeile, wenn sie gueltig ist."""
     if any(not str(row[index]).strip() for index in REQUIRED_COLUMN_INDEXES):
         return False
     with _LOG_LOCK:
@@ -280,14 +228,7 @@ def _append_row(csv_path, row):
 
 
 def append_terminal_row(csv_path, text, device_tag="TERMINAL"):
-    """Schreibt eine Ausgabezeile aus Terminal, Fehlerstrom oder Eingabe.
-
-    `csv_path` ist die Zieldatei, `text` der auszugebende Inhalt und
-    `device_tag` kennzeichnet die Quelle, zum Beispiel `TERMINAL`, `ERROR` oder
-    `INPUT`. Die Funktion verwendet feste technische Werte fuer Category und
-    State, damit auch automatisch abgefangene Ausgaben die Pflichtfelder
-    besitzen.
-    """
+    """Schreibt eine Ausgabezeile aus Terminal, Fehlerstrom oder Eingabe."""
     with _LOG_LOCK:
         ensure_log_file(csv_path)
         with open(csv_path, mode="a", newline="", encoding="utf-8") as f:
@@ -302,42 +243,24 @@ def append_terminal_row(csv_path, text, device_tag="TERMINAL"):
 
 
 class _Tee:
-    """Verteilt eine Standardausgabe auf Terminal, CSV und GUI-Callbacks.
-
-    ``sys.stdout`` und ``sys.stderr`` werden nach dem Programmstart durch
-    Instanzen dieser Klasse ersetzt. Der originale Stream bleibt sichtbar,
-    während jede verwertbare Textzeile zusätzlich als strukturierte CSV-Zeile
-    und als GUI-Meldung weitergereicht wird. Dadurch müssen bestehende
-    ``print``-Aufrufe nicht einzeln umgebaut werden.
-
-    Leere Zeilen und reine Fortschrittszeichen werden absichtlich verworfen,
-    weil sie keine auswertbare Ereignisinformation enthalten. Die Klasse
-    schreibt niemals selbst in Tkinter-Widgets; sie ruft nur registrierte
-    Callbacks auf und überlässt diesen die Entscheidung, ob ein Queue-Transfer
-    in den GUI-Thread nötig ist.
-    """
+    """Verteilt eine Standardausgabe auf Terminal, CSV und GUI-Callbacks."""
 
     def __init__(self, original, csv_path, device_tag="TERMINAL"):
-        """Erzeugt eine Weiterleitung fuer einen Ausgabekanal.
-
-        `original` ist der urspruengliche Stream, etwa `sys.__stdout__` oder
-        `sys.__stderr__`. `csv_path` ist die Datei, in die Ausgaben geschrieben
-        werden. `device_tag` kennzeichnet den Kanal in der CSV.
-        """
         self.original = original
         self.csv_path = csv_path
         self.device_tag = device_tag
 
     def write(self, message):
         """Schreibt `message` in Stream, CSV und registrierte GUIs."""
-        self.original.write(message)
-        self.original.flush()
+        # Sicherheitsprüfung für fensterlosen Modus (-w / PyInstaller)
+        if self.original is not None:
+            self.original.write(message)
+            self.original.flush()
 
         if message and not message.isspace():
             for line in message.rstrip("\n").splitlines():
                 clean_line = line.strip()
 
-                # Fortschrittszeichen und Leerzeilen sind keine verwertbaren Logs.
                 if not clean_line or set(clean_line).issubset(set(" ^~")):
                     continue
 
@@ -356,46 +279,25 @@ class _Tee:
 
     def flush(self):
         """Leert den urspruenglichen Ausgabestream."""
-        self.original.flush()
+        if self.original is not None:
+            self.original.flush()
 
 
 def start_terminal_logging(prefix="M", csv_path=None, capture_input=True, insert_separator=True):
-    """Aktiviert die automatische Protokollierung von Terminalausgaben.
-
-    Parameter:
-        prefix: `M` fuer Messung oder `T` fuer Simulation. Bestimmt den
-            automatischen Dateinamen und den Sessionmodus.
-        csv_path: Optionaler eigener Dateipfad. Ohne Angabe wird ein neuer
-            Tagesordner mit automatisch erzeugtem Dateinamen verwendet.
-        capture_input: Wenn `True`, werden Antworten auf `input()` ebenfalls
-            protokolliert. Bei `False` bleibt die Eingabe unveraendert.
-        insert_separator: Wenn `True`, wird am Anfang ein Sessioneintrag
-            geschrieben.
-
-    Rueckgabe:
-        Der verwendete CSV-Pfad.
-
-    Die Funktion sollte einmal beim Programmstart aufgerufen werden. Danach
-    bleiben `print()` und Fehlermeldungen im Terminal sichtbar, werden aber
-    zusaetzlich in der CSV-Datei und bei registrierten GUIs abgelegt.
-
-        Calling this function replaces ``sys.stdout`` and ``sys.stderr`` for the
-        current process. The original streams are retained inside ``_Tee`` so
-        diagnostics remain visible. It should therefore be called once, before
-        startup messages are emitted, and not repeatedly from worker threads.
-    """
+    """Aktiviert die automatische Protokollierung von Terminalausgaben."""
     global _CURRENT_SESSION_LOG_PATH
     if csv_path is None:
         csv_path = make_log_path(prefix)
-    
+
     _CURRENT_SESSION_LOG_PATH = csv_path
 
     ensure_log_file(csv_path)
     if insert_separator:
         insert_session_separator(csv_path, mode="SIMULATION" if prefix == "T" else "HARDWARE")
 
-    sys.stdout = _Tee(sys.__stdout__, csv_path, device_tag="TERMINAL")
-    sys.stderr = _Tee(sys.__stderr__, csv_path, device_tag="ERROR")
+    # Sichere Zuweisung für PyInstaller ohne Konsole (-w)
+    sys.stdout = _Tee(getattr(sys, "__stdout__", None), csv_path, device_tag="TERMINAL")
+    sys.stderr = _Tee(getattr(sys, "__stderr__", None), csv_path, device_tag="ERROR")
 
     if capture_input:
         import builtins
@@ -414,44 +316,11 @@ def start_terminal_logging(prefix="M", csv_path=None, capture_input=True, insert
     return csv_path
 
 def Log(Category: str, TAG: str, State: str, Message: str, Value: str, Info: str = "", AdditionalMessage: str = "", AdditionalValue: str = "", AdditionalInfo: str = "", Else: str = ""):
-    """Schreibt einen vollstaendigen Logeintrag an alle drei Ausgabestellen.
-
-    Pflichtparameter:
-        Category: Fachliche oder technische Gruppe, zum Beispiel `SYSTEM`,
-            `COMMUNICATION` oder `MEASUREMENT`.
-        TAG: Kurze Kennzeichnung der Quelle oder des Geraets, zum Beispiel
-            `SR830`, `COM3` oder `GUI`.
-        State: Zustand oder Ergebnis, zum Beispiel `START`, `OK`, `WARNING`
-            oder `FAILED`.
-        Message: Menschenlesbare Beschreibung des Ereignisses.
-        Value: Zugehoeriger Wert. Dieser darf leer sein, weil er nicht zu den
-            vier Pflichtspalten gehoert.
-
-    Optionale Parameter:
-        Info: Kurzer Zusatzstatus.
-        AdditionalMessage: Weiterer beschreibender Text.
-        AdditionalValue: Weiterer Mess- oder Konfigurationswert.
-        AdditionalInfo: Zusatzinformation, etwa Port oder Geraete-ID.
-        Else: Freies Zusatzfeld fuer Sonderfaelle.
-
-    Die Funktion erzeugt Datum, Uhrzeit und Millisekunden automatisch. Sie
-    zeigt den Eintrag sofort im Terminal, informiert alle GUI-Callbacks und
-    schreibt anschliessend eine CSV-Zeile. Ist eines der Pflichtfelder leer,
-    verhindert `_append_row()` das Speichern dieser Zeile.
-
-        This is the preferred structured API. The five mandatory fields identify
-        the event, while optional fields carry protocol details without changing
-        the CSV schema. The terminal representation is intentionally fixed-width
-        for manual reading; the CSV row remains the authoritative machine-readable
-        representation. Callback failures are not allowed to corrupt the file
-        write path, so GUI callbacks should remain small and non-blocking.
-    """
+    """Schreibt einen vollstaendigen Logeintrag an alle drei Ausgabestellen."""
     now = datetime.now()
     time_str = now.strftime("%H:%M:%S")
     ms_str = now.strftime("%f")[:3]
 
-    # CSV rows and terminal formatting both require text, while protocol
-    # responses may legitimately be dictionaries or other structured values.
     Category = str(Category)
     TAG = str(TAG)
     State = str(State)
@@ -484,8 +353,10 @@ def Log(Category: str, TAG: str, State: str, Message: str, Value: str, Info: str
         f"{Else:<10.10}"
     )
 
-    sys.__stdout__.write(ausgabe + "\n")
-    sys.__stdout__.flush()
+    # Nur schreiben, wenn ein stdout-Stream existiert (verhindert Crash bei -w)
+    if sys.__stdout__ is not None:
+        sys.__stdout__.write(ausgabe + "\n")
+        sys.__stdout__.flush()
 
     gui_message = " | ".join(
         field.strip() if isinstance(field, str) else str(field)
@@ -510,13 +381,7 @@ def Log(Category: str, TAG: str, State: str, Message: str, Value: str, Info: str
             pass
 
 def Look_Up_CSV(Category: str, TAG: str, Message: str, State: str = " "):
-    """Searches for matching entries in the currently used CSV file.
-
-    'Category', 'TAG', and 'Message' are always compared exactly. 
-    If 'State' is empty or consists only of spaces, any status is accepted; otherwise, 
-    the status must also match exactly. For further processing, 
-    only the requested data fields are returned as a list of dictionaries."
-    """
+    """Sucht nach übereinstimmenden Einträgen in der aktuell verwendeten CSV-Datei."""
     log_path = _get_active_log_path()
     result = []
     requested_fields = (
@@ -538,18 +403,7 @@ def Look_Up_CSV(Category: str, TAG: str, Message: str, State: str = " "):
 
 
 def Merge_Look_Up_CSV(first_lookup, second_lookup):
-    """Merges two look-up results according to their timestamp.
-
-    The arguments are the lists returned by `Look_Up_CSV()`. At each step,
-    the temporally older entry is taken. If the first timestamp is smaller,
-    the entry from `first_lookup` is used; otherwise, the entry from
-    `second_lookup` is used. If the timestamps are equal, the entry from
-    `second_lookup` is used.
-    zweite Eintrag zuerst genommen.
-
-    Each returned entry receives the additional field 'Source' with the value 
-    '1' or '2' so that it remains clear which search it came from. 
-    Both input lists are not modified in the process."""
+    """Führt zwei Suchergebnisse anhand ihrer Zeitstempel zusammen."""
     def timestamp(row):
         try:
             return datetime.strptime(
@@ -598,4 +452,3 @@ def Merge_Look_Up_CSV(first_lookup, second_lookup):
 
 if __name__ == "__main__":
     Log("Sys", "INFO", "Start", "Log-Modul direkt gestartet", "0")
-

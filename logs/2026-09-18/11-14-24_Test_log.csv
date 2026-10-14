@@ -1,0 +1,9 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-18,11:14:24,770,Info,GUI,CLICK,Button clicked,CLICK,,,,🔑, 
+2026-09-18,11:14:31,575,Info,GUI,CLICK,Button clicked,CLICK,,,,Protective googles on?, 
+2026-09-18,11:14:32,145,Info,GUI,CLICK,Button clicked,CLICK,,,,Door-Interlock / Hardware-Interlock closed, 
+2026-09-18,11:14:32,783,Info,GUI,CLICK,Button clicked,CLICK,,,,Beam path secured, 
+2026-09-18,11:14:33,512,Info,GUI,CLICK,Button clicked,CLICK,,,,Laser warning light active & emergency shutdown in reach, 
+2026-09-18,11:16:02,730,Info,GUI,CLICK,Button clicked,CLICK,,,,Light Mode, 
+2026-09-18,11:16:03,524,Info,GUI,CLICK,Button clicked,CLICK,,,,Dark Mode, 
+2026-09-18,11:18:36,877,Info,SYSTEM,GUI closed,Foreground Shutdown,GUI closed,,,, , 

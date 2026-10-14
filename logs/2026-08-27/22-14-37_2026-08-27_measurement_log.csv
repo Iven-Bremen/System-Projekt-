@@ -1,0 +1,28 @@
+Date,Time,Tag,Category,Message,Info,AdditionalInfo,Else
+
+
+
+
+
+
+
+
+
+
+2026-08-27,22:14:37,SESSION,START,HARDWARE, , , 
+2026-08-27,22:14:37.181,SYSTEM,START,Programm gestartet,Version 1.0, , 
+2026-08-27,22:14:37.189,Check Ports vor SR830,Info,Test,Check,SR830, 
+2026-08-27,22:14:37.196,COM3,Warning,Port konnte nicht geöffnet werden (Hardware fehlt),Fail,COM3, 
+2026-08-27,22:14:37.201,Check Ports vor OSTech,Info,Test,Check,OSTech, 
+2026-08-27,22:14:37.204,COM4,Warning,Port konnte nicht geöffnet werden (Hardware fehlt),Fail,COM4, 
+2026-08-27,22:14:37.207,Gui,Info,Starting Gui, , , 
+2026-08-27,22:14:37.226,ERROR,OUTPUT,Traceback (most recent call last):, , , 
+2026-08-27,22:14:37.229,ERROR,OUTPUT,"File ""C:\Users\aouch\PycharmProjects\PythonProject\Starter.py"", line 92, in <module>", , , 
+2026-08-27,22:14:37.231,ERROR,OUTPUT,StartGui(), , , 
+2026-08-27,22:14:37.232,ERROR,OUTPUT,"File ""C:\Users\aouch\PycharmProjects\PythonProject\Starter.py"", line 39, in StartGui", , , 
+2026-08-27,22:14:37.233,ERROR,OUTPUT,GUI.update_ch1_display(), , , 
+2026-08-27,22:14:37.235,ERROR,OUTPUT,"File ""C:\Users\aouch\PycharmProjects\PythonProject\GUI.py"", line 296, in update_ch1_display", , , 
+2026-08-27,22:14:37.236,ERROR,OUTPUT,selection = combo_ch1_src.get(), , , 
+2026-08-27,22:14:37.240,ERROR,OUTPUT,"File ""C:\Users\aouch\AppData\Local\Programs\Python\Python314\Lib\tkinter\__init__.py"", line 3272, in get", , , 
+2026-08-27,22:14:37.241,ERROR,OUTPUT,"return self.tk.call(self._w, 'get')", , , 
+2026-08-27,22:14:37.243,ERROR,OUTPUT,"_tkinter.TclError: invalid command name "".!notebook.!frame2.!labelframe2.!combobox""", , , 

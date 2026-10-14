@@ -1,0 +1,9 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-09,11:14:09,257,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-09-09,11:14:09,257,START,SYSTEM,Version 1.0,Programm gestartet,Version 1.0,,,,, 
+2026-09-09,11:14:09,258,Info,Check Ports vor SR830,Check,Test,Check,,,,SR830, 
+2026-09-09,11:14:09,259,Warning,COM3,Fail,Port konnte nicht geöffnet werden (Hardware fehlt),Fail,,,,COM3, 
+2026-09-09,11:14:09,260,Info,Check Ports vor OSTech,Check,Test,Check,,,,OSTech, 
+2026-09-09,11:14:09,261,Warning,COM4,Fail,Port konnte nicht geöffnet werden (Hardware fehlt),Fail,,,,COM4, 
+2026-09-09,11:31:44,639,OUTPUT,ERROR,OUTPUT,C:\Users\aouch\PycharmProjects\PythonProject\.venv\Lib\site-packages\gpib_ctypes\gpib\gpib.py:54: UserWarning: GPIB library not found. Please manually load it using _load_lib(filename). All GPIB functions will raise OSError until the library is manually loaded.,,,,,,
+2026-09-09,11:31:44,642,OUTPUT,ERROR,OUTPUT,warnings.warn(message),,,,,,

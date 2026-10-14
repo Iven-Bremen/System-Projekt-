@@ -1,0 +1,21 @@
+Date,Time,Tag,Category,Message,Info,AdditionalInfo,Else
+
+
+
+
+
+
+
+
+
+
+2026-08-28,10:58:28,SESSION,START,HARDWARE, , , 
+2026-08-28,10:58:28.254,SYSTEM,START,Programm gestartet,Version 1.0, , 
+2026-08-28,10:58:28.255,Check Ports vor SR830,Info,Test,Check,SR830, 
+2026-08-28,10:58:28.799,COM3,Info,Test,OpenPort,9600, 
+2026-08-28,10:58:28.804,ERROR,OUTPUT,Traceback (most recent call last):, , , 
+2026-08-28,10:58:28.806,ERROR,OUTPUT,"File ""C:\Users\aouch\PycharmProjects\PythonProject\Starter.py"", line 100, in <module>", , , 
+2026-08-28,10:58:28.808,ERROR,OUTPUT,init_hardware(), , , 
+2026-08-28,10:58:28.809,ERROR,OUTPUT,"File ""C:\Users\aouch\PycharmProjects\PythonProject\Starter.py"", line 19, in init_hardware", , , 
+2026-08-28,10:58:28.810,ERROR,OUTPUT,"Log.LogMassage(""StartKom"", ""SR830"", ""Try to open Port with BaudRate of "" + str(BaudRate), ""Check OpenPort"",", , , 
+2026-08-28,10:58:28.812,ERROR,OUTPUT,NameError: name 'BaudRate' is not defined, , , 

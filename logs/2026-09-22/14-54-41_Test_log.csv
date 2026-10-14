@@ -1,0 +1,5 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-22,14:54:41,673,Gui,Button,Info,Button clicked,Protective googles on?,,,,,
+2026-09-22,14:54:42,384,Gui,Button,Info,Button clicked,Door-Interlock / Hardware-Interlock closed,,,,,
+2026-09-22,14:54:43,507,Gui,Button,Info,Button clicked,Beam path secured,,,,,
+2026-09-22,14:54:44,216,Gui,Button,Info,Button clicked,Laser warning light active & emergency shutdown in reach,,,,,

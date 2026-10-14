@@ -1,0 +1,12 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-19,17:55:50,572,Gui,Button,Info,Button clicked,Refresh,,,,,
+2026-09-19,17:55:51,893,Gui,Button,Info,Button clicked,Refresh,,,,,
+2026-09-19,17:55:52,725,Gui,Button,Info,Button clicked,Connect,,,,,
+2026-09-19,17:55:52,744,Comm,COM3,Warning,Try connect,FAILED,"could not open port 'COM3': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)",SR830,,,
+2026-09-19,17:55:52,747,Comm,COM3,Warning,Try connect,FAILED,"could not open port 'COM3': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)",OSTECH,,,
+2026-09-19,17:55:52,749,Comm,COM4,Warning,Try connect,FAILED,"could not open port 'COM4': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)",SR830,,,
+2026-09-19,17:55:52,751,Comm,COM4,Warning,Try connect,FAILED,"could not open port 'COM4': FileNotFoundError(2, 'Das System kann die angegebene Datei nicht finden.', None, 2)",OSTECH,,,
+2026-09-19,17:55:52,753,Comm,SR830,Error,COM connection failed,FAILED,None,,,,
+2026-09-19,17:55:52,754,Comm,OSTECH,Error,COM connection failed,FAILED,None,,,,
+2026-09-19,17:55:56,468,Gui,Button,Info,Button clicked,Disconnect,,,,,
+2026-09-19,17:56:11,521,Sys,GUI,Info,Foreground Shutdown,GUI closed,,,,,

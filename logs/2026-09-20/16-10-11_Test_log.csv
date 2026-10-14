@@ -1,0 +1,5 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-20,16:10:11,133,Gui,Button,Info,Button clicked,📈 Phase vs. Frequency Analysis,,,,,
+2026-09-20,16:10:18,268,Gui,Button,Info,Button clicked,💾 Save Plot,,,,,
+2026-09-20,16:13:28,713,Gui,Button,Info,Button clicked,Clear Terminal,,,,,
+2026-09-20,16:15:53,413,Sys,GUI,Info,Foreground Shutdown,GUI closed,,,,,
