@@ -99,9 +99,19 @@ def ensure_device_available() -> None:
 # ---------------------------------------------------------------------------
 def _hw_check_reference_internal() -> None:
     if int(Send.read("FMOD?", return_type=int)) == 0:
-        raise SweepError(
-            "Der SR830 steht auf externer Referenz (FMOD=0); FREQ hat dann keine "
-            "Wirkung. Bitte auf interne Referenz stellen.")
+        # Der SR830 startet standardmaessig mit externer Referenz; FREQ wirkt dann nicht.
+        # Fuer den Sweep wird automatisch auf interne Referenz umgestellt.
+        try:
+            Send.set(Send.SR830S.FMOD, 1)
+            Log.Log("Calc", "Sweep", "Info", "Sweep", "FMOD=0 -> auf interne Referenz (FMOD=1) gestellt")
+        except Exception as error:
+            raise SweepError(
+                "Der SR830 steht auf externer Referenz (FMOD=0) und konnte nicht auf "
+                f"intern umgestellt werden ({type(error).__name__}: {error}).")
+        if int(Send.read("FMOD?", return_type=int)) == 0:
+            raise SweepError(
+                "Der SR830 steht auf externer Referenz (FMOD=0); FREQ hat dann keine "
+                "Wirkung. Bitte auf interne Referenz stellen.")
 
 
 def _hw_set_frequency(freq_hz: float) -> None:
@@ -161,8 +171,41 @@ def check_laser_connected() -> None:
     _raise_if_not_connected([] if _port_open(Komunikation.OSTECH) else ["OSTECH (Laser)"])
 
 
-def preflight(require_laser: bool = True) -> None:
+SWEEP_ALLOWED_MODE = "LMDI"   # nur interne (digitale) Modulation erlaubt einen Sweep
+
+
+def check_sweep_mode(mode) -> None:
+    """Prueft den gewaehlten Laser-Modulationsmodus fuer einen Sweep.
+
+    * ``LMDI`` (intern)    -> erlaubt
+    * ``LMAX`` / ``LMDX``  -> ModulationUnavailableError (extern, nicht angeschlossen)
+    * ``CW`` / unbekannt   -> SweepError (ohne Modulation kein Sweep)
+
+    :param mode: "CW", "LMAX", "LMDX" oder "LMDI"; None = nicht pruefen
+    """
+    if mode is None:
+        return
+    key = str(mode).strip().upper()
+    if key == SWEEP_ALLOWED_MODE:
+        return
+    if key in EXTERNAL_MODULATION_MODES:
+        # spezifische Meldung (Laser/Signalquelle/Sine Out) hat Vorrang
+        check_external_modulation(key)
+        raise ModulationUnavailableError(
+            f"{EXTERNAL_MODULATION_MODES[key]} ({key}): externe Modulation ist nicht "
+            "angeschlossen bzw. fuer den Sweep nicht zugelassen. Bitte "
+            "'Internal Digital Modulation (LMDI)' waehlen.")
+    if key == "CW":
+        raise SweepError(
+            "Im CW-Modus (keine Modulation) ist kein Sweep moeglich. Bitte "
+            "'Internal Digital Modulation (LMDI)' waehlen und 'Apply Laser Settings' ausfuehren.")
+    raise SweepError(f"Unbekannter Modulationsmodus '{mode}' - Sweep nicht moeglich.")
+
+
+def preflight(require_laser: bool = True, modulation_mode=None) -> None:
     """Prueft, ob ein Sweep wirklich moeglich ist.
+
+    ``modulation_mode``: gewaehlter Laser-Modulationsmodus (siehe ``check_sweep_mode``).
 
     Setzt sich aus den unabhaengig nutzbaren Einzelpruefungen
     ``check_lockin_ready()`` und (bei ``require_laser``) ``check_laser_connected()``
@@ -178,6 +221,7 @@ def preflight(require_laser: bool = True) -> None:
     if require_laser and not _port_open(Komunikation.OSTECH):
         missing.append("OSTECH (Laser)")
     _raise_if_not_connected(missing)
+    check_sweep_mode(modulation_mode)
     check_lockin_ready()
 
 

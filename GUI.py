@@ -798,6 +798,18 @@ def offer_old_file_fallback(reason):
         starte_pvf_analyse(force_file=True)
 
 
+def get_selected_modulation_mode():
+    """Liefert den im Laser Menu gewaehlten Modulationsmodus: CW, LMAX, LMDX oder LMDI."""
+    try:
+        text = combo_mod_mode.get()
+    except Exception:
+        return None
+    for key in ("LMAX", "LMDX", "LMDI"):
+        if key in text:
+            return key
+    return "CW"
+
+
 def prepare_sweep(offer_fallback=True):
     """Vor einem Sweep: Parameter, beide Geraete und Referenzdatei klaeren.
 
@@ -813,8 +825,22 @@ def prepare_sweep(offer_fallback=True):
     if cfg is None:
         return None
     try:
-        Sweep.preflight(require_laser=True)
-    except (Sweep.NoDeviceError, Sweep.SweepError) as error:
+        Sweep.preflight(require_laser=True, modulation_mode=get_selected_modulation_mode())
+    except (Sweep.ModulationUnavailableError, Sweep.SweepError) as error:
+        # Falscher Modulationsmodus (CW / extern) bzw. Geraet nicht nutzbar: kein Datei-Fallback
+        if isinstance(error, Sweep.ModulationUnavailableError) or "CW-Modus" in str(error):
+            Log.Log("Gui", "Sweep", "Error", "Sweep", "mode check failed", str(error))
+            update_overview_log(f"SWEEP NICHT MOEGLICH: {error}")
+            messagebox.showerror("Sweep nicht moeglich", str(error))
+            return None
+        Log.Log("Gui", "Sweep", "Warning", "Sweep", "preflight failed", str(error))
+        if offer_fallback:
+            offer_old_file_fallback(str(error))
+        else:
+            messagebox.showwarning("Sweep nicht moeglich",
+                                   f"{error}\n\nDer Laser wird ohne Sweep gestartet.")
+        return None
+    except Sweep.NoDeviceError as error:
         Log.Log("Gui", "Sweep", "Warning", "Sweep", "preflight failed", str(error))
         if offer_fallback:
             offer_old_file_fallback(str(error))
