@@ -885,6 +885,16 @@ def render_pvf_plot(results, save=True):
     if save:
         save_figure_to_plots(fig_pvf)
 
+    # Das Canvas muss zur aktuellen Figure gehoeren: "Run Uncertainty" ersetzt es durch ein
+    # Canvas mit einer eigenen Figure. Ohne diese Pruefung wuerde hier weiter der alte
+    # Uncertainty-Plot angezeigt, waehrend fig_pvf unsichtbar neu gezeichnet wird.
+    if canvas_pvf is not None and canvas_pvf.figure is not fig_pvf:
+        try:
+            canvas_pvf.get_tk_widget().destroy()
+        except Exception:
+            pass
+        canvas_pvf = None
+
     if canvas_pvf is None:
         canvas_pvf = FigureCanvasTkAgg(fig_pvf, master=frame_plot_pvf)
         canvas_pvf.get_tk_widget().pack(fill="both", expand=True)
