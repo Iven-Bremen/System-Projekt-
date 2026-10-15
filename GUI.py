@@ -52,9 +52,58 @@ LOG_DIR = os.path.join(os.getcwd(), "logs")
 if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR)
 
-PLOT_DIR = os.path.join(os.getcwd(), "plots")
-if not os.path.exists(PLOT_DIR):
-    os.makedirs(PLOT_DIR)
+PLOT_DIR_NAME = "Plots"   # wird erst beim ersten gespeicherten Plot angelegt
+
+
+def find_plots_dir():
+    """Sucht im Arbeitsverzeichnis einen Ordner 'Plots' (Gross-/Kleinschreibung egal).
+
+    Rueckgabe: absoluter Pfad oder None, wenn es noch keinen gibt.
+    """
+    base = os.getcwd()
+    try:
+        for entry in os.listdir(base):
+            if entry.lower() == PLOT_DIR_NAME.lower() and os.path.isdir(os.path.join(base, entry)):
+                return os.path.join(base, entry)
+    except OSError:
+        pass
+    return None
+
+
+def get_or_create_plots_dir():
+    """Liefert den Plots-Ordner; legt ihn beim ersten Mal automatisch an."""
+    existing = find_plots_dir()
+    if existing is not None:
+        return existing
+    path = os.path.join(os.getcwd(), PLOT_DIR_NAME)
+    os.makedirs(path, exist_ok=True)
+    return path
+
+
+def save_figure_to_plots(fig):
+    """Speichert eine Matplotlib-Figure als PNG im Ordner 'Plots'.
+
+    Dateiname: JJJJ.MM.TT_HH-MM-SS.png (bei Kollision in derselben Sekunde mit _1, _2 ...).
+    Rueckgabe: Pfad der Datei oder None bei Fehler.
+    """
+    try:
+        plots_dir = get_or_create_plots_dir()
+        stamp = datetime.datetime.now().strftime("%Y.%m.%d_%H-%M-%S")
+        path = os.path.join(plots_dir, f"{stamp}.png")
+        counter = 1
+        while os.path.exists(path):
+            path = os.path.join(plots_dir, f"{stamp}_{counter}.png")
+            counter += 1
+        fig.savefig(path, dpi=150)
+        Log.Log("Gui", "Plot", "Info", "Plot saved", os.path.basename(path))
+        try:
+            refresh_project_tree()
+        except NameError:
+            pass   # Explorer existiert beim Start noch nicht
+        return path
+    except Exception as error:
+        Log.Log("Gui", "Plot", "Error", "Plot save failed", f"{type(error).__name__}: {error}")
+        return None
 
 # ==========================================
 # KONFIGURATION & EINGABEVALIDIERUNG
@@ -411,6 +460,7 @@ def create_laser_control_bar(parent):
     status_labels_laser.append(lbl_status)
     return frame
 
+EXTERNAL_MOD_MIN_CURRENT_MA = 5.0   # darunter gilt der externe Modus als 'kein Signal angeschlossen'
 LASER_VERIFY_DELAY_MS = 1500   # so lange auf den GS-Readback warten (Polling + Settings-Refresh)
 
 
@@ -444,9 +494,11 @@ def toggle_laser():
                                                  "Bei Bedarf Not-Aus am Geraet benutzen.")
         finally:
             try:
+                had_sweep = _sweep_runner is not None
                 stop_sweep(update_plot=False)
-                # Fit/Plot nicht synchron im Klick-Handler ausfuehren
-                root.after(50, lambda: _update_live_plot(preliminary=False))
+                # Fit/Plot nicht synchron im Klick-Handler ausfuehren.
+                # Gespeichert wird nur, wenn tatsaechlich ein Sweep lief.
+                root.after(50, lambda: _update_live_plot(preliminary=False, save=had_sweep))
             except Exception as error:
                 Log.Log("Gui", "Sweep", "Error", "stop_sweep", f"{type(error).__name__}: {error}")
         return
@@ -454,6 +506,21 @@ def toggle_laser():
     # ------------------------------------------------------------------
     # EINSCHALTEN
     # ------------------------------------------------------------------
+    start_mode = get_selected_modulation_mode()
+    # Externe Modulation (LMAX/LMDX): es ist keine externe Hardware vorgesehen. Der Start wird
+    # unter allen Umstaenden (egal welche Parameter, auch im Bypass) abgelehnt: kein LR, Button
+    # bleibt gruen ("LASER STARTEN"), State.L bleibt 0.
+    if start_mode in Sweep.EXTERNAL_MODULATION_MODES:
+        State.L = 0
+        update_laser_toggle_button(False)
+        Log.Log("Gui", "Laser", "Error", "toggle_laser",
+                f"Start abgelehnt: externe Modulation ({start_mode}), keine externe Hardware")
+        update_overview_log("Laserstart abgelehnt: keine externe Hardware angeschlossen.")
+        messagebox.showerror(
+            "Laser nicht gestartet",
+            "Keine externe Hardware angeschlossen. Laser konnte nicht gestartet werden.")
+        return
+
     try:
         # 1. Optional: Sweep vorbereiten (Parameter, Geraete, Referenz).
         #    Der Laser ist unabhaengig vom Sweep: scheitert die Vorbereitung, startet
@@ -476,6 +543,14 @@ def toggle_laser():
         Log.Log("Gui", "Laser", "Info", "Laser Power", "LR gesendet, warte auf Bestaetigung")
         update_overview_log("LR gesendet, pruefe Geraetestatus ...")
 
+    except Sweep.ModulationUnavailableError as error:
+        State.L = 0
+        update_laser_toggle_button(False)
+        Log.Log("Gui", "Laser", "Error", "toggle_laser", f"{type(error).__name__}: {error}")
+        update_overview_log(f"LASERSTART ABGEBROCHEN: {error}")
+        messagebox.showerror("Externe Modulation nicht angeschlossen",
+                             f"{error}\n\nDer Laser wurde nicht gestartet.")
+        return
     except Exception as error:
         State.L = 0
         update_laser_toggle_button(False)
@@ -497,11 +572,43 @@ def toggle_laser():
                               f"Treiber-Temp OK: {status.get('driver_temperature_ok')}")
                     Log.Log("Gui", "Laser", "Error", "toggle_laser", f"Geraet hat LR nicht angenommen ({reason})")
                     update_overview_log(f"LASER START FEHLGESCHLAGEN: {reason}")
+                    if start_mode in Sweep.EXTERNAL_MODULATION_MODES:
+                        messagebox.showerror(
+                            "Externe Modulation nicht angeschlossen",
+                            f"{Sweep.EXTERNAL_MODULATION_MODES[start_mode]} ({start_mode}): Der Laser "
+                            "startet nicht - am Laser ist keine Modulationsquelle angeschlossen "
+                            "(bzw. liefert kein Signal).\n\n" + reason)
+                        return
                     messagebox.showerror(
                         "Laser startet nicht",
                         "Das Geraet meldet nach LR nicht 'Laser an'.\n\n" + reason +
                         "\n\nPruefe Interlock, Fehlerstatus, LCT/LCL und Modulationsmodus "
                         "(zum Testen: CW Mode).")
+                    return
+
+            if not is_emergency_bypass and start_mode in Sweep.EXTERNAL_MODULATION_MODES:
+                try:
+                    Sweep.verify_external_modulation(start_mode)
+                    # Das Geraet kann nicht erkennen, ob ein Kabel steckt. Meldet es "Laser an",
+                    # liefert aber (fast) keinen Strom, treibt kein Modulationssignal den Laser.
+                    lca_ma = float(getattr(State, "LCA", 0) or 0)
+                    if lca_ma < EXTERNAL_MOD_MIN_CURRENT_MA:
+                        raise Sweep.ModulationUnavailableError(
+                            f"{Sweep.EXTERNAL_MODULATION_MODES[start_mode]} ({start_mode}): Der Laser meldet "
+                            f"'an', liefert aber nur {lca_ma:.1f} mA. Am Modulationseingang ist nichts "
+                            "angeschlossen bzw. es liegt kein Signal an.")
+                except Sweep.ModulationUnavailableError as mod_error:
+                    # Laser laeuft, meldet den externen Modus aber nicht -> aus Sicherheitsgruenden stoppen
+                    try:
+                        Send.set(Send.OSTechS.L, 0)
+                    except Exception as stop_error:
+                        Log.Log("Gui", "Laser", "Error", "toggle_laser", f"LS fehlgeschlagen: {stop_error}")
+                    State.L = 0
+                    update_laser_toggle_button(False)
+                    Log.Log("Gui", "Laser", "Error", "toggle_laser", str(mod_error))
+                    update_overview_log(f"LASER GESTOPPT: {mod_error}")
+                    messagebox.showerror("Externe Modulation nicht angeschlossen",
+                                         f"{mod_error}\n\nDer Laser wurde gestoppt.")
                     return
 
             update_overview_log("Laser AN (vom Geraet bestaetigt).")
@@ -701,9 +808,12 @@ def _live_data_has_points(live_data):
     return hasattr(live_data, "__len__") and len(live_data) > 0
 
 
-def render_pvf_plot(results):
+def render_pvf_plot(results, save=True):
     """Zeichnet den RESULTS-Plot aus einem Ergebnis-Dict von PhasFreq_v8.start_PhaseFreq
-    (oder einem Dict, das nur Rohdaten in plot_data enthaelt)."""
+    (oder einem Dict, das nur Rohdaten in plot_data enthaelt).
+
+    ``save=True``: Der Plot wird zusaetzlich als PNG im Ordner 'Plots' gespeichert.
+    Waehrend des laufenden Live-Sweeps (vorlaeufige Plots) wird ``save=False`` genutzt."""
     global fig_pvf, canvas_pvf
     pdata = results.get("plot_data", {})
 
@@ -769,6 +879,11 @@ def render_pvf_plot(results):
     ax_fit.grid(True, linestyle="--", alpha=0.5)
     ax_fit.legend(loc="best")
     fig_pvf.tight_layout()
+
+    # Erst speichern, dann im Fenster anzeigen: savefig() schaltet die Figure kurzzeitig auf
+    # einen anderen Canvas/DPI-Wert um; das anschliessende draw() stellt die Tk-Anzeige sicher her.
+    if save:
+        save_figure_to_plots(fig_pvf)
 
     if canvas_pvf is None:
         canvas_pvf = FigureCanvasTkAgg(fig_pvf, master=frame_plot_pvf)
@@ -944,8 +1059,12 @@ def _raw_live_results(data, status_text):
     return {"plot_data": pdata, "status_text": status_text}
 
 
-def _update_live_plot(preliminary):
-    """Zeichnet den RESULTS-Plot aus der Live-Variable (mit Fit, sobald moeglich)."""
+def _update_live_plot(preliminary, save=None):
+    """Zeichnet den RESULTS-Plot aus der Live-Variable (mit Fit, sobald moeglich).
+
+    Vorlaeufige Plots (waehrend der Sweep laeuft) werden nicht gespeichert; der
+    endgueltige Plot nach Sweep-Ende/-Abbruch wird im Ordner 'Plots' abgelegt.
+    ``save`` kann das Standardverhalten (``not preliminary``) ueberschreiben."""
     import contextlib
     import io
     data = getattr(State, "live_sweep_data", None)
@@ -967,8 +1086,10 @@ def _update_live_plot(preliminary):
             results = _raw_live_results(data, f"{status} – fit starts at {PhasFreq_v8.MIN_FIT_POINTS} points")
         except Exception as error:   # Fit nicht konvergiert, keine Frequenzueberlappung ...
             results = _raw_live_results(data, f"{status} – no fit yet ({type(error).__name__})")
+    if save is None:
+        save = not preliminary
     try:
-        render_pvf_plot(results)
+        render_pvf_plot(results, save=save)
     except Exception as error:
         print(f"Fehler beim Live-Plot: {error}")
 
@@ -1047,6 +1168,9 @@ def starte_messunsicherheit_analyse():
     try:
         res, fit = SWP_SM_v6.start_Messunsicherheit(data_to_analyze)
         fig = SWP_SM_v6.plot_results(res, fit, show=False)
+
+        # Erst speichern (Figure hat noch keinen Tk-Canvas), dann im Fenster anzeigen.
+        save_figure_to_plots(fig)
 
         if canvas_pvf is not None:
             canvas_pvf.get_tk_widget().destroy()
@@ -2397,8 +2521,9 @@ btn_reset_def.pack(side="left", padx=5)
 # ------------------------------------------
 # HELPER FOR EXPLORER TREEVIEW
 # ------------------------------------------
-def build_file_tree(tree_widget, root_dir):
-    tree_widget.delete(*tree_widget.get_children())
+def build_file_tree(tree_widget, root_dir, clear=True):
+    if clear:
+        tree_widget.delete(*tree_widget.get_children())
     root_node = tree_widget.insert("", "end", text=f" 📂 {os.path.basename(os.path.abspath(root_dir))}", open=True, values=[os.path.abspath(root_dir)])
 
     def populate(parent_node, path):
@@ -2418,6 +2543,8 @@ def build_file_tree(tree_widget, root_dir):
                         icon = "🐍"
                     elif ext in ['.txt', '.log', '.csv']:
                         icon = "📝"
+                    elif ext in ['.png', '.jpg', '.jpeg']:
+                        icon = "🖼️"
                     elif ext in ['.json']:
                         icon = "⚙️"
                     tree_widget.insert(parent_node, "end", text=f" {icon} {entry}", values=[full_path])
@@ -2426,8 +2553,16 @@ def build_file_tree(tree_widget, root_dir):
 
     populate(root_node, os.path.abspath(root_dir))
 
+def refresh_project_tree():
+    """Baut den Project Explorer (Results-Tab) neu auf: 'logs' und - sobald vorhanden - 'Plots'."""
+    tree_stats.delete(*tree_stats.get_children())
+    build_file_tree(tree_stats, LOG_DIR, clear=False)
+    plots_dir = find_plots_dir()
+    if plots_dir is not None:
+        build_file_tree(tree_stats, plots_dir, clear=False)
+
 build_file_tree(tree_logs_main, LOG_DIR)
-build_file_tree(tree_stats, LOG_DIR)
+refresh_project_tree()
 
 # ------------------------------------------
 # 6. TAB: HELP
