@@ -2,7 +2,7 @@ Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalV
 2026-10-08,15:05:15,575,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
 2026-10-08,15:05:15,575,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
 2026-10-08,15:05:15,577,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
-2026-10-08,15:05:15,577,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-10-08,15:05:15,577,Sys,START,Start,Program started,Version 1.0,,,,,
 2026-10-08,15:05:15,595,OUTPUT,TERMINAL,OUTPUT,"['COM5', 'COM4']",,,,,,
 2026-10-08,15:05:15,595,Sys,SYSTEM,Info,COM-Port Scan,"['COM5', 'COM4']",Startup,,,,
 2026-10-08,15:05:15,596,Calc,CALCULATION,Info,calculation ready,No calculations configured,STARTER,,,,

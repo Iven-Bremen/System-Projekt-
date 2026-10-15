@@ -29,7 +29,14 @@ class InvalidFileContentError(Exception):
 # Wird geworfen, wenn die Datei keine gültigen Phasen- und Frequenzwerte enthält
     pass
 
+class NotEnoughDataError(InvalidFileContentError):
+# Wird geworfen, wenn (Live-)Daten fuer einen stabilen Fit noch nicht ausreichen
+    pass
+
 ALLOWED_EXTENSIONS = (".csv", ".txt")
+
+# Mindestanzahl *gemessener Probenpunkte*, ab der ein Fit versucht wird (2 Parameter: d, k_L)
+MIN_FIT_POINTS = 8
 
 # SR830 SNAP?-Parameterindizes (siehe Gerätehandbuch)
 SNAP_PARAM_PHASE = 4   # Theta (Phase)
@@ -253,6 +260,52 @@ def parse_lockin_csv(path):
     n_blocks = 1
 
     return freq, phase_mean, phase_std, amp_mean, n_blocks
+
+
+# 2b2) Live-Daten (Variable statt Datei) einlesen
+
+def load_live_measurement(live):
+    """
+    Uebernimmt Live-Messdaten direkt aus dem Speicher (z.B. State.live_sweep_data).
+
+    Akzeptiert
+      - dict mit Schluesseln "f_probe"/"phase_probe" (oder "frequency"/"phase")
+      - Nx2-Array bzw. Liste von (Frequenz, Phase)-Paaren
+
+    :return: (freq, phase_mean, phase_std, amp_mean, n_blocks) - wie die Datei-Parser
+    :raises InvalidFileContentError: bei unbekanntem Format oder ungleich langen Reihen
+    """
+    if isinstance(live, dict):
+        f = live.get("f_probe")
+        p = live.get("phase_probe")
+        if f is None:
+            f = live.get("frequency")
+        if p is None:
+            p = live.get("phase")
+        if f is None or p is None:
+            raise InvalidFileContentError(
+                "Live-Daten enthalten keine Schluessel 'f_probe'/'phase_probe'.")
+    else:
+        arr = np.asarray(live, dtype=float)
+        if arr.ndim != 2 or arr.shape[1] < 2:
+            raise InvalidFileContentError(
+                "Live-Daten muessen ein dict oder ein Nx2-Array (Frequenz, Phase) sein.")
+        f, p = arr[:, 0], arr[:, 1]
+
+    freq = np.asarray(f, dtype=float).ravel()
+    phase = np.asarray(p, dtype=float).ravel()
+    if freq.size != phase.size:
+        raise InvalidFileContentError(
+            f"Live-Daten: {freq.size} Frequenzwerte, aber {phase.size} Phasenwerte.")
+    if freq.size == 0:
+        raise NotEnoughDataError("Noch keine Live-Messpunkte vorhanden.")
+    return freq, phase, np.zeros_like(phase), None, 1
+
+
+def load_unwrapped(path):
+    """Datei einlesen und (nach Frequenz sortiert) entfalten -> (freq, phase_unwrapped)."""
+    freq, phase, _, _, _ = load_and_validate_measurement(path)
+    return unwrap_phase_deg(freq, phase)
 
 
 # 2c) Einheitlicher Dispatcher: Typ + Inhalt prüfen und einlesen
@@ -523,24 +576,31 @@ if __name__ == "__main__":
         print(f"\n[Fehler bei der Auswertung] {e}")
 
 
-def start_PhaseFreq(ref_path: str, probe_path: str,
-                    k_S: float = 42.0, rho_S: float = 7800.0, C_S: float = 460.0):
+def start_PhaseFreq(ref_path: str, probe_source,
+                    k_S: float = 42.0, rho_S: float = 7800.0, C_S: float = 460.0,
+                    min_points: int = MIN_FIT_POINTS):
     """
     Führt die modellbasierte Auswertung der Nitrierschichtdicke aus zwei
     Dateipfaden (Referenz und Probe) durch.
 
     :param ref_path: Dateipfad zur Referenzmessung (.csv oder .txt)
-    :param probe_path: Dateipfad zur Probenmessung (.csv oder .txt)
+    :param probe_source: Probenmessung: Dateipfad (.csv/.txt) ODER Live-Daten
+        (dict mit "f_probe"/"phase_probe" bzw. Nx2-Array, siehe load_live_measurement)
     :param k_S: Wärmeleitfähigkeit Substrat in W/(m*K)
     :param rho_S: Dichte Substrat in kg/m^3
     :param C_S: Spezifische Wärmekapazität Substrat in J/(kg*K)
+    :param min_points: Mindestanzahl gemeinsamer Frequenzpunkte fuer den Fit
 
+    :raises NotEnoughDataError: wenn (noch) zu wenige Punkte fuer den Fit vorliegen
     :return: dict mit allen Ergebnissen und Plot-Daten für die GUI
     """
     if not ref_path or not os.path.exists(ref_path):
         raise FileNotFoundError(f"Referenzdatei nicht gefunden: '{ref_path}'")
-    if not probe_path or not os.path.exists(probe_path):
-        raise FileNotFoundError(f"Probendatei nicht gefunden: '{probe_path}'")
+    probe_is_file = isinstance(probe_source, (str, os.PathLike))
+    if probe_is_file:
+        probe_path = os.fspath(probe_source)
+        if not probe_path or not os.path.exists(probe_path):
+            raise FileNotFoundError(f"Probendatei nicht gefunden: '{probe_path}'")
 
     # 1. Substrat-Effusivität
     b_S = thermal_effusivity(k_S, rho_S, C_S)
@@ -550,7 +610,12 @@ def start_PhaseFreq(ref_path: str, probe_path: str,
     f_ref, phase_ref_unwr = unwrap_phase_deg(freq_ref, phase_ref)
 
     # 3. Probenmessung einlesen & entfalten
-    freq_probe, phase_probe, phase_probe_std, amp_probe, n_probe = load_and_validate_measurement(probe_path)
+    if probe_is_file:
+        freq_probe, phase_probe, phase_probe_std, amp_probe, n_probe = load_and_validate_measurement(probe_path)
+        probe_name = os.path.basename(probe_path)
+    else:
+        freq_probe, phase_probe, phase_probe_std, amp_probe, n_probe = load_live_measurement(probe_source)
+        probe_name = "live sweep"
     f_probe, phase_probe_unwr = unwrap_phase_deg(freq_probe, phase_probe)
 
     # 4. Gemeinsame Frequenzachse & Phasendifferenz
@@ -558,6 +623,13 @@ def start_PhaseFreq(ref_path: str, probe_path: str,
         f_ref, phase_ref_unwr, f_probe, phase_probe_unwr
     )
     Phi = phase_ref_common - phase_probe_common
+
+    # Es zaehlen die tatsaechlich gemessenen Probenpunkte; das gemeinsame Gitter
+    # kann durch Interpolation der Referenz deutlich groesser sein.
+    if len(freq_probe) < min_points or len(freq_common) < min_points:
+        raise NotEnoughDataError(
+            f"Nur {len(freq_probe)} Probenpunkte ({len(freq_common)} gemeinsame "
+            f"Frequenzpunkte); für den Fit werden mindestens {min_points} benötigt.")
 
     # 5. Fit durchführen
     d_fit, kL_fit, d_err, kL_err, model_func = fit_layer_parameters(
@@ -584,6 +656,6 @@ def start_PhaseFreq(ref_path: str, probe_path: str,
             "freq_fine": freq_fine,
             "Phi_fit_curve": Phi_fit_curve,
             "ref_filename": os.path.basename(ref_path),
-            "probe_filename": os.path.basename(probe_path)
+            "probe_filename": probe_name
         }
     }

@@ -1,0 +1,5 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-10-14,12:17:23,352,Comm,SR830,Start,SWEEP START,10.0-100.0 Hz,"2 points, log=True",,,,
+2026-10-14,12:17:28,487,Comm,SR830,Running,"SNAP 4,9","33.69,10.0",sweep step 1/2,,,,
+2026-10-14,12:17:33,805,Comm,SR830,Running,"SNAP 4,9","169.992,100.0",sweep step 2/2,,,,
+2026-10-14,12:17:33,807,Comm,SR830,End,SWEEP END,finished,2 points,,,,

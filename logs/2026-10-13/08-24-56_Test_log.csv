@@ -1,0 +1,13 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-10-13,08:24:56,125,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-10-13,08:24:56,125,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-10-13,08:24:56,127,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-10-13,08:24:56,127,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-10-13,08:24:56,135,OUTPUT,TERMINAL,OUTPUT,No COM ports available,,,,,,
+2026-10-13,08:24:56,135,Sys,SYSTEM,Info,COM-Port Scan,[],Startup,,,,
+2026-10-13,08:24:56,138,Calc,CALCULATION,Info,calculation ready,No calculations configured,STARTER,,,,
+2026-10-13,08:25:00,673,Gui,GUI,Start,Starting GUI,,,,,,
+2026-10-13,08:25:00,691,OUTPUT,TERMINAL,OUTPUT,No COM ports available,,,,,,
+2026-10-13,08:25:00,692,Sys,SYSTEM,Warning,Port check after GUI startup,No COM ports detected,Active ports,,,,
+2026-10-13,08:25:13,153,Gui,Button,Info,Button clicked,🧬 Digital Twin,,,,,
+2026-10-13,08:25:35,152,Sys,GUI,Info,Foreground Shutdown,GUI closed,,,,,

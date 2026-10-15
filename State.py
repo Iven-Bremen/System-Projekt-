@@ -14,7 +14,10 @@ The names follow the instrument manuals. SR830 values use names such as
 from __future__ import annotations
 
 from dataclasses import dataclass
+import copy
+import math
 import threading
+import time
 
 from serial.tools import list_ports
 
@@ -54,7 +57,43 @@ SIGNAL_MAGNITUDE = 0.0
 SIGNAL_PHASE = 0.0
 CALCULATION_STATUS = "IDLE"
 live_sweep_data = None
-_values_lock = threading.Lock()
+_values_lock = threading.RLock()
+
+# ---------------------------------------------------------------------------
+# DIGITALER ZWILLING
+# ---------------------------------------------------------------------------
+# Pro Geraet ("SR830", "OSTECH") gibt es drei getrennte Bereiche:
+#   measured : laufend gelesene Messwerte        (Geraet -> Software)
+#   settings : zuletzt vom Geraet ZURUECKGELESENE Einstellungen (= "Ist")
+#   desired  : zuletzt per Befehl GESENDETE Einstellungen        (= "Soll")
+# Zu jedem Eintrag gibt es einen Zeitstempel (time.time()). Daraus laesst sich
+# erkennen, ob ein gesendeter Wert schon vom Geraet bestaetigt wurde.
+TWIN_DEVICES = ("SR830", "OSTECH")
+_TWIN_MEASURED_NAMES = {
+    "SR830": (
+        "OUTP1", "OUTP2", "OUTP3", "OUTP4", "OUTR1", "OUTR2",
+        "OAUX1", "OAUX2", "OAUX3", "OAUX4",
+        "REFERENCE_FREQUENCY", "CH1_DISPLAY", "CH2_DISPLAY", "PHAS", "FREQ",
+    ),
+    "OSTECH": (
+        "LCT", "XTA", "LVA", "XTCA", "XTVA", "LCA", "XTT", "LTM", "GT", "GS", "GVN",
+    ),
+}
+_TWIN_MEASURED_OWNER = {
+    name: device for device, names in _TWIN_MEASURED_NAMES.items() for name in names
+}
+
+
+def _empty_twin_device() -> dict:
+    return {
+        "connected": False,
+        "measured": {}, "measured_ts": {},
+        "settings": {}, "settings_ts": {},
+        "desired": {}, "desired_ts": {},
+    }
+
+
+TWIN = {device: _empty_twin_device() for device in TWIN_DEVICES}
 
 def update_values(values: dict[str, object]) -> None:
 	"""Atomically publish one or more decoded device values.
@@ -73,9 +112,14 @@ def update_values(values: dict[str, object]) -> None:
 	global SIGNAL_MAGNITUDE, SIGNAL_PHASE, CALCULATION_STATUS
 	global live_sweep_data
 	with _values_lock:
+		now = time.time()
 		for name, value in values.items():
 			if name in globals():
 				globals()[name] = value
+				owner = _TWIN_MEASURED_OWNER.get(name)
+				if owner is not None:
+					TWIN[owner]["measured"][name] = value
+					TWIN[owner]["measured_ts"][name] = now
 
 
 def get_display_value_for_selection(channel: str, selection: str):
@@ -143,3 +187,71 @@ def scan_com_ports() -> list[str]:
 	"""Returns the device names of all available COM ports."""
 	return COMScanner().devices()
 
+
+
+# ---------------------------------------------------------------------------
+# Zwillings-API (thread-sicher)
+# ---------------------------------------------------------------------------
+
+def twin_set_connected(device: str, connected: bool) -> None:
+	"""Markiert ein Geraet als verbunden/getrennt. Beim Trennen werden alle Daten verworfen."""
+	with _values_lock:
+		if connected:
+			TWIN[device]["connected"] = True
+		else:
+			TWIN[device] = _empty_twin_device()
+
+
+def twin_update_settings(device: str, values: dict) -> None:
+	"""Legt vom Geraet zurueckgelesene Einstellungen ("Ist") im Zwilling ab."""
+	with _values_lock:
+		now = time.time()
+		for key, value in values.items():
+			TWIN[device]["settings"][key] = value
+			TWIN[device]["settings_ts"][key] = now
+
+
+def twin_set_desired(device: str, key: str, value) -> None:
+	"""Merkt einen gesendeten Sollwert vor; er gilt erst nach einem spaeteren Readback als geprueft."""
+	with _values_lock:
+		TWIN[device]["desired"][key] = value
+		TWIN[device]["desired_ts"][key] = time.time()
+
+
+def _twin_values_match(desired, actual) -> bool:
+	if isinstance(desired, bool) or isinstance(actual, bool):
+		return bool(desired) == bool(actual)
+	try:
+		return math.isclose(float(desired), float(actual), rel_tol=5e-3, abs_tol=1e-3)
+	except (TypeError, ValueError):
+		return desired == actual
+
+
+def twin_compare(device: str) -> dict:
+	"""Vergleicht Soll und Ist.
+
+	Rueckgabe: {"ok": [...], "mismatch": [(key, soll, ist)], "pending": [key]}
+	"pending" = gesendet, aber noch nicht NACH dem Senden zurueckgelesen.
+	"""
+	result = {"ok": [], "mismatch": [], "pending": []}
+	with _values_lock:
+		twin = TWIN[device]
+		for key, desired in twin["desired"].items():
+			read_ts = twin["settings_ts"].get(key)
+			if read_ts is None or read_ts < twin["desired_ts"][key]:
+				result["pending"].append(key)
+			elif _twin_values_match(desired, twin["settings"][key]):
+				result["ok"].append(key)
+			else:
+				result["mismatch"].append((key, desired, twin["settings"][key]))
+	return result
+
+
+def twin_snapshot() -> dict:
+	"""Konsistente Kopie des gesamten Zwillings (fuer GUI, Export, Berechnungen)."""
+	with _values_lock:
+		snapshot = {"timestamp": time.time()}
+		for device in TWIN_DEVICES:
+			snapshot[device] = copy.deepcopy(TWIN[device])
+			snapshot[device]["compare"] = twin_compare(device)
+		return snapshot

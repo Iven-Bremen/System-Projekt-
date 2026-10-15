@@ -1,0 +1,6 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-10-02,10:16:16,419,Gui,Button,Info,Button clicked,📝 Note,,,,,
+2026-10-02,10:16:45,341,Gui,Button,Info,Button clicked,📝 Note,,,,,
+2026-10-02,10:16:45,343,Gui,USER,Info,Manual note,neue Nachricht,GUI input,,,,
+2026-10-02,10:17:00,940,Gui,Button,Info,Button clicked,Clear Terminal,,,,,
+2026-10-02,10:49:51,894,Sys,GUI,Info,Foreground Shutdown,GUI closed,,,,,

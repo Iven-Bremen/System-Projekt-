@@ -1,0 +1,10 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-10-11,15:34:32,603,Gui,Button,Info,Button clicked,Protective googles on?,,,,,
+2026-10-11,15:34:33,009,Gui,Button,Info,Button clicked,Door-Interlock / Hardware-Interlock closed,,,,,
+2026-10-11,15:34:33,873,Gui,Button,Info,Button clicked,Protective googles on?,,,,,
+2026-10-11,15:34:34,865,Gui,Button,Info,Button clicked,Beam path secured,,,,,
+2026-10-11,15:34:35,806,Gui,Button,Info,Button clicked,Laser warning light active & emergency shutdown in reach,,,,,
+2026-10-11,15:34:36,930,Gui,Button,Info,Button clicked,Laser warning light active & emergency shutdown in reach,,,,,
+2026-10-11,15:34:44,359,Gui,Button,Info,Button clicked,⚡ START LASER ⚡,,,,,
+2026-10-11,15:34:44,360,Gui,Sweep,Warning,Sweep,preflight failed,"Nicht verbunden: SR830 (Lock-in), OSTECH (Laser) (kein COM-Port gefunden).",,,,
+2026-10-11,15:34:52,984,Gui,Button,Info,Button clicked,🔌 Connect Laser,,,,,

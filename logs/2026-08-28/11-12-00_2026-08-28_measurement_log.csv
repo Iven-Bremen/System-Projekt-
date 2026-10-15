@@ -1,0 +1,19 @@
+Date,Time,Tag,Category,Message,Info,AdditionalInfo,Else
+
+
+
+
+
+
+
+
+
+
+2026-08-28,11:12:00,SESSION,START,HARDWARE, , , 
+2026-08-28,11:12:00.734,SYSTEM,START,Programm gestartet,Version 1.0, , 
+2026-08-28,11:12:00.736,Check Ports vor SR830,Info,Test,Check,SR830, 
+2026-08-28,11:12:01.281,COM3,Info,Test,OpenPort,9600, 
+2026-08-28,11:12:01.282,StartKom,SR830,Try to open Port with BaudRate of ,Check OpenPort,validation needed, 
+2026-08-28,11:12:43.524,Startkom,SR830,SR830 ID is Right,validation passed,"Port will be open at OSTech with PortStanford_Research_Systems,SR830,s/n46328,ver1.07", 
+2026-08-28,11:12:45.869,Check Ports vor OSTech,Info,Test,Check,OSTech, 
+2026-08-28,11:12:47.599,COM4,Warning,Port konnte nicht geöffnet werden (Hardware fehlt),Fail,COM4, 

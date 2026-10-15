@@ -1,0 +1,4 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-10-12,16:18:01,084,Gui,Button,Info,Button clicked,🔌 Connect Lock-In,,,,,
+2026-10-12,16:18:14,034,Comm,COM5,Warning,Try connect,FAILED,"could not open port 'COM5': OSError(22, 'Das Zeitlimit für die Semaphore wurde erreicht.', None, 121)",SR830,,,
+2026-10-12,16:18:26,847,Comm,COM5,Warning,Try connect,FAILED,"could not open port 'COM5': OSError(22, 'Das Zeitlimit für die Semaphore wurde erreicht.', None, 121)",OSTECH,,,

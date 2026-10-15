@@ -1,0 +1,10 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-15,20:36:42,024,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-09-15,20:36:42,024,START,SYSTEM,Version 1.0,Programm gestartet,Version 1.0,,,,, 
+2026-09-15,20:36:42,025,Warning,COM3,Fail,Port nicht verbunden,Fail,,,,SR830, 
+2026-09-15,20:36:42,026,Warning,COM4,Fail,Port nicht verbunden,Fail,,,,OSTech, 
+2026-09-15,20:36:57,943,OUTPUT,TERMINAL,OUTPUT,No COM ports available,,,,,,
+2026-09-15,20:36:58,823,OUTPUT,TERMINAL,OUTPUT,No COM ports available,,,,,,
+2026-09-15,20:36:58,998,OUTPUT,TERMINAL,OUTPUT,No COM ports available,,,,,,
+2026-09-15,20:36:59,188,OUTPUT,TERMINAL,OUTPUT,No COM ports available,,,,,,
+2026-09-15,20:36:59,416,OUTPUT,TERMINAL,OUTPUT,No COM ports available,,,,,,

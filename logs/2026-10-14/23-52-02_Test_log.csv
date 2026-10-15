@@ -1,0 +1,12 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-10-14,23:52:02,492,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-10-14,23:52:02,493,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-10-14,23:52:02,494,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-10-14,23:52:02,494,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-10-14,23:52:02,503,OUTPUT,TERMINAL,OUTPUT,No COM ports available,,,,,,
+2026-10-14,23:52:02,504,Sys,SYSTEM,Info,COM-Port Scan,[],Startup,,,,
+2026-10-14,23:52:02,504,Calc,CALCULATION,Info,calculation ready,No calculations configured,STARTER,,,,
+2026-10-14,23:53:44,380,Gui,GUI,Start,Starting GUI,,,,,,
+2026-10-14,23:53:44,421,OUTPUT,TERMINAL,OUTPUT,No COM ports available,,,,,,
+2026-10-14,23:53:44,421,Sys,SYSTEM,Warning,Port check after GUI startup,No COM ports detected,Active ports,,,,
+2026-10-14,23:56:13,143,Sys,SYSTEM,End,Programm beendet,Benutzerabbruch,,,,,

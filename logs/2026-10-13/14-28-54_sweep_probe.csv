@@ -1,0 +1,10 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-10-13,14:28:55,046,Comm,SR830,Start,SWEEP START,10.0-10000.0 Hz,"25 points, log=True",,,,
+2026-10-13,14:28:56,637,Comm,SR830,Running,"SNAP 4,9","76.188,10.0",sweep step 1/25,,,,
+2026-10-13,14:28:58,258,Comm,SR830,Running,"SNAP 4,9","74.982,13.335",sweep step 2/25,,,,
+2026-10-13,14:29:00,056,Comm,SR830,Running,"SNAP 4,9","68.328,17.782",sweep step 3/25,,,,
+2026-10-13,14:29:01,765,Comm,SR830,Running,"SNAP 4,9","104.196,23.71",sweep step 4/25,,,,
+2026-10-13,14:29:03,487,Comm,SR830,Running,"SNAP 4,9","-137.724,31.62",sweep step 5/25,,,,
+2026-10-13,14:29:05,364,Comm,SR830,Running,"SNAP 4,9","-3.432,42.16",sweep step 6/25,,,,
+2026-10-13,14:29:07,068,Comm,SR830,Running,"SNAP 4,9","92.118,56.23",sweep step 7/25,,,,
+2026-10-13,14:29:08,430,Comm,SR830,End,SWEEP END,stopped,7 points,,,,

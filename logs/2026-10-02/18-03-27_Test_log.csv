@@ -1,0 +1,7 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-10-02,18:03:27,905,Gui,Button,Info,Button clicked,Light Mode,,,,,
+2026-10-02,18:03:41,773,Gui,Button,Info,Button clicked,❌ Disconnect,,,,,
+2026-10-02,18:03:54,017,Gui,Button,Info,Button clicked,Protective googles on?,,,,,
+2026-10-02,18:03:55,471,Gui,Button,Info,Button clicked,Protective googles on?,,,,,
+2026-10-02,18:04:11,388,Gui,Button,Info,Button clicked,Dark Mode,,,,,
+2026-10-02,18:04:25,216,Sys,GUI,Info,Foreground Shutdown,GUI closed,,,,,

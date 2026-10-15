@@ -58,27 +58,27 @@ OSTechCommandInfo = namedtuple("OSTechCommandInfo", ["command", "type", "unit", 
 class SR830G:
     """Query-only SR830 commands: read-only / monitoring commands."""
 
-    OUTP_X = SR830CommandInfo("OUTP? 1", float, "V", "Liest X-Wert")
-    OUTP_Y = SR830CommandInfo("OUTP? 2", float, "V", "Liest Y-Wert")
-    OUTP_R = SR830CommandInfo("OUTP? 3", float, "V", "Liest R-Wert (Magnitude)")
-    OUTP_THETA = SR830CommandInfo("OUTP? 4", float, "deg", "Liest Theta (Phase)")
+    OUTP_X = SR830CommandInfo("OUTP? 1", float, "V", "Reads X-value")
+    OUTP_Y = SR830CommandInfo("OUTP? 2", float, "V", "Reads Y-value")
+    OUTP_R = SR830CommandInfo("OUTP? 3", float, "V", "Reads R-value (Magnitude)")
+    OUTP_THETA = SR830CommandInfo("OUTP? 4", float, "deg", "Reads Theta (Phase)")
 
-    OUTR_CH1 = SR830CommandInfo("OUTR? 1", float, "", "Liest CH1 Display")
-    OUTR_CH2 = SR830CommandInfo("OUTR? 2", float, "", "Liest CH2 Display")
+    OUTR_CH1 = SR830CommandInfo("OUTR? 1", float, "", "Reads CH1 Display")
+    OUTR_CH2 = SR830CommandInfo("OUTR? 2", float, "", "Reads CH2 Display")
 
-    OAUX_IN1 = SR830CommandInfo("OAUX? 1", float, "V", "Liest Aux Input 1")
-    OAUX_IN2 = SR830CommandInfo("OAUX? 2", float, "V", "Liest Aux Input 2")
-    OAUX_IN3 = SR830CommandInfo("OAUX? 3", float, "V", "Liest Aux Input 3")
-    OAUX_IN4 = SR830CommandInfo("OAUX? 4", float, "V", "Liest Aux Input 4")
+    OAUX_IN1 = SR830CommandInfo("OAUX? 1", float, "V", "Reads Aux Input 1")
+    OAUX_IN2 = SR830CommandInfo("OAUX? 2", float, "V", "Reads Aux Input 2")
+    OAUX_IN3 = SR830CommandInfo("OAUX? 3", float, "V", "Reads Aux Input 3")
+    OAUX_IN4 = SR830CommandInfo("OAUX? 4", float, "V", "Reads Aux Input 4")
 
-    SNAP_XY = SR830CommandInfo("SNAP? 1,2", str, "V, V", "Gleichzeitiges Lesen von X und Y")
-    SNAP_R_THETA = SR830CommandInfo("SNAP? 3,4", str, "V, deg", "Gleichzeitiges Lesen von R und Theta")
-    SNAP_XY_R_TH = SR830CommandInfo("SNAP? 1,2,3,4", str, "V, V, V, deg", "Liest X, Y, R und Theta")
-    SNAP_ALL_MAIN = SR830CommandInfo("SNAP? 1,2,3,4,10,11", str, "V, V, V, deg, V, V", "Liest X, Y, R, Theta, CH1 und CH2")
-    SNAP_AUX_FREQ = SR830CommandInfo("SNAP? 5,6,7,8,9", str, "V, V, V, V, Hz", "Liest Aux1, Aux2, Aux3, Aux4 und RefFreq")
+    SNAP_XY = SR830CommandInfo("SNAP? 1,2", str, "V, V", "Reads X-value and Y-value")
+    SNAP_R_THETA = SR830CommandInfo("SNAP? 3,4", str, "V, deg", "Reads R-value and Theta")
+    SNAP_XY_R_TH = SR830CommandInfo("SNAP? 1,2,3,4", str, "V, V, V, deg", "Reads X, Y, R and Theta")
+    SNAP_ALL_MAIN = SR830CommandInfo("SNAP? 1,2,3,4,10,11", str, "V, V, V, deg, V, V", "Reads X, Y, R, Theta, CH1 and CH2")
+    SNAP_AUX_FREQ = SR830CommandInfo("SNAP? 5,6,7,8,9", str, "V, V, V, V, Hz", "Reads Aux1, Aux2, Aux3, Aux4 and RefFreq")
 
-    SPTS = SR830CommandInfo("SPTS?", int, "points", "Liest Anzahl der gespeicherten Datenpunkte")
-    IDN = SR830CommandInfo("*IDN?", str, "", "Liest die Geräte-Identifikation")
+    SPTS = SR830CommandInfo("SPTS?", int, "points", "Reads number of stored data points")
+    IDN = SR830CommandInfo("*IDN?", str, "", "Reads device identification")
 
     # ERRS? und LIAS? sind keine Konfigurationsbefehle, sondern reine Statusabfragen.
     # Sie liefern interne Zustandsbytes des SR830 und werden daher in der API als
@@ -87,19 +87,13 @@ class SR830G:
     #
     # Der eigentliche serielle Austausch passiert in Komunikation.ask_SR830().
     # Diese Klasse hier beschreibt nur die Bedeutung des Befehls und dessen Typ.
-    ERRS = SR830CommandInfo("ERRS?", int, "", "Liest das Error Status Byte")
-    LIAS = SR830CommandInfo("LIAS?", int, "", "Liest das LIA Status Byte")
+    ERRS = SR830CommandInfo("ERRS?", int, "", "Reads das Error Status Byte")
+    LIAS = SR830CommandInfo("LIAS?", int, "", "Reads das LIA Status Byte")
 
     @staticmethod
     def read(command_info, return_type=None):
         """Read from the SR830 using command metadata from this class."""
-        import Komunikation
-        import Log
-
-        actual_type = command_info.type if return_type is None else return_type
-        command_name = getattr(command_info, "command", str(command_info))
-        Log.Log("Send", "SR830", "Running", command_name, "read request", "query")
-        return Komunikation.ask_SR830(command_info, return_type=actual_type)
+        return read(command_info, return_type)
 
     @classmethod
     def all(cls):
@@ -154,23 +148,13 @@ class SR830S:
 
     @staticmethod
     def write(command_info, value):
-        """Write a value to the SR830 using the command metadata."""
-        import Komunikation
-        import Log
-
-        command_name = getattr(command_info, "command", str(command_info))
-        Log.Log("Send", "SR830", "Running", command_name, value, "set value")
-        return Komunikation.send_SR830(command_info, value)
+        """Write a value to the SR830 (value translation happens in send())."""
+        return send(command_info, value)
 
     @staticmethod
     def run(command_info):
         """Execute an action command without value."""
-        import Komunikation
-        import Log
-
-        command_name = getattr(command_info, "command", str(command_info))
-        Log.Log("Send", "SR830", "Running", command_name, "execute", "action command")
-        return Komunikation.send_SR830(command_info, None)
+        return send(command_info, None)
 
     @classmethod
     def all(cls):
@@ -255,6 +239,10 @@ def resolve_sr830_setting(command_name, value_name_or_index):
         return int(value_name_or_index)
     if value_name_or_index in mapping:
         return mapping[value_name_or_index]
+    try:
+        return int(str(value_name_or_index).strip())
+    except ValueError:
+        pass
     for label, index in mapping.items():
         if str(value_name_or_index).strip().lower() == label.lower():
             return index
@@ -277,31 +265,22 @@ class OSTechG:
     LPCA = OSTechCommandInfo("LPCA", float, "uA", "laser photo current actual")
     LPA  = OSTechCommandInfo("LPA", float, "W", "laser power actual")
 
-    # --- Temperature and TEC 1 Actuals (Präfix 1 für Sensor/TEC 1)[cite: 2] ---
-    T1A  = OSTechCommandInfo("1TA", float, "°C", "actual temperature (TEC 1)")
-    T1CA = OSTechCommandInfo("1TCA", float, "mA", "actual current (TEC 1)")
-    T1VA = OSTechCommandInfo("1TVA", float, "V", "actual voltage (TEC 1)")
+    # --- TEC actual values use the controller's literal x selector ---
+    T1A  = OSTechCommandInfo("xTA", float, "°C", "actual temperature (TEC 1)")
+    T1CA = OSTechCommandInfo("xTCA", float, "mA", "actual current (TEC 1)")
+    T1VA = OSTechCommandInfo("xTVA", float, "V", "actual voltage (TEC 1)")
 
     GT   = OSTechCommandInfo("GT", float, "°C", "device temperature (head)")
     GS   = OSTechCommandInfo("GS", int, "", "get status (Bitmask)")
     GM   = OSTechCommandInfo("GM", int, "", "get mode (Bitmask)")
-    GVS  = OSTechCommandInfo("GVS", str, "", "software version")
-    GVN  = OSTechCommandInfo("GVN", str, "", "serial number")
+    GVS  = OSTechCommandInfo("GVS", int, "", "software version")
+    GVN  = OSTechCommandInfo("GVN", int, "", "serial number")
+    GE   = OSTechCommandInfo("GE", int, "", "get error code (see manual chapter 8)")
 
     @staticmethod
     def read(command_info, return_type=None):
         """Read from the OSTech using command metadata from this class."""
-        import Komunikation
-        import Log
-
-        actual_type = command_info.type if return_type is None else return_type
-        command_name = getattr(command_info, "command", str(command_info))
-        Log.Log("Send", "OSTech", "Running", command_name, "read request", "query")
-<<<<<<< HEAD
-        return Komunikation.ask_OSTECH(command_info, return_type=actual_type)
-=======
-        return Komunikation.ask_OSTech(command_info, return_type=actual_type)
->>>>>>> 03be69e3dbcab74f9ba51a4797c1bdd92a339685
+        return read(command_info, return_type)
 
     @classmethod
     def all(cls):
@@ -321,9 +300,14 @@ class OSTechG:
 class OSTechS:
     """Set-only OSTech commands: configuration and action commands[cite: 2]."""
 
-    #LR = OSTechCommandInfo("LR", None, "", "laser run")
-    #LS = OSTechCommandInfo("LS", None, "", "laser stop")
+    # type=bool  -> Schalter: send(cmd, 1) sendet "<cmd>R", send(cmd, 0) sendet "<cmd>S"
+    #               (run(cmd) ohne Wert = Run).  Beispiel: L -> "LR" / "LS".
+    # type=None  -> feste Aktion, wird genau so gesendet (z.B. "LR", "LS", "LGR").
+    L = OSTechCommandInfo("L", bool, "", "laser stop/run (LS / LR)")
+    LR = OSTechCommandInfo("LR", None, "", "laser run")
+    LS = OSTechCommandInfo("LS", None, "", "laser stop")
     LTM = OSTechCommandInfo("LTM", float, "°C", "laser temperature maximum (-99 to 200)")
+    LG = OSTechCommandInfo("LG", bool, "", "gate option (LGR / LGS)")
     LGR = OSTechCommandInfo("LGR", None, "", "gate option run/enable")
     LGS = OSTechCommandInfo("LGS", None, "", "gate option stop/disable")
 
@@ -331,57 +315,61 @@ class OSTechS:
     LCT = OSTechCommandInfo("LCT", float, "mA", "current target")
     LCB = OSTechCommandInfo("LCB", float, "mA", "base or bias current")
     LVC = OSTechCommandInfo("LVC", float, "V", "compliance voltage (1.3 to 6)")
+    LCLM = OSTechCommandInfo("LCLM", float, "mA", "limit for average laser current")
 
     LPCT = OSTechCommandInfo("LPCT", float, "uA", "laser photo current target (0 to 20)")
     LPT  = OSTechCommandInfo("LPT", float, "W", "laser power target")
+    LPCC = OSTechCommandInfo("LPCC", bool, "", "laser photo current control (S/R)")
     LPCCR = OSTechCommandInfo("LPCCR", None, "", "laser photo current control run")
     LPCCS = OSTechCommandInfo("LPCCS", None, "", "laser photo current control stop")
     LPF   = OSTechCommandInfo("LPF", None, "", "laser power fix procedure")
 
+    LMDI = OSTechCommandInfo("LMDI", bool, "", "internal digital modulation (S/R)")
+    LMDX = OSTechCommandInfo("LMDX", bool, "", "external digital modulation (S/R)")
+    LMAX = OSTechCommandInfo("LMAX", bool, "", "external analog modulation (S/R)")
+    LMDXN = OSTechCommandInfo("LMDXN", bool, "", "negate modulation input (R = negate)")
     LMDIR = OSTechCommandInfo("LMDIR", None, "", "internal digital modulation run")
     LMDIS = OSTechCommandInfo("LMDIS", None, "", "internal digital modulation stop")
     LMW = OSTechCommandInfo("LMW", float, "us", "pulse width")
     LMP = OSTechCommandInfo("LMP", float, "us", "pulse period")
     LMDIC = OSTechCommandInfo("LMDIC", int, "", "number of pulses (0 = continuous, 1 = single)")
+    PC = LMDIC  # Alias: "pulse count" im Laser-Menue
 
+    PL = OSTechCommandInfo("PL", bool, "", "pilot laser stop/run (S/R)")
     PLR = OSTechCommandInfo("PLR", None, "", "pilot laser run")
     PLS = OSTechCommandInfo("PLS", None, "", "pilot laser stop")
     PP  = OSTechCommandInfo("PP", int, "", "pilot laser modulation (0 to 16)")
 
-    # --- Temperature Controller TEC 1 (Präfix 1)[cite: 2] ---
-    T1CR = OSTechCommandInfo("1TCR", None, "", "temperature controller 1 run")
-    T1CS = OSTechCommandInfo("1TCS", None, "", "temperature controller 1 stop")
-    T1TT = OSTechCommandInfo("1TT", float, "°C", "temperature target TEC 1")
-    T1CL = OSTechCommandInfo("1TCL", float, "mA", "current limit TEC 1")
+    # --- Temperature controller TEC commands use the literal x selector ---
+    T1C = OSTechCommandInfo("xTC", bool, "", "temperature controller 1 stop/run (S/R)")
+    T1CR = OSTechCommandInfo("xTCR", None, "", "temperature controller 1 run")
+    T1CS = OSTechCommandInfo("xTCS", None, "", "temperature controller 1 stop")
+    T1TT = OSTechCommandInfo("xTT", float, "°C", "temperature target TEC 1")
+    T1TLU = OSTechCommandInfo("xTLU", float, "°C", "upper temperature limit TEC 1")
+    T1TLL = OSTechCommandInfo("xTLL", float, "°C", "lower temperature limit TEC 1")
+    T1CL = OSTechCommandInfo("xTCL", float, "mA", "current limit TEC 1")
     
-    T1CCK = OSTechCommandInfo("1TCCK", float, "", "PID parameter: gain factor TEC 1")
-    T1CCN = OSTechCommandInfo("1TCCN", float, "s", "PID parameter: reset time TEC 1")
-    T1CCV = OSTechCommandInfo("1TCCV", float, "s", "PID parameter: rate time TEC 1")
+    T1CCK = OSTechCommandInfo("xTCCK", float, "", "PID parameter: gain factor TEC 1")
+    T1CCN = OSTechCommandInfo("xTCCN", float, "s", "PID parameter: reset time TEC 1")
+    T1CCV = OSTechCommandInfo("xTCCV", float, "s", "PID parameter: rate time TEC 1")
 
     GF  = OSTechCommandInfo("GF", float, "V", "fan voltage (1.2 to 24)")
     GFD = OSTechCommandInfo("GFD", float, "V", "default fan voltage")
-    GMS8 = OSTechCommandInfo("GMS8", None, "", "set mode bit for binary mode")
-    GMC8 = OSTechCommandInfo("GMC8", None, "", "clear mode bit for standard mode")
+    GXR = OSTechCommandInfo("GXR", None, "", "switch to external (RS232) control")
+    GXS = OSTechCommandInfo("GXS", None, "", "release external control")
+    # Achtung: GMS8/GMC8 schalten den Binaermodus. Komunikation.py verwaltet das selbst.
+    GMS8 = OSTechCommandInfo("GMS8", int, "", "set mode bit for binary mode")
+    GMC8 = OSTechCommandInfo("GMC8", int, "", "clear mode bit for standard mode")
 
     @staticmethod
     def write(command_info, value):
-        """Write a value to the OSTech using the command metadata."""
-        import Komunikation
-        import Log
-
-        command_name = getattr(command_info, "command", str(command_info))
-        Log.Log("Send", "OSTech", "Running", command_name, value, "set value")
-        return Komunikation.send_OSTECH(command_info, value)
+        """Write a value to the OSTech (wire formatting happens in send())."""
+        return send(command_info, value)
 
     @staticmethod
     def run(command_info):
-        """Execute an action command without value."""
-        import Komunikation
-        import Log
-
-        command_name = getattr(command_info, "command", str(command_info))
-        Log.Log("Send", "OSTech", "Running", command_name, "execute", "action command")
-        return Komunikation.send_OSTECH(command_info, None)
+        """Execute an action command without value (bool switches: Run)."""
+        return send(command_info, None)
 
     @classmethod
     def all(cls):
@@ -438,6 +426,82 @@ def _normalize_command(command):
 #
 # So sind Befehlsdefinition und Übertragung sauber voneinander getrennt.
 
+def _ostech_wire(info, value):
+    """Return ``(wire_command, wire_value, reply_type)`` for an OSTech command."""
+    command = info.command
+    if info.type is bool:                       # Schalter -> Suffix R / S
+        if value is None:
+            value = True
+        if isinstance(value, str):
+            value = value.strip().lower() in ("1", "true", "on", "run", "r", "yes")
+        return command + ("R" if value else "S"), None, bool
+    if value is None:
+        reply = info.type if info.type in (int, float, str) else bool
+        return command, None, reply
+    if info.type is int:
+        value = int(round(float(value)))
+    elif info.type is float:
+        value = float(value)
+    return command, value, info.type
+
+
+def _sr830_value(info, value):
+    """Translate GUI text (e.g. "1 s", "Normal") and coerce to the command's type."""
+    if value is None or not hasattr(info, "command"):
+        return value
+    resolved = resolve_sr830_setting(info.command, value)
+    if info.type is int:
+        return int(round(float(resolved)))
+    if info.type is float:
+        return float(resolved)
+    return resolved
+
+
+def _sr830_query_form(info):
+    """Settings are queried by appending '?' (e.g. FREQ -> FREQ?)."""
+    if hasattr(info, "command") and not info.command.endswith("?"):
+        base = info.command.split(" ")[0]
+        return SR830CommandInfo(base + "?", info.type, info.unit, info.description)
+    return info
+
+
+# Feste Aktionsbefehle -> (Zwillings-Schluessel, Sollwert)
+_OSTECH_ACTION_DESIRED = {
+    "LR": ("L", True), "LS": ("L", False),
+    "LGR": ("LG", True), "LGS": ("LG", False),
+    "LMDIR": ("LMDI", True), "LMDIS": ("LMDI", False),
+    "PLR": ("PL", True), "PLS": ("PL", False),
+    "xTCR": ("1TC", True), "xTCS": ("1TC", False),
+}
+
+
+def _record_desired(device, info, wire_command, wire_value):
+    """Tell the digital twin which value was just commanded (Soll) and request a readback (Ist).
+
+    Never raises: a twin problem must not break command sending.
+    """
+    try:
+        import Komunikation
+        import State
+
+        key, desired = None, None
+        if device == "OSTECH":
+            if wire_command in _OSTECH_ACTION_DESIRED:
+                key, desired = _OSTECH_ACTION_DESIRED[wire_command]
+            elif info.type is bool:
+                key, desired = info.command, wire_command.endswith("R")
+            elif wire_value is not None:
+                key, desired = info.command, wire_value
+        elif wire_value is not None:
+            key, desired = info.command, wire_value
+
+        if key is not None and key in Komunikation.readable_settings(device):
+            State.twin_set_desired(device, key, desired)
+            Komunikation.request_settings_refresh(device)
+    except Exception:
+        pass
+
+
 def send(command, value=None):
     """Public API: send any SR830 or OSTech command via the Send layer."""
     import Komunikation
@@ -445,21 +509,21 @@ def send(command, value=None):
 
     command_info = _normalize_command(command)
     command_name = getattr(command_info, "command", str(command_info))
-    
-    # Route to the correct communication function based on the command type
+
     if isinstance(command_info, OSTechCommandInfo):
-        Log.Log("Send", "OSTech", "Running", command_name, value, "set value")
-        return Komunikation.send_OSTECH(command_info, value)
-    else:
-        # Default fallback is SR830
-        Log.Log("Send", "SR830", "Running", command_name, value, "set value")
-        return Komunikation.send_SR830(command_info, value)
+        wire_command, wire_value, reply_type = _ostech_wire(command_info, value)
+        Log.Log("Send", "OSTech", "Running", wire_command, wire_value if wire_value is not None else "", "set value")
+        result = Komunikation.send_OSTECH(wire_command, wire_value, return_type=reply_type)
+        _record_desired("OSTECH", command_info, wire_command, wire_value)
+        return result
+
+    sr_value = _sr830_value(command_info, value)
+    Log.Log("Send", "SR830", "Running", command_name, sr_value, "set value")
+    result = Komunikation.send_SR830(command_info, sr_value)
+    _record_desired("SR830", command_info, command_name, sr_value)
+    return result
 
 
-# read() fragt einen Wert ab.
-# Das ist der Gegenpart zu send(): kein Schreiben, sondern Lesen.
-# Beispiel: SR830G.OUTP_X oder "OUTP? 1".
-# Die Funktion wählt den passenden Kommunikationspfad aus und liefert den gelesenen Wert zurück.
 def read(command, return_type=None):
     """Public API: query any SR830 or OSTech command via the Send layer."""
     import Komunikation
@@ -467,18 +531,22 @@ def read(command, return_type=None):
 
     command_info = _normalize_command(command)
     command_name = getattr(command_info, "command", str(command_info))
-    
+
     if isinstance(command_info, OSTechCommandInfo):
         Log.Log("Send", "OSTech", "Running", command_name, "read request", "query")
         actual_type = command_info.type if return_type is None else return_type
-        return Komunikation.ask_OSTECH(command_info, return_type=actual_type)
-    else:
-        # Default fallback is SR830
-        Log.Log("Send", "SR830", "Running", command_name, "read request", "query")
-        if hasattr(command_info, "command"):
-            actual_type = command_info.type if return_type is None else return_type
-            return Komunikation.ask_SR830(command_info, return_type=actual_type)
-        return Komunikation.ask_SR830(command, return_type=return_type)
+        if actual_type is None:
+            actual_type = bool
+        return Komunikation.ask_OSTECH(command_info.command, return_type=actual_type)
+
+    if hasattr(command_info, "command"):
+        if command_info in dict(SR830S.all()).values():
+            command_info = _sr830_query_form(command_info)
+        Log.Log("Send", "SR830", "Running", command_info.command, "read request", "query")
+        actual_type = command_info.type if return_type is None else return_type
+        return Komunikation.ask_SR830(command_info, return_type=actual_type)
+    Log.Log("Send", "SR830", "Running", command_name, "read request", "query")
+    return Komunikation.ask_SR830(command, return_type=return_type)
 
 
 # set() ist die kurze Form für "einen Wert setzen".
@@ -493,17 +561,7 @@ def set(command, value):
 # Typische Beispiele: Start/Stop, Auto-Funktionen, Aktivieren/Deaktivieren.
 # Diese Befehle sind in der Regel reine Aktionen, keine Konfigurationswerte.
 def run(command):
-    """Public API: execute an action command without a value."""
-    import Log
-
-    command_info = _normalize_command(command)
-    command_name = getattr(command_info, "command", str(command_info))
-    
-    if isinstance(command_info, OSTechCommandInfo):
-        Log.Log("Send", "OSTech", "Running", command_name, "execute", "action command")
-    else:
-        Log.Log("Send", "SR830", "Running", command_name, "execute", "action command")
-        
+    """Public API: execute an action command without a value (bool switches: Run)."""
     return send(command, None)
 
 

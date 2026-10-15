@@ -1,0 +1,9 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-09-18,11:06:12,634,Info,GUI,CLICK,Button clicked,CLICK,,,,▶ Run Logs Script (Log.txt), 
+2026-09-18,11:06:13,451,Info,GUI,CLICK,Button clicked,CLICK,,,,Clear Console, 
+2026-09-18,11:06:15,148,Info,GUI,CLICK,Button clicked,CLICK,,,,🔑, 
+2026-09-18,11:06:26,068,Info,GUI,CLICK,Button clicked,CLICK,,,,Protective googles on?, 
+2026-09-18,11:06:26,732,Info,GUI,CLICK,Button clicked,CLICK,,,,Door-Interlock / Hardware-Interlock closed, 
+2026-09-18,11:06:27,433,Info,GUI,CLICK,Button clicked,CLICK,,,,Beam path secured, 
+2026-09-18,11:06:28,234,Info,GUI,CLICK,Button clicked,CLICK,,,,Laser warning light active & emergency shutdown in reach, 
+2026-09-18,11:06:46,015,Info,SYSTEM,GUI closed,Foreground Shutdown,GUI closed,,,, , 

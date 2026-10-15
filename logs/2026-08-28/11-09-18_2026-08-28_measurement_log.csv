@@ -1,0 +1,16 @@
+Date,Time,Tag,Category,Message,Info,AdditionalInfo,Else
+
+
+
+
+
+
+
+
+
+
+2026-08-28,11:09:18,SESSION,START,HARDWARE, , , 
+2026-08-28,11:09:18.485,SYSTEM,START,Programm gestartet,Version 1.0, , 
+2026-08-28,11:09:18.486,Check Ports vor SR830,Info,Test,Check,SR830, 
+2026-08-28,11:09:19.033,COM3,Info,Test,OpenPort,9600, 
+2026-08-28,11:09:19.034,StartKom,SR830,Try to open Port with BaudRate of ,Check OpenPort,validation needed, 

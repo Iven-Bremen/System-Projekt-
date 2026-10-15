@@ -1,0 +1,14 @@
+Date,Time,Tag,Category,Message,Info,AdditionalInfo,Else
+
+
+
+
+
+
+
+
+
+
+2026-08-28,10:59:27,SESSION,START,HARDWARE, , , 
+2026-08-28,10:59:27.298,SYSTEM,START,Programm gestartet,Version 1.0, , 
+2026-08-28,10:59:27.299,Check Ports vor SR830,Info,Test,Check,SR830, 
