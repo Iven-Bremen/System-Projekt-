@@ -1,0 +1,12 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-10-15,14:43:04,774,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-10-15,14:43:04,774,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-10-15,14:43:04,775,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-10-15,14:43:04,775,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-10-15,14:43:04,784,OUTPUT,TERMINAL,OUTPUT,"['COM5', 'COM4']",,,,,,
+2026-10-15,14:43:04,784,Sys,SYSTEM,Info,COM-Port Scan,"['COM5', 'COM4']",Startup,,,,
+2026-10-15,14:43:04,785,Calc,CALCULATION,Info,calculation ready,No calculations configured,STARTER,,,,
+2026-10-15,14:43:06,393,Gui,GUI,Start,Starting GUI,,,,,,
+2026-10-15,14:43:06,415,OUTPUT,TERMINAL,OUTPUT,"['COM5', 'COM4']",,,,,,
+2026-10-15,14:43:06,415,Sys,SYSTEM,Info,Port check after GUI startup,"['COM5', 'COM4']",Active ports,,,,
+2026-10-15,14:43:40,935,Gui,Button,Info,Button clicked,🔌 Connect Lock-In,,,,,

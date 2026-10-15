@@ -1,0 +1,12 @@
+Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalValue,AdditionalInfo,Else
+2026-10-15,14:38:39,012,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-10-15,14:38:39,012,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-10-15,14:38:39,013,SESSION,SYSTEM,HARDWARE,Session started,,,,,,
+2026-10-15,14:38:39,014,Sys,START,Start,Programm gestartet,Version 1.0,,,,,
+2026-10-15,14:38:39,027,OUTPUT,TERMINAL,OUTPUT,"['COM5', 'COM4']",,,,,,
+2026-10-15,14:38:39,028,Sys,SYSTEM,Info,COM-Port Scan,"['COM5', 'COM4']",Startup,,,,
+2026-10-15,14:38:39,029,Calc,CALCULATION,Info,calculation ready,No calculations configured,STARTER,,,,
+2026-10-15,14:38:42,069,Gui,GUI,Start,Starting GUI,,,,,,
+2026-10-15,14:38:42,086,OUTPUT,TERMINAL,OUTPUT,"['COM5', 'COM4']",,,,,,
+2026-10-15,14:38:42,086,Sys,SYSTEM,Info,Port check after GUI startup,"['COM5', 'COM4']",Active ports,,,,
+2026-10-15,14:39:40,750,Sys,SYSTEM,End,Programm beendet,Benutzerabbruch,,,,,
