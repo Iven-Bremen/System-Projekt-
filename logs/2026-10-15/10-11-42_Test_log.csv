@@ -22,3 +22,4 @@ Date,Time,Ms,Category,Tag,State,Message,Value,Info,AdditionalMessage,AdditionalV
 2026-10-15,10:15:56,451,Gui,Button,Info,Button clicked,Run Calculations,,,,,
 2026-10-15,10:16:05,138,OUTPUT,TERMINAL,OUTPUT,"[Hinweis] Referenz (49 Punkte, 0.5-1500 Hz) und Probe (49 Punkte, 0.5-1500 Hz) nutzen unterschiedliche Frequenzstützstellen. Als gemeinsames Gitter wurden die 49 Probe-Stützstellen im Überlappungsbereich (0.5-1500 Hz) verwendet; die Referenz-Phase wurde linear darauf interpoliert.",,,,,,
 2026-10-15,10:16:05,648,Gui,Plot,Info,Plot saved,2026.10.15_10-16-05.png,,,,,
+2026-10-15,10:19:47,593,Sys,GUI,Info,Foreground Shutdown,GUI closed,,,,,
